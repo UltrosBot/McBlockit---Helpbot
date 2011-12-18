@@ -402,7 +402,10 @@ class Bot(irc.IRCClient):
                         try:
                             port = int(port)
                         except:
-                            self.sendmsg(channel, "%s is an invalid port number." % port)
+                            if authorized:
+                                self.sendmsg(channel, "%s is an invalid port number." % port)
+                            else:
+                                self.sendnotice(user, "%s is an invalid port number." % port)
                             derp = 1
                     else:
                         server, port = ip, 25565
@@ -430,10 +433,16 @@ class Bot(irc.IRCClient):
                                         if ord(character) in range(128) and not ord(character) == 0:
                                             donestr = donestr + character.encode("ascii", "ignore")
                                     finished.append(donestr.strip("\x00"))
-                                
-                                self.sendmsg(channel, "Server info: %s (%s/%s)" % (finished[0], finished[1], finished[2]))
+                            
+                                if authorized:
+                                    self.sendmsg(channel, "Server info: %s (%s/%s)" % (finished[0], finished[1], finished[2]))
+                                else:
+                                    self.sendnotice(user, "Server info: %s (%s/%s)" % (finished[0], finished[1], finished[2]))
                             else:
-                                self.sendmsg(channel, "That doesn't appear to be a Minecraft server.")
+                                if authorized:
+                                    self.sendmsg(channel, "That doesn't appear to be a Minecraft server.")
+                                else:
+                                    self.sendnotice(user, "That doesn't appear to be a Minecraft server.")
                         except Exception as e:
                             self.sendmsg(channel, "Error: %s" % e)
         elif msg.startswith("??"):
