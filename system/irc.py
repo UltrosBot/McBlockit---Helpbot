@@ -635,7 +635,7 @@ class Bot(irc.IRCClient):
                     except IndexError:
                         self.prnt("URL %s has no title. Parse?" % url)
             except Exception as e:
-                self.sendmsg(target, "Error: %s" % e)
+                # self.sendmsg(target, "Error: %s" % e)
                 print "Error: %s" % e
         
     def squit(self, reason = ""):
