@@ -1,5 +1,5 @@
 import sys, os, random
-import thread, socket
+import thread, socket, re, htmlentitydefs
 import urllib2 as urllib
 
 from utils import *
@@ -9,7 +9,6 @@ from twisted.internet import reactor, protocol
 from twisted.internet.protocol import Factory
 from twisted.words.protocols import irc
 from colours import *
-from xml.etree import ElementTree
 
 from system.constants import *
 from system import faq
@@ -200,7 +199,9 @@ class Bot(irc.IRCClient):
         elif user in self.authorized.keys():
             authorized = True
             authtype = 2
-        if msg.startswith(self.control_char):
+        if msg.startswith("http://") or msg.startswith("https://"):
+            thread.start_new_thread(self.pagetitle, (channel, msg.split(" ")[0]))
+        elif msg.startswith(self.control_char):
             command = msg.split(" ")[0].strip(self.control_char)
             arguments = msg.split(" ")
             if command == "help":
@@ -571,8 +572,6 @@ class Bot(irc.IRCClient):
                             self.sendnotice(user, "Please provide a help topic to remove. For example: ??- help")
                     else:
                         self.sendnotice(user, "You do not have access to this command.")
-        if msg.startswith("http://") or msg.startswith("https://"):
-            thread.start_new_thread(self.pagetitle, (channel, msg.split(" ")[0]))
         # Flush the logfile
         self.flush()
         # Log the message
@@ -635,8 +634,9 @@ class Bot(irc.IRCClient):
                             self.sendmsg(target, ("%s (%s)" % (error, domain)))
                     except IndexError:
                         self.prnt("URL %s has no title. Parse?" % url)
-            except:
-                pass
+            except Exception as e:
+                self.sendmsg(target, "Error: %s" % e)
+                print "Error: %s" % e
         
     def squit(self, reason = ""):
         if not reason == "":
@@ -895,8 +895,31 @@ class Bot(irc.IRCClient):
         self.msg(user, message)
         # Flush the logfile
         self.flush()
-    
-    # Don't use this directy, use sendnotice
+
+    def unescape_charref(self, ref):
+        name = ref[2:-1]
+        base = 10
+        if name.startswith("x"):
+            name = name[1:]
+            base = 16
+        return unichr(int(name, base))
+
+    def replace_entities(self, match):
+        ent = match.group()
+        if ent[1] == "#":
+            return self.unescape_charref(ent)
+
+        repl = htmlentitydefs.name2codepoint.get(ent[1:-1])
+        if repl is not None:
+            repl = unichr(repl)
+        else:
+            repl = ent
+        return repl
+
+    def unescape(self, data):
+        return re.sub(r"&#?[A-Za-z0-9]+?;", self.replace_entities, data)
+
+        # Don't use this directy, use sendnotice
     def sendntc(self, user, message):
         self.prnt("--> -%s- %s" % (user, message))
         self.notice(user, message)
