@@ -18,9 +18,13 @@ from depends import mcbans_api as mcbans
 
 class Bot(irc.IRCClient):
 
+    # Extensions the page title parser shouldn't parse
+    notParse = ["png", "jpg", "jpeg", "tiff", "bmp", "ico", "gif"]
+
     # Channels
     joinchans = []
     channels = []
+    stfuchans = []
     
     chanlist = {}
     
@@ -212,7 +216,7 @@ class Bot(irc.IRCClient):
                     elif arguments[1] == "auth":
                         self.sendnotice(user, "Auth is managed with %slogin and %slogout." % (self.control_char, self.control_char))
                         self.sendnotice(user, "If you change your nick, you will be logged out automatically.")
-                        self.sendnotice(user, "Channel ops also have some access." % (self.control_char, self.control_char))
+                        self.sendnotice(user, "Channel ops also have some access.")
                     elif arguments[1] == "login":
                         self.sendnotice(user, "Syntax: %slogin <password>" % self.control_char)
                         self.sendnotice(user, "Logs you into the bot using a password set by the bot owner.")
@@ -389,10 +393,6 @@ class Bot(irc.IRCClient):
                                 self.sendnotice(user, "Total bans: %s" % data["total"])
                 else:
                     self.sendnotice(user, "Syntax: %slookup <user> [type]" % self.control_char)
-            elif command == "msg":
-                self.sendnotice(user, "The msg command is under construction!")
-            elif command == "mcbmsg":
-                self.sendnotice(user, "The mcbmsg command is under construction!")
             elif command == "ping":
                 derp = 0
                 if len(arguments) > 1:
@@ -409,7 +409,7 @@ class Bot(irc.IRCClient):
                             derp = 1
                     else:
                         server, port = ip, 25565
-                    if derp == 0:
+                    if derp is 0:
                         try:
                             s = socket.socket(
                                 socket.AF_INET, socket.SOCK_STREAM)
@@ -423,7 +423,6 @@ class Bot(irc.IRCClient):
                                 s.close()
                                 data = data[3:]
                                 finlist = data.split("\xA7")
-                                lastelement = ""
 
                                 finished = []
 
@@ -445,13 +444,33 @@ class Bot(irc.IRCClient):
                                     self.sendnotice(user, "That doesn't appear to be a Minecraft server.")
                         except Exception as e:
                             self.sendmsg(channel, "Error: %s" % e)
+            elif command == "stfu":
+                if authorized:
+                    if not channel in self.stfuchans:
+                        self.stfuchans.append(channel)
+                        self.sendnotice(user, "No longer parsing page titles in %s ." % channel)
+                    else:
+                        self.sendnotice(user, "Already stfu'd in %s ." % channel)
+                else:
+                    self.sendnotice(user, "You do not have access to this command.")
+            elif command == "speak":
+                if authorized:
+                    if channel in self.stfuchans:
+                        self.stfuchans.remove(channel)
+                        self.sendnotice(user, "Parsing page titles in %s again." % channel)
+                    else:
+                        self.sendnotice(user, "Already parsing page titles in %s ." % channel)
+                else:
+                    self.sendnotice(user, "You do not have access to this command.")
+            elif command == "whois":
+                self.sendnotice(user, self.whois("g"))
         elif msg.startswith("??"):
             parts = msg.split(" ")
             if len(parts) > 1:
                 if parts[0] == "??": # Check in channel
                     if len(parts) > 1:
                         data = self.faq.get(parts[1].lower())
-                        if(data[0]):
+                        if data[0]:
                             for element in data[1]:
                                 self.sendmsg(channel, "(%s) %s" % (parts[1].lower(), element))
                         else:
@@ -464,7 +483,7 @@ class Bot(irc.IRCClient):
                 elif parts[0] == "??>": # Check in channel with target
                     if len(parts) > 2:
                         data = self.faq.get(parts[2].lower())
-                        if(data[0]):
+                        if data[0]:
                             for element in data[1]:
                                 self.sendmsg(channel, "%s: (%s) %s" % (parts[1], parts[2].lower(), element))
                         else:
@@ -477,7 +496,7 @@ class Bot(irc.IRCClient):
                 elif parts[0] == "??>>": # Check in message to target
                     if len(parts) > 2:
                         data = self.faq.get(parts[2].lower())
-                        if(data[0]):
+                        if data[0]:
                             for element in data[1]:
                                 self.sendmsg(parts[1], "(%s) %s" % (parts[2].lower(), element))
                             self.sendnotice(user, "Topic '%s' has been sent to %s." % (parts[2].lower(), parts[1]))
@@ -491,7 +510,7 @@ class Bot(irc.IRCClient):
                 elif parts[0] == "??<": # Check in message to self
                     if len(parts) > 1:
                         data = self.faq.get(parts[1].lower())
-                        if(data[0]):
+                        if data[0]:
                             for element in data[1]:
                                 self.sendnotice(user, "(%s) %s" % (parts[1].lower(), element))
                         else:
@@ -506,7 +525,7 @@ class Bot(irc.IRCClient):
                         if len(parts) > 2:
                             data = self.faq.set(parts[1].lower(), " ".join(parts[2:]), MODE_APPEND)
                             self.faq.listentries()
-                            if(data[0]):
+                            if data[0]:
                                 self.sendnotice(user, "Successfully added to the topic: %s" % parts[1].lower())
                             else:
                                 self.sendnotice(user, "Unable to add to the topic: %s" % parts[1].lower())
@@ -523,7 +542,7 @@ class Bot(irc.IRCClient):
                         if len(parts) > 2:
                             data = self.faq.set(parts[1].lower(), " ".join(parts[2:]), MODE_REPLACE)
                             self.faq.listentries()
-                            if(data[0]):
+                            if data[0]:
                                 self.sendnotice(user, "Successfully replaced topic: %s" % parts[1].lower())
                             else:
                                 self.sendnotice(user, "Unable to replace the topic: %s" % parts[1].lower())
@@ -540,7 +559,6 @@ class Bot(irc.IRCClient):
                         if len(parts) > 1:
                             data = self.faq.set(parts[1].lower(), '', MODE_REMOVE)
                             self.faq.listentries()
-                            if(data[0]):
                                 self.sendnotice(user, "Successfully removed the topic: %s" % parts[1].lower())
                             else:
                                 self.sendnotice(user, "Unable to remove the topic: %s" % parts[1].lower())
@@ -552,10 +570,72 @@ class Bot(irc.IRCClient):
                             self.sendnotice(user, "Please provide a help topic to remove. For example: ??- help")
                     else:
                         self.sendnotice(user, "You do not have access to this command.")
+        if msg.startswith("http://") or msg.startswith("https://"):
+        thread.start_new_thread(self.pagetitle, (channel, msg.split(" ")[0]))
         # Flush the logfile
         self.flush()
         # Log the message
         self.prnt("<%s:%s> %s" % (user, channel, msg))
+
+    def pagetitle(self, target, url):
+        if not target in self.stfuchans:
+            try:
+                if not url.split(".")[-1] in self.notParse:
+                    isHTTPS = 0
+                    domain = ""
+                    if url.startswith("http://"):
+                        domain = url.split("http://")[1].split("/")[0]
+                        isHTTPS = 0
+                    elif url.startswith("https://"):
+                        domain = url.split("https://")[1].split("/")[0]
+                        isHTTPS = 1
+                    try:
+                        request = urllib.Request(url, "", {"User-Agent": "Mozilla/5.0 (X11; U; Linux i686) Gecko/20071127 Firefox/2.0.0.11"})
+                        response = urllib.urlopen(request)
+                        html = response.read()
+                        title = html.split("<title>")[1].split("</title>")[0]
+                        data = string.replace(title, "\n", "")
+                        data = string.replace(data, "\t\t\t", "\t")
+                        data = string.replace(data, "\t\t", "\t")
+                        data = string.replace(data, "\t", " ")
+                        while "  " in data:
+                            data = string.replace(data, "  ", " ")
+                        while data.startswith(" "):
+                            data = data[1:]
+                        data = string.replace(self.unescape(data), "  ", " ")
+                        if not isHTTPS == 1:
+                            self.sendmsg(target, ("\"%s\" at %s" % (data, domain)))
+                        else:
+                            self.sendmsg(target, ("\"%s\" (Secure) at %s" % (data, domain)))
+                    except urllib.HTTPError as error:
+                        if str(error) == "HTTP Error 405: Method Not Allowed":
+                            try:
+                                response = urllib.urlopen(url)
+                                html = response.read()
+                                title = html.split("<title>")[1].split("</title>")[0]
+                                data = string.replace(title, "\n", "")
+                                data = string.replace(data, "\t\t\t", "\t")
+                                data = string.replace(data, "\t\t", "\t")
+                                data = string.replace(data, "\t", " ")
+                                while "  " in data:
+                                    data = string.replace(data, "  ", " ")
+                                while data.startswith(" "):
+                                    data = data[1:]
+                                data = string.replace(self.unescape(data), "  ", " ")
+                                if not isHTTPS == 1:
+                                    self.sendmsg(target, ("\"%s\" at %s" % (data, domain)))
+                                else:
+                                    self.sendmsg(target, ("\"%s\" (Secure) at %s" % (data, domain)))
+                            except urllib.HTTPError as error:
+                                self.sendmsg(target, ("%s (%s)" % (error, domain)))
+                            except IndexError:
+                                self.prnt("URL %s has no title. Parse?" % url)
+                        else:
+                            self.sendmsg(target, ("%s (%s)" % (error, domain)))
+                    except IndexError:
+                        self.prnt("URL %s has no title. Parse?" % url)
+            except:
+                pass
         
     def squit(self, reason = ""):
         if not reason == "":
