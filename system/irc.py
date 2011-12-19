@@ -559,7 +559,7 @@ class Bot(irc.IRCClient):
                         if len(parts) > 1:
                             data = self.faq.set(parts[1].lower(), '', MODE_REMOVE)
                             self.faq.listentries()
-                                self.sendnotice(user, "Successfully removed the topic: %s" % parts[1].lower())
+                            self.sendnotice(user, "Successfully removed the topic: %s" % parts[1].lower())
                             else:
                                 self.sendnotice(user, "Unable to remove the topic: %s" % parts[1].lower())
                                 if data[1] is ERR_NO_SUCH_ENTRY:
