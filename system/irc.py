@@ -572,7 +572,7 @@ class Bot(irc.IRCClient):
                     else:
                         self.sendnotice(user, "You do not have access to this command.")
         if msg.startswith("http://") or msg.startswith("https://"):
-        thread.start_new_thread(self.pagetitle, (channel, msg.split(" ")[0]))
+            thread.start_new_thread(self.pagetitle, (channel, msg.split(" ")[0]))
         # Flush the logfile
         self.flush()
         # Log the message
