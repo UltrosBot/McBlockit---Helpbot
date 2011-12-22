@@ -187,6 +187,9 @@ class Bot(irc.IRCClient):
         # Define the userhost
         userhost = user
         # Get the username
+        send = self.sendnotice
+        if channel == self.nickname:
+            send = self.sendmsg
         user = user.split("!", 1)[0]
         authorized = False
         authtype = 0
@@ -206,65 +209,65 @@ class Bot(irc.IRCClient):
             arguments = msg.split(" ")
             if command == "help":
                 if len(arguments) < 2:
-                    self.sendnotice(user, "Syntax: %shelp <topic>" % self.control_char)
-                    self.sendnotice(user, "Available topics: about, login, logout, lookup")
+                    send(user, "Syntax: %shelp <topic>" % self.control_char)
+                    send(user, "Available topics: about, login, logout, lookup")
                     if authorized:
-                        self.sendnotice(user, "Admin topics: raw, quit")
+                        send(user, "Admin topics: raw, quit")
                 else:
                     if arguments[1] == "about":
-                        self.sendnotice(user, "I'm the #MCBans IRC helper bot.")
-                        self.sendnotice(user, "I live in #mcbans on irc.esper.net")
+                        send(user, "I'm the #MCBans IRC helper bot.")
+                        send(user, "I live in #mcbans on irc.esper.net")
                     elif arguments[1] == "auth":
-                        self.sendnotice(user, "Auth is managed with %slogin and %slogout." % (self.control_char, self.control_char))
-                        self.sendnotice(user, "If you change your nick, you will be logged out automatically.")
-                        self.sendnotice(user, "Channel ops also have some access.")
+                        send(user, "Auth is managed with %slogin and %slogout." % (self.control_char, self.control_char))
+                        send(user, "If you change your nick, you will be logged out automatically.")
+                        send(user, "Channel ops also have some access.")
                     elif arguments[1] == "login":
-                        self.sendnotice(user, "Syntax: %slogin <password>" % self.control_char)
-                        self.sendnotice(user, "Logs you into the bot using a password set by the bot owner.")
-                        self.sendnotice(user, "See %shelp auth for more information." % self.control_char)
+                        send(user, "Syntax: %slogin <password>" % self.control_char)
+                        send(user, "Logs you into the bot using a password set by the bot owner.")
+                        send(user, "See %shelp auth for more information." % self.control_char)
                     elif arguments[1] == "logout":
-                        self.sendnotice(user, "Syntax: %slogout" % self.control_char)
-                        self.sendnotice(user, "Logs you out of the bot, provided you were already logged in.")
-                        self.sendnotice(user, "See %shelp auth for more information." % self.control_char)
+                        send(user, "Syntax: %slogout" % self.control_char)
+                        send(user, "Logs you out of the bot, provided you were already logged in.")
+                        send(user, "See %shelp auth for more information." % self.control_char)
                     elif arguments[1] == "lookup":
-                        self.sendnotice(user, "Syntax: %slookup <user> [type]" % self.control_char)
-                        self.sendnotice(user, "Used to make a lookup on the MCBans site, using the v2 API.")
-                        self.sendnotice(user, "Type is optional, but it can be local, global, minimal or all. If it is missing, it is presumed to be minimal.")
+                        send(user, "Syntax: %slookup <user> [type]" % self.control_char)
+                        send(user, "Used to make a lookup on the MCBans site, using the v2 API.")
+                        send(user, "Type is optional, but it can be local, global, minimal or all. If it is missing, it is presumed to be minimal.")
                     elif arguments[1] == "ping":
-                        self.sendnotice(user, "Syntax: %sping <ip>" % self.control_char)
-                        self.sendnotice(user, "Retrieves the server information from a Beta/Release server.")
-                        self.sendnotice(user, "Can be useful to check if a server is accepting connections.")
+                        send(user, "Syntax: %sping <ip>" % self.control_char)
+                        send(user, "Retrieves the server information from a Beta/Release server.")
+                        send(user, "Can be useful to check if a server is accepting connections.")
                     elif user in self.authorized.keys():
                         if arguments[1] == "raw":
-                            self.sendnotice(user, "Syntax: %sraw <data>" % self.control_char)
-                            self.sendnotice(user, "Sends raw data to the server.")
+                            send(user, "Syntax: %sraw <data>" % self.control_char)
+                            send(user, "Sends raw data to the server.")
                         elif arguments[1] == "quit":
-                            self.sendnotice(user, "Syntax: %squit [message]" % self.control_char)
-                            self.sendnotice(user, "Makes the bot quit, with an optional user-defined message.")
-                            self.sendnotice(user, "If no message is defined, uses a random quote.")
+                            send(user, "Syntax: %squit [message]" % self.control_char)
+                            send(user, "Makes the bot quit, with an optional user-defined message.")
+                            send(user, "If no message is defined, uses a random quote.")
                     else:
-                        self.sendnotice(user, "Unknown help topic: %s" % arguments[1])
+                        send(user, "Unknown help topic: %s" % arguments[1])
             elif command == "login":
                 if len(arguments) < 2:
-                    self.sendnotice(user, "Syntax: %slogin <password>" % self.control_char)
-                    self.sendnotice(user, "The password is set by the owner of the bot.")
+                    send(user, "Syntax: %slogin <password>" % self.control_char)
+                    send(user, "The password is set by the owner of the bot.")
                 else:
                     passw = arguments[1]
                     if passw == self.loginpass:
                         self.authorized[user] = userhost.split("!", 1)[1]
-                        self.sendnotice(user, "You have been logged in successfully.")
+                        send(user, "You have been logged in successfully.")
                         self.prnt("%s logged in successfully." % user)
                     else:
-                        self.sendnotice(user, "Incorrect password! Check for case and spacing!")
+                        send(user, "Incorrect password! Check for case and spacing!")
                         self.prnt("%s tried to log in with an invalid password!" % user)
                     self.flush()
                     return
             elif command == "logout":
                 if user in self.authorized.keys():
                     del self.authorized[user]
-                    self.sendnotice(user, "You have been logged out successfully.")
+                    send(user, "You have been logged out successfully.")
                 else:
-                    self.sendnotice(user, "You were never logged in. Please note that you are logged out automatically when you nick.")
+                    send(user, "You were never logged in. Please note that you are logged out automatically when you nick.")
             elif command == "quit":
                 if authorized and authtype > 1:
                     if len(arguments) < 2:
@@ -272,22 +275,25 @@ class Bot(irc.IRCClient):
                     else:
                         self.squit(" ".join(arguments[1:]))
                 else:
-                    self.sendnotice(user, "You do not have access to this command.")
+                    send(user, "You do not have access to this command.")
             elif command == "raw":
                 if authorized and authtype > 1:
                     if not len(arguments) < 2:
-                        self.sendnotice(user, "Done!")
+                        send(user, "Done!")
                         self.sendLine(" ".join(arguments[1:]))
                     else:
-                        self.sendnotice(user, "Syntax: %sraw <data>" % self.control_char)
+                        send(user, "Syntax: %sraw <data>" % self.control_char)
                 else:
-                    self.sendnotice(user, "You do not have access to this command.")
+                    send(user, "You do not have access to this command.")
             elif command == "lookup":
                 if len(arguments) > 1:
                     data = self.mcb.lookup(arguments[1], user)
                     try:
                         error = data["error"]
-                        self.sendmsg(channel, "Error: %s" % data["error"])
+                        if authorized:
+                            self.sendmsg(channel, "Error: %s" % data["error"])
+                        else:
+                            send(user, "Error: %s" % data["error"])
                     except:
                         if len(arguments) > 2:
                             type = arguments[2]
@@ -302,14 +308,14 @@ class Bot(irc.IRCClient):
                                     else:
                                         self.sendmsg(channel, "No local bans.")
                                 else:
-                                    self.sendnotice(user, "Listing local bans for %s..." % arguments[1])
+                                    send(user, "Listing local bans for %s..." % arguments[1])
                                     if len(data["local"]) > 0:
                                         for element in data["local"]:
                                             server = element.split(" .:. ")[0].encode("ascii", "ignore")
                                             reason = element.split(" .:. ")[1].encode("ascii", "ignore")
-                                            self.sendnotice(user, "%s: %s" % (server, reason.decode('string_escape')))
+                                            send(user, "%s: %s" % (server, reason.decode('string_escape')))
                                     else:
-                                        self.sendnotice(user, "No local bans.")
+                                        send(user, "No local bans.")
                             elif type == "global":
                                 if authorized:
                                     self.sendmsg(channel, "Listing global bans for %s..." % arguments[1])
@@ -321,21 +327,21 @@ class Bot(irc.IRCClient):
                                     else:
                                         self.sendmsg(channel, "No global bans.")
                                 else:
-                                    self.sendnotice(user, "Listing global bans for %s..." % arguments[1])
+                                    send(user, "Listing global bans for %s..." % arguments[1])
                                     if len(data["global"]) > 0:
                                         for element in data["global"]:
                                             server = element.split(" .:. ")[0].encode("ascii", "ignore")
                                             reason = element.split(" .:. ")[1].encode("ascii", "ignore")
-                                            self.sendmsg(channel, "%s: %s" % (server, reason.decode('string_escape')))
+                                            send(channel, "%s: %s" % (server, reason.decode('string_escape')))
                                     else:
-                                        self.sendnotice(user, "No global bans.")
+                                        send(user, "No global bans.")
                             elif type == "minimal":
                                 if authorized:
                                     self.sendmsg(channel, "Reputation for %s: %.2f/10" % (arguments[1], data["reputation"]))
                                     self.sendmsg(channel, "Total bans: %s" % data["total"])
                                 else:
-                                    self.sendnotice(user, "Reputation for %s: %.2f/10" % (arguments[1], data["reputation"]))
-                                    self.sendnotice(user, "Total bans: %s" % data["total"])
+                                    send(user, "Reputation for %s: %.2f/10" % (arguments[1], data["reputation"]))
+                                    send(user, "Total bans: %s" % data["total"])
                             elif type == "all":
                                 if authorized:
                                     self.sendmsg(channel, "Listing everything for %s..." % arguments[1])
@@ -358,42 +364,42 @@ class Bot(irc.IRCClient):
                                     else:
                                         self.sendmsg(channel, "No global bans.")
                                 else:
-                                    self.sendnotice(user, "Listing everything for %s..." % arguments[1])
-                                    self.sendnotice(user, "Listing everything for %s..." % arguments[1])
-                                    self.sendnotice(user, "Reputation for %s: %.2f/10" % (arguments[1], data["reputation"]))
-                                    self.sendnotice(user, "Total bans: %s" % data["total"])
-                                    self.sendnotice(user, "Listing local bans for %s..." % arguments[1])
+                                    send(user, "Listing everything for %s..." % arguments[1])
+                                    send(user, "Listing everything for %s..." % arguments[1])
+                                    send(user, "Reputation for %s: %.2f/10" % (arguments[1], data["reputation"]))
+                                    send(user, "Total bans: %s" % data["total"])
+                                    send(user, "Listing local bans for %s..." % arguments[1])
                                     if len(data["local"]) > 0:
                                         for element in data["local"]:
                                             server = element.split(" .:. ")[0].encode("ascii", "ignore")
                                             reason = element.split(" .:. ")[1].encode("ascii", "ignore")
-                                            self.sendnotice(user, "%s: %s" % (server, reason.decode('string_escape')))
+                                            send(user, "%s: %s" % (server, reason.decode('string_escape')))
                                     else:
-                                        self.sendnotice(user, "No local bans.")
-                                    self.sendnotice(user, "Listing global bans for %s..." % arguments[1])
+                                        send(user, "No local bans.")
+                                    send(user, "Listing global bans for %s..." % arguments[1])
                                     if len(data["global"]) > 0:
                                         for element in data["global"]:
                                             server = element.split(" .:. ")[0].encode("ascii", "ignore")
                                             reason = element.split(" .:. ")[1].encode("ascii", "ignore")
-                                            self.sendnotice(user, "%s: %s" % (server, reason.decode('string_escape')))
+                                            send(user, "%s: %s" % (server, reason.decode('string_escape')))
                                     else:
-                                        self.sendnotice(user, "No global bans.")
+                                        send(user, "No global bans.")
                             else:
                                 if authorized:
                                     self.sendmsg(channel, "Reputation for %s: %.2f/10" % (arguments[1], data["reputation"]))
                                     self.sendmsg(channel, "Total bans: %s" % data["total"])
                                 else:
-                                    self.sendnotice(user, "Reputation for %s: %.2f/10" % (arguments[1], data["reputation"]))
-                                    self.sendnotice(user, "Total bans: %s" % data["total"])
+                                    send(user, "Reputation for %s: %.2f/10" % (arguments[1], data["reputation"]))
+                                    send(user, "Total bans: %s" % data["total"])
                         else:
                             if authorized:
                                 self.sendmsg(channel, "Reputation for %s: %.2f/10" % (arguments[1], data["reputation"]))
                                 self.sendmsg(channel, "Total bans: %s" % data["total"])
                             else:
-                                self.sendnotice(user, "Reputation for %s: %.2f/10" % (arguments[1], data["reputation"]))
-                                self.sendnotice(user, "Total bans: %s" % data["total"])
+                                send(user, "Reputation for %s: %.2f/10" % (arguments[1], data["reputation"]))
+                                send(user, "Total bans: %s" % data["total"])
                 else:
-                    self.sendnotice(user, "Syntax: %slookup <user> [type]" % self.control_char)
+                    send(user, "Syntax: %slookup <user> [type]" % self.control_char)
             elif command == "ping":
                 derp = 0
                 if len(arguments) > 1:
@@ -406,7 +412,7 @@ class Bot(irc.IRCClient):
                             if authorized:
                                 self.sendmsg(channel, "%s is an invalid port number." % port)
                             else:
-                                self.sendnotice(user, "%s is an invalid port number." % port)
+                                send(user, "%s is an invalid port number." % port)
                             derp = 1
                     else:
                         server, port = ip, 25565
@@ -437,34 +443,35 @@ class Bot(irc.IRCClient):
                                 if authorized:
                                     self.sendmsg(channel, "Server info: %s (%s/%s)" % (finished[0], finished[1], finished[2]))
                                 else:
-                                    self.sendnotice(user, "Server info: %s (%s/%s)" % (finished[0], finished[1], finished[2]))
+                                    send(user, "Server info: %s (%s/%s)" % (finished[0], finished[1], finished[2]))
                             else:
                                 if authorized:
                                     self.sendmsg(channel, "That doesn't appear to be a Minecraft server.")
                                 else:
-                                    self.sendnotice(user, "That doesn't appear to be a Minecraft server.")
+                                    send(user, "That doesn't appear to be a Minecraft server.")
                         except Exception as e:
-                            self.sendmsg(channel, "Error: %s" % e)
+                            if authorized:
+                                self.sendmsg(channel, "Error: %s" % e)
+                            else:
+                                send(user, "Error: %s" % e)
             elif command == "stfu":
                 if authorized:
                     if not channel in self.stfuchans:
                         self.stfuchans.append(channel)
-                        self.sendnotice(user, "No longer parsing page titles in %s ." % channel)
+                        send(user, "No longer parsing page titles in %s ." % channel)
                     else:
-                        self.sendnotice(user, "Already stfu'd in %s ." % channel)
+                        send(user, "Already stfu'd in %s ." % channel)
                 else:
-                    self.sendnotice(user, "You do not have access to this command.")
+                    send(user, "You do not have access to this command.")
             elif command == "speak":
                 if authorized:
                     if channel in self.stfuchans:
                         self.stfuchans.remove(channel)
-                        self.sendnotice(user, "Parsing page titles in %s again." % channel)
+                        send(user, "Parsing page titles in %s again." % channel)
                     else:
-                        self.sendnotice(user, "Already parsing page titles in %s ." % channel)
+                        send(user, "Already parsing page titles in %s ." % channel)
                 else:
-                    self.sendnotice(user, "You do not have access to this command.")
-            elif command == "whois":
-                self.sendnotice(user, self.whois("g"))
+                    send(user, "You do not have access to this command.")
         elif msg.startswith("??"):
             parts = msg.split(" ")
             if len(parts) > 1:
@@ -476,11 +483,11 @@ class Bot(irc.IRCClient):
                                 self.sendmsg(channel, "(%s) %s" % (parts[1].lower(), element))
                         else:
                             if data[1] is ERR_NO_SUCH_ENTRY:
-                                self.sendnotice(user, "No such entry: %s" % parts[1].lower())
+                                send(user, "No such entry: %s" % parts[1].lower())
                             else:
-                                self.sendnotice(user, "Unable to load entry: %s" % parts[1].lower())
+                                send(user, "Unable to load entry: %s" % parts[1].lower())
                     else:
-                        self.sendnotice(user, "Please provide a help topic. For example: ?? help")
+                        send(user, "Please provide a help topic. For example: ?? help")
                 elif parts[0] == "??>": # Check in channel with target
                     if len(parts) > 2:
                         data = self.faq.get(parts[2].lower())
@@ -489,89 +496,89 @@ class Bot(irc.IRCClient):
                                 self.sendmsg(channel, "%s: (%s) %s" % (parts[1], parts[2].lower(), element))
                         else:
                             if data[1] is ERR_NO_SUCH_ENTRY:
-                                self.sendnotice(user, "No such entry: %s" % parts[2].lower())
+                                send(user, "No such entry: %s" % parts[2].lower())
                             else:
-                                self.sendnotice(user, "Unable to load entry: %s" % parts[2].lower())
+                                send(user, "Unable to load entry: %s" % parts[2].lower())
                     else:
-                        self.sendnotice(user, "Please provide a help topic and target user. For example: ??> helpme help")
+                        send(user, "Please provide a help topic and target user. For example: ??> helpme help")
                 elif parts[0] == "??>>": # Check in message to target
                     if len(parts) > 2:
                         data = self.faq.get(parts[2].lower())
                         if data[0]:
                             for element in data[1]:
                                 self.sendmsg(parts[1], "(%s) %s" % (parts[2].lower(), element))
-                            self.sendnotice(user, "Topic '%s' has been sent to %s." % (parts[2].lower(), parts[1]))
+                            send(user, "Topic '%s' has been sent to %s." % (parts[2].lower(), parts[1]))
                         else:
                             if data[1] is ERR_NO_SUCH_ENTRY:
-                                self.sendnotice(user, "No such entry: %s" % parts[2].lower())
+                                send(user, "No such entry: %s" % parts[2].lower())
                             else:
-                                self.sendnotice(user, "Unable to load entry: %s" % parts[2].lower())
+                                send(user, "Unable to load entry: %s" % parts[2].lower())
                     else:
-                        self.sendnotice(user, "Please provide a help topic and target user. For example: ??>> helpme help")
+                        send(user, "Please provide a help topic and target user. For example: ??>> helpme help")
                 elif parts[0] == "??<": # Check in message to self
                     if len(parts) > 1:
                         data = self.faq.get(parts[1].lower())
                         if data[0]:
                             for element in data[1]:
-                                self.sendnotice(user, "(%s) %s" % (parts[1].lower(), element))
+                                send(user, "(%s) %s" % (parts[1].lower(), element))
                         else:
                             if data[1] is ERR_NO_SUCH_ENTRY:
-                                self.sendnotice(user, "No such entry: %s" % parts[1].lower())
+                                send(user, "No such entry: %s" % parts[1].lower())
                             else:
-                                self.sendnotice(user, "Unable to load entry: %s" % parts[1].lower())
+                                send(user, "Unable to load entry: %s" % parts[1].lower())
                     else:
-                        self.sendnotice(user, "Please provide a help topic. For example: ??< help")
+                        send(user, "Please provide a help topic. For example: ??< help")
                 elif parts[0] == "??+": # Add or append to a topic
                     if authorized:
                         if len(parts) > 2:
                             data = self.faq.set(parts[1].lower(), " ".join(parts[2:]), MODE_APPEND)
                             self.faq.listentries()
                             if data[0]:
-                                self.sendnotice(user, "Successfully added to the topic: %s" % parts[1].lower())
+                                send(user, "Successfully added to the topic: %s" % parts[1].lower())
                             else:
-                                self.sendnotice(user, "Unable to add to the topic: %s" % parts[1].lower())
+                                send(user, "Unable to add to the topic: %s" % parts[1].lower())
                                 if data[1] is ERR_NO_SUCH_ENTRY:
-                                    self.sendnotice(user, "Entry does not exist.")
+                                    send(user, "Entry does not exist.")
                                 else:
-                                    self.sendnotice(user, "Please report this to the MCBans staff.")
+                                    send(user, "Please report this to the MCBans staff.")
                         else:
-                            self.sendnotice(user, "Please provide a help topic and some data to append. For example: ??+ help This is what you do..")
+                            send(user, "Please provide a help topic and some data to append. For example: ??+ help This is what you do..")
                     else:
-                        self.sendnotice(user, "You do not have access to this command.")
+                        send(user, "You do not have access to this command.")
                 elif parts[0] == "??~": # Add or replace topic
                     if authorized:
                         if len(parts) > 2:
                             data = self.faq.set(parts[1].lower(), " ".join(parts[2:]), MODE_REPLACE)
                             self.faq.listentries()
                             if data[0]:
-                                self.sendnotice(user, "Successfully replaced topic: %s" % parts[1].lower())
+                                send(user, "Successfully replaced topic: %s" % parts[1].lower())
                             else:
-                                self.sendnotice(user, "Unable to replace the topic: %s" % parts[1].lower())
+                                send(user, "Unable to replace the topic: %s" % parts[1].lower())
                                 if data[1] is ERR_NO_SUCH_ENTRY:
-                                    self.sendnotice(user, "Entry does not exist.")
+                                    send(user, "Entry does not exist.")
                                 else:
-                                    self.sendnotice(user, "Please report this to the MCBans staff.")
+                                    send(user, "Please report this to the MCBans staff.")
                         else:
-                            self.sendnotice(user, "Please provide a help topic and some data to use. For example: ??~ help This is what you do..")
+                            send(user, "Please provide a help topic and some data to use. For example: ??~ help This is what you do..")
                     else:
-                        self.sendnotice(user, "You do not have access to this command.")
+                        send(user, "You do not have access to this command.")
                 elif parts[0] == "??-": # Remove topic
                     if authorized:
                         if len(parts) > 1:
                             data = self.faq.set(parts[1].lower(), '', MODE_REMOVE)
                             self.faq.listentries()
                             if(data[0]):
-                                self.sendnotice(user, "Successfully removed the topic: %s" % parts[1].lower())
+                                send(user, "Successfully removed the topic: %s" % parts[1].lower())
                             else:
-                                self.sendnotice(user, "Unable to remove the topic: %s" % parts[1].lower())
+                                send(user, "Unable to remove the topic: %s" % parts[1].lower())
                                 if data[1] is ERR_NO_SUCH_ENTRY:
-                                    self.sendnotice(user, "Entry does not exist.")
+                                    send(user, "Entry does not exist.")
                                 else:
-                                    self.sendnotice(user, "Please report this to the MCBans staff.")
+                                    send(user, "Please report this to the MCBans staff.")
                         else:
-                            self.sendnotice(user, "Please provide a help topic to remove. For example: ??- help")
+                            send(user, "Please provide a help topic to remove. For example: ??- help")
                     else:
-                        self.sendnotice(user, "You do not have access to this command.")
+                        send(user, "You do not have access to this command.")
         # Flush the logfile
         self.flush()
         # Log the message
