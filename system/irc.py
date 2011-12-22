@@ -1,4 +1,4 @@
-import sys, os, random
+import sys, os, random, time
 import thread, socket, re, htmlentitydefs
 import urllib2 as urllib
 
@@ -418,10 +418,14 @@ class Bot(irc.IRCClient):
                         server, port = ip, 25565
                     if derp is 0:
                         try:
+                            timing = time.time()
                             s = socket.socket(
                                 socket.AF_INET, socket.SOCK_STREAM)
                             s.settimeout(5.0)
                             s.connect((server, port))
+                            ntiming = time.time()
+                            elapsed = ntiming - timing
+                            msec = elapsed * 1000.0
                             s.send("\xFE")
                             data = s.recv(1)
                             
@@ -441,9 +445,9 @@ class Bot(irc.IRCClient):
                                     finished.append(donestr.strip("\x00"))
                             
                                 if authorized:
-                                    self.sendmsg(channel, "Server info: %s (%s/%s)" % (finished[0], finished[1], finished[2]))
+                                    self.sendmsg(channel, "Server info: %s (%s/%s) [Latency: %smsec]" % (finished[0], finished[1], finished[2], msec))
                                 else:
-                                    send(user, "Server info: %s (%s/%s)" % (finished[0], finished[1], finished[2]))
+                                    send(user, "Server info: %s (%s/%s) [Latency: %smsec]" % (finished[0], finished[1], finished[2], msec))
                             else:
                                 if authorized:
                                     self.sendmsg(channel, "That doesn't appear to be a Minecraft server.")
