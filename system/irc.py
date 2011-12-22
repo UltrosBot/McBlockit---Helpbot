@@ -1,4 +1,4 @@
-import sys, os, random, time
+import sys, os, random, time, math
 import thread, socket, re, htmlentitydefs
 import urllib2 as urllib
 
@@ -425,7 +425,7 @@ class Bot(irc.IRCClient):
                             s.connect((server, port))
                             ntiming = time.time()
                             elapsed = ntiming - timing
-                            msec = floor(elapsed * 1000.0 )
+                            msec = math.floor(elapsed * 1000.0 )
                             s.send("\xFE")
                             data = s.recv(1)
                             
