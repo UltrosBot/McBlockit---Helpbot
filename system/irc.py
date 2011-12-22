@@ -425,7 +425,7 @@ class Bot(irc.IRCClient):
                             s.connect((server, port))
                             ntiming = time.time()
                             elapsed = ntiming - timing
-                            msec = elapsed * 1000.0
+                            msec = elapsed * 1000.0 
                             s.send("\xFE")
                             data = s.recv(1)
                             
