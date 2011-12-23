@@ -205,7 +205,7 @@ class Bot(irc.IRCClient):
         if msg.startswith("http://") or msg.startswith("https://"):
             thread.start_new_thread(self.pagetitle, (channel, msg.split(" ")[0]))
         elif msg.startswith(self.control_char) or channel == self.nickname:
-            command = msg.split(" ")[0].strip(self.control_char)
+            command = msg.split(" ")[0].replace(self.control_char, "", 1)
             arguments = msg.split(" ")
             if command == "help":
                 if len(arguments) < 2:
