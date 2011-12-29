@@ -25,6 +25,14 @@ class FAQ(object):
                 rdata.remove("")
             except:
                 pass
+            if "$(" in rdata and ")" in rdata:
+                stuff = rdata.split("$(", maxsplit=1)
+                stuff = stuff[1].split(")")
+                del stuff[-1]
+                stuff = stuff.join(")")
+                result = eval(stuff)
+                rdata = rdata.replace("$(%s)" % stuff, result)
+
             return[True, rdata]
         else:
             return [False, ERR_NO_SUCH_ENTRY]
