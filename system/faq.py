@@ -1,7 +1,7 @@
 import os, string
 import fnmatch
 
-import urllib, urllib2
+from evalfunctions import *
 
 from system.constants import *
 
@@ -37,7 +37,7 @@ class FAQ(object):
                     del stuff[-1]
                     stuff = ")".join(stuff)
                     try:
-                        result = str(eval(stuff))
+                        result = seval(stuff)
                     except Exception as e:
                         result = str(e)
                     element = element.replace("$(%s)" % stuff, result)
