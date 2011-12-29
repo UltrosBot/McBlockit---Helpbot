@@ -1,17 +1,19 @@
 import os, string
 import fnmatch
 
-from evalfunctions import *
+from evalfunctions import evalFunctions
 
 from system.constants import *
 
 
 class FAQ(object):
     
-    def __init__(self, path):
+    def __init__(self, path, bot):
         self.path = path
         if not os.path.exists(path):
             os.mkdir(path)
+        self.bot = bot
+        self.evalObj = evalFunctions(bot)
     
     def get(self, entry):
         entry = entry + ".txt"
@@ -37,7 +39,7 @@ class FAQ(object):
                     del stuff[-1]
                     stuff = ")".join(stuff)
                     try:
-                        result = seval(stuff)
+                        result = self.evalObj.seval(stuff)
                     except Exception as e:
                         result = str(e)
                     element = element.replace("$(%s)" % stuff, result)
