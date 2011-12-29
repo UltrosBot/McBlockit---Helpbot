@@ -6,7 +6,7 @@ def wget(url):
 
 def seval(command):
     try:
-        value = str(eval(command), {"quit": None, "input": None, "raw_input": None, "exit": None, "__import__": None})
+        value = str(eval(command, {"quit": None, "input": None, "raw_input": None, "exit": None, "__import__": None}))
     except Exception as e:
         value = str(e)
     except SystemExit as e:
