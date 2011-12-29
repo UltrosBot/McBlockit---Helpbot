@@ -112,7 +112,7 @@ class Bot(irc.IRCClient):
             reactor.stop()
             exit()
         self.faq = faq.FAQ(self.data_dir)
-        self.faq.listentries()
+        self.faq.listentries(self.index_file)
         self.mcb = mcbans.McBans(self.api_key)
         #Start the two loops for sending messages and notices
         self.messageLoop()
@@ -536,7 +536,7 @@ class Bot(irc.IRCClient):
                     if authorized:
                         if len(parts) > 2:
                             data = self.faq.set(parts[1].lower(), " ".join(parts[2:]), MODE_APPEND)
-                            self.faq.listentries()
+                            self.faq.listentries(self.index_file)
                             if data[0]:
                                 send(user, "Successfully added to the topic: %s" % parts[1].lower())
                             else:
@@ -553,7 +553,7 @@ class Bot(irc.IRCClient):
                     if authorized:
                         if len(parts) > 2:
                             data = self.faq.set(parts[1].lower(), " ".join(parts[2:]), MODE_REPLACE)
-                            self.faq.listentries()
+                            self.faq.listentries(self.index_file)
                             if data[0]:
                                 send(user, "Successfully replaced topic: %s" % parts[1].lower())
                             else:
@@ -570,7 +570,7 @@ class Bot(irc.IRCClient):
                     if authorized:
                         if len(parts) > 1:
                             data = self.faq.set(parts[1].lower(), '', MODE_REMOVE)
-                            self.faq.listentries()
+                            self.faq.listentries(self.index_file)
                             if(data[0]):
                                 send(user, "Successfully removed the topic: %s" % parts[1].lower())
                             else:
