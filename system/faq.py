@@ -1,6 +1,8 @@
 import os, string
 import fnmatch
 
+import urllib, urllib2
+
 from system.constants import *
 
 
@@ -25,15 +27,23 @@ class FAQ(object):
                 rdata.remove("")
             except:
                 pass
-            if "$(" in rdata and ")" in rdata:
-                stuff = rdata.split("$(", maxsplit=1)
-                stuff = stuff[1].split(")")
-                del stuff[-1]
-                stuff = stuff.join(")")
-                result = eval(stuff)
-                rdata = rdata.replace("$(%s)" % stuff, result)
+            print rdata
+            done = []
+            for element in rdata:
+                if "$(" in element and ")" in element:
+                    print "Tokens found!"
+                    stuff = element.split("$(", 1)
+                    stuff = stuff[1].split(")")
+                    del stuff[-1]
+                    stuff = ")".join(stuff)
+                    try:
+                        result = str(eval(stuff))
+                    except Exception as e:
+                        result = str(e)
+                    element = element.replace("$(%s)" % stuff, result)
+                done.append(element)
 
-            return[True, rdata]
+            return[True, done]
         else:
             return [False, ERR_NO_SUCH_ENTRY]
     
