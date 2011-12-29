@@ -111,7 +111,7 @@ class Bot(irc.IRCClient):
             self.prnt("Unable to parse quotes.txt. Does it exist? Bot will now quit.")
             reactor.stop()
             exit()
-        self.faq = faq.FAQ(self.data_dir)
+        self.faq = faq.FAQ(self.data_dir, self)
         self.faq.listentries(self.index_file)
         self.mcb = mcbans.McBans(self.api_key)
         #Start the two loops for sending messages and notices
@@ -690,8 +690,8 @@ class Bot(irc.IRCClient):
                 for element in modes:
                     if element is "o":
                         self.set_op(channel, args[i], True)
-                    if element is "v":
-                        self.set_op(channel, args[i], True)
+                    #if element is "v":
+                    #    self.set_op(channel, args[i], True)
                     i += 1
             else:
                 self.prnt("***%s sets mode %s -%s %s***" % (user, channel, modes, " ".join(args)))
@@ -699,8 +699,8 @@ class Bot(irc.IRCClient):
                 for element in modes:
                     if element is "o":
                         self.set_op(channel, args[i], False)
-                    if element is "v":
-                        self.set_op(channel, args[i], False)
+                    #if element is "v":
+                    #    self.set_op(channel, args[i], False)
                     i += 1
         except Exception:
             pass
