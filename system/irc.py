@@ -496,7 +496,7 @@ class Bot(irc.IRCClient):
                         send(user, "Please provide a help topic. For example: ?? help")
                 elif parts[0] == "??>": # Check in channel with target
                     if len(parts) > 2:
-                        cinfo = {"user": user, "hostmask": userhost.split("!", 1)[1], "origin": channel, "message": msg "target": parts[1]}
+                        cinfo = {"user": user, "hostmask": userhost.split("!", 1)[1], "origin": channel, "message": msg, "target": parts[1]}
                         data = self.faq.get(parts[2].lower(), cinfo)
                         if data[0]:
                             for element in data[1]:
@@ -511,7 +511,7 @@ class Bot(irc.IRCClient):
                         send(user, "Please provide a help topic and target user. For example: ??> helpme help")
                 elif parts[0] == "??>>": # Check in message to target
                     if len(parts) > 2:
-                        cinfo = {"user": user, "hostmask": userhost.split("!", 1)[1], "origin": channel, "message": msg "target": parts[1]}
+                        cinfo = {"user": user, "hostmask": userhost.split("!", 1)[1], "origin": channel, "message": msg, "target": parts[1]}
                         data = self.faq.get(parts[2].lower(), cinfo)
                         if data[0]:
                             for element in data[1]:
@@ -527,7 +527,7 @@ class Bot(irc.IRCClient):
                         send(user, "Please provide a help topic and target user. For example: ??>> helpme help")
                 elif parts[0] == "??<": # Check in message to self
                     if len(parts) > 1:
-                        cinfo = {"user": user, "hostmask": userhost.split("!", 1)[1], "origin": channel, "message": msg "target": user}
+                        cinfo = {"user": user, "hostmask": userhost.split("!", 1)[1], "origin": channel, "message": msg, "target": user}
                         data = self.faq.get(parts[1].lower())
                         if data[0]:
                             for element in data[1]:
