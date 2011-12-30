@@ -477,11 +477,12 @@ class Bot(irc.IRCClient):
                 else:
                     send(user, "You do not have access to this command.")
         elif msg.startswith("??"):
+            cinfo = {"user": user, "hostmask": userhost, "origin": channel, "message": msg}
             parts = msg.split(" ")
             if len(parts) > 1:
                 if parts[0] == "??": # Check in channel
                     if len(parts) > 1:
-                        data = self.faq.get(parts[1].lower())
+                        data = self.faq.get(parts[1].lower(), cinfo)
                         if data[0]:
                             for element in data[1]:
                                 self.sendmsg(channel, "(%s) %s" % (parts[1].lower(), element))

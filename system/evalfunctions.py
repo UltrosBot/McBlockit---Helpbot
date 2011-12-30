@@ -6,13 +6,15 @@ class evalFunctions(object):
     def __init__(self, bot):
         self.bot = bot
 
-    def wget(self, url):
-        return urllib.urlopen(url).read()
-
-    def seval(self, command):
+    def seval(self, command, cinfo):
+        user = cinfo["user"]
+        host = cinfo["hostmask"]
+        channel = cinfo["origin"]
+        message = cinfo["message"]
         md5 = self.md5
         wget = self.wget
         randint = self.randint
+        del self
         try:
             value = str(eval(command))
         except Exception as e:
@@ -26,3 +28,46 @@ class evalFunctions(object):
 
     def md5(self, data):
         return hashlib.md5(data).hexdigest()
+
+    def wget(self, url):
+        return urllib.urlopen(url).read()
+
+    def msg(self, target, message, flag=False):
+        try:
+            self.bot.sendmsg(target, message)
+        except:
+            if flag:
+                return "Couldn't send message!"
+            else:
+                return ""
+        else:
+            if flag:
+                return "Message sent!"
+            else:
+                return ""
+
+    def notice(self, target, message, flag=False):
+        try:
+            self.bot.sendnotice(target, message)
+        except:
+            if flag:
+                return "Couldn't send notice!"
+            else:
+                return ""
+        else:
+            if flag:
+                return "Message sent!"
+            else:
+                return ""
+
+    def join(self, channel, flag=False):
+        return "Not implemented!"
+
+    def part(self, channel, message="Leaving", flag=False):
+        return "Not implemented!"
+
+    def kick(self, channel, target, message, flag=False):
+        return "Not implemented!"
+
+    def mode(self, channel, modes, flag=False):
+        return "Not implemented!"

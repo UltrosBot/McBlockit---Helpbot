@@ -15,7 +15,7 @@ class FAQ(object):
         self.bot = bot
         self.evalObj = evalFunctions(bot)
     
-    def get(self, entry):
+    def get(self, entry, cinfo):
         entry = entry + ".txt"
         path = self.path
         epath = path + "/" + entry
@@ -39,7 +39,7 @@ class FAQ(object):
                     del stuff[-1]
                     stuff = ")".join(stuff)
                     try:
-                        result = self.evalObj.seval(stuff)
+                        result = self.evalObj.seval(stuff, cinfo)
                     except Exception as e:
                         result = str(e)
                     element = element.replace("$(%s)" % stuff, result)
