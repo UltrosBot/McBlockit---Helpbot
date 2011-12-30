@@ -450,14 +450,14 @@ class Bot(irc.IRCClient):
                                     send(user, "Server info: %s (%s/%s) [Latency: %smsec]" % (finished[0], finished[1], finished[2], msec))
                             else:
                                 if authorized:
-                                    self.sendmsg(channel, "That doesn't appear to be a Minecraft server.")
+                                    self.sendmsg(channel, "That doesn't appear to be a Minecraft server. [Latency: %smsec]" % msec)
                                 else:
-                                    send(user, "That doesn't appear to be a Minecraft server.")
+                                    send(user, "That doesn't appear to be a Minecraft server. [Latency: %smsec]" % msec)
                         except Exception as e:
                             if authorized:
-                                self.sendmsg(channel, "Error: %s" % e)
+                                self.sendmsg(channel, "Error: %s [Latency: %smsec]" % (e, msec))
                             else:
-                                send(user, "Error: %s" % e)
+                                send(user, "Error: %s [Latency: %smsec]" % (e, msec))
             elif command == "stfu":
                 if authorized:
                     if not channel in self.stfuchans:
