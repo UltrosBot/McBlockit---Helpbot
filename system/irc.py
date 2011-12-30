@@ -476,7 +476,7 @@ class Bot(irc.IRCClient):
                         send(user, "Already parsing page titles in %s ." % channel)
                 else:
                     send(user, "You do not have access to this command.")
-        elif msg.startswith("??"):
+        elif msg.startswith("??") or msg.startswith("?!"):
             cinfo = {"user": user, "hostmask": userhost.split("!", 1)[1], "origin": channel, "message": msg, "target": channel}
             parts = msg.split(" ")
             if len(parts) > 1:
