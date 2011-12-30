@@ -9,8 +9,9 @@ class evalFunctions(object):
     def seval(self, command, cinfo):
         user = cinfo["user"]
         host = cinfo["hostmask"]
-        channel = cinfo["origin"]
+        origin = cinfo["origin"]
         message = cinfo["message"]
+        target = cinfo["target"]
 
         md5 = self.md5
         wget = self.wget
