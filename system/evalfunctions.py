@@ -38,8 +38,8 @@ class evalFunctions(object):
         obj = urllib2.urlopen(url)
         if obj.geturl().startswith("file://"):
             return "Local file access is not allowed."
-        elif not str(obj.info()).split("Content-Type: ")[1].lower().strip("\n").strip() == "text/html":
-            return "Content-Type " + str(obj.info()).split("Content-Type: ")[1].split("\n")[0].strip() + "not allowed."
+        elif not str(obj.info()).split("Content-Type: ")[1].lower().split("\n")[0].strip() == "text/html":
+            return "Content-Type " + str(obj.info()).split("Content-Type: ")[1].split("\n")[0].strip() + " not allowed."
         elif not int(str(obj.info()).split("Content-Length: ")[1].split("\n")[0]) < 51200:
             return "Content is greater than 50KB in size."
         else:
