@@ -38,6 +38,8 @@ class evalFunctions(object):
         obj = urllib.urlopen(url)
         if obj.geturl().startswith("file://"):
             return "Local file access is not allowed."
+        elif ojb.info().split("Content-Type: ")[1].lower() != "text/html":
+            return "Content-Type " + ojb.info().split("Content-Type: ")[1] + "not allowed."
         else:
             return obj.read()
 

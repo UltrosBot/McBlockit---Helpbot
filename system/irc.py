@@ -542,7 +542,7 @@ class Bot(irc.IRCClient):
                 elif parts[0] == "??<": # Check in message to self
                     if len(parts) > 1:
                         cinfo = {"user": user, "hostmask": userhost.split("!", 1)[1], "origin": channel, "message": msg, "target": user}
-                        data = self.faq.get(parts[1].lower())
+                        data = self.faq.get(parts[1].lower(), cinfo)
                         if data[0]:
                             for element in data[1]:
                                 if not element.strip() == "":
