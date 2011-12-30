@@ -35,7 +35,11 @@ class evalFunctions(object):
         return hashlib.md5(data).hexdigest()
 
     def wget(self, url):
-        return urllib.urlopen(url).read()
+        obj = urllib.urlopen(url)
+        if obj.geturl().startswith("file://"):
+            return "Local file access is not allowed."
+        else:
+            return obj.read()
 
     def msg(self, target, message, flag=False):
         try:
