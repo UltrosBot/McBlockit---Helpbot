@@ -11,9 +11,13 @@ class evalFunctions(object):
         host = cinfo["hostmask"]
         channel = cinfo["origin"]
         message = cinfo["message"]
+
         md5 = self.md5
         wget = self.wget
         randint = self.randint
+        msg = self.msg
+        notice = self.notice
+
         del self
         try:
             value = str(eval(command))

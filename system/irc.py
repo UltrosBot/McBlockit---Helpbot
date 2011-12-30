@@ -477,7 +477,7 @@ class Bot(irc.IRCClient):
                 else:
                     send(user, "You do not have access to this command.")
         elif msg.startswith("??"):
-            cinfo = {"user": user, "hostmask": userhost, "origin": channel, "message": msg}
+            cinfo = {"user": user, "hostmask": userhost.split("!", 1)[1], "origin": channel, "message": msg}
             parts = msg.split(" ")
             if len(parts) > 1:
                 if parts[0] == "??": # Check in channel
@@ -485,7 +485,8 @@ class Bot(irc.IRCClient):
                         data = self.faq.get(parts[1].lower(), cinfo)
                         if data[0]:
                             for element in data[1]:
-                                self.sendmsg(channel, "(%s) %s" % (parts[1].lower(), element))
+                                if not element.strip() == "":
+                                    self.sendmsg(channel, "(%s) %s" % (parts[1].lower(), element))
                         else:
                             if data[1] is ERR_NO_SUCH_ENTRY:
                                 send(user, "No such entry: %s" % parts[1].lower())
@@ -498,7 +499,8 @@ class Bot(irc.IRCClient):
                         data = self.faq.get(parts[2].lower())
                         if data[0]:
                             for element in data[1]:
-                                self.sendmsg(channel, "%s: (%s) %s" % (parts[1], parts[2].lower(), element))
+                                if not element.strip() == "":
+                                    self.sendmsg(channel, "%s: (%s) %s" % (parts[1], parts[2].lower(), element))
                         else:
                             if data[1] is ERR_NO_SUCH_ENTRY:
                                 send(user, "No such entry: %s" % parts[2].lower())
@@ -511,7 +513,8 @@ class Bot(irc.IRCClient):
                         data = self.faq.get(parts[2].lower())
                         if data[0]:
                             for element in data[1]:
-                                self.sendmsg(parts[1], "(%s) %s" % (parts[2].lower(), element))
+                                if not element.strip() == "":
+                                    self.sendmsg(parts[1], "(%s) %s" % (parts[2].lower(), element))
                             send(user, "Topic '%s' has been sent to %s." % (parts[2].lower(), parts[1]))
                         else:
                             if data[1] is ERR_NO_SUCH_ENTRY:
@@ -525,7 +528,8 @@ class Bot(irc.IRCClient):
                         data = self.faq.get(parts[1].lower())
                         if data[0]:
                             for element in data[1]:
-                                send(user, "(%s) %s" % (parts[1].lower(), element))
+                                if not element.strip() == "":
+                                    send(user, "(%s) %s" % (parts[1].lower(), element))
                         else:
                             if data[1] is ERR_NO_SUCH_ENTRY:
                                 send(user, "No such entry: %s" % parts[1].lower())
