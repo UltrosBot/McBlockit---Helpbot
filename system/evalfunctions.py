@@ -40,8 +40,10 @@ class evalFunctions(object):
             return "Local file access is not allowed."
         elif not str(obj.info()).split("Content-Type: ")[1].lower().strip("\n").strip() == "text/html":
             return "Content-Type " + str(obj.info()).split("Content-Type: ")[1].strip("\n").strip() + "not allowed."
+        elif not int(str(obj.info()).split("Content-Length: ")[1].split("\n")[0]) < 51200:
+            return "Content is greater than 50KB in size."
         else:
-            return obj.read()
+            return self.rht(obj.read())
 
     def msg(self, target, message, flag=False):
         try:
@@ -82,3 +84,11 @@ class evalFunctions(object):
 
     def mode(self, channel, modes, flag=False):
         return "Not implemented!"
+
+    def rht(self, data):
+    # Utility, removes HTML from the input
+        p = re.compile(r'<.*?>')
+        try:
+            return p.sub('', data.encode('ascii','ignore'))
+        except:
+            return "Unable to parse HTML."
