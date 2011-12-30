@@ -661,7 +661,7 @@ class Bot(irc.IRCClient):
         if not reason == "":
             self.sendLine("QUIT :"+reason)
         else:
-            quitmsg = self.quotes[random.randint(0, len(self.quotes))].strip("\r")
+            quitmsg = self.quotes[random.randint(0, len(self.quotes)-1)].strip("\r")
             self.sendLine("QUIT :%s" % quitmsg)
         self.prnt("***QUITTING!***")
         data = open("quitted", "w")
