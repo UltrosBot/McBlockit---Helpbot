@@ -679,7 +679,12 @@ class Bot(irc.IRCClient):
         name = user.split("!", 1)[0]
         self.prnt("[%s] %s" % (user, messages))
         # It's a CTCP query!
-        if messages[0][0].lower() == "version":
+        if messages[0][0].lower() == "action":
+            pet = "pets " + self.nickname
+            pet = pet.lower()
+            if messages[0][1].lower() == pet:
+                self.sendmsg(me, self.ctcp + "ACTION purrs" + self.ctcp)
+        elif messages[0][0].lower() == "version":
             self.ctcpMakeReply(name, [(messages[0][0], "A Python bot written for #mcbans")])
         elif messages[0][0].lower() == "finger":
             self.ctcpMakeReply(name, [(messages[0][0], "No. Just, no.")])
