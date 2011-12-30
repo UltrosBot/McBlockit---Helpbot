@@ -35,11 +35,11 @@ class evalFunctions(object):
         return hashlib.md5(data).hexdigest()
 
     def wget(self, url):
-        obj = urllib.urlopen(url)
+        obj = urllib2.urlopen(url)
         if obj.geturl().startswith("file://"):
             return "Local file access is not allowed."
-        elif str(obj.info()).split("Content-Type: ")[1].lower().strip("\n") != "text/html":
-            return "Content-Type " + str(obj.info()).split("Content-Type: ")[1].strip("\n") + "not allowed."
+        elif not str(obj.info()).split("Content-Type: ")[1].lower().strip("\n").strip() == "text/html":
+            return "Content-Type " + str(obj.info()).split("Content-Type: ")[1].strip("\n").strip() + "not allowed."
         else:
             return obj.read()
 
