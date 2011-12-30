@@ -494,6 +494,20 @@ class Bot(irc.IRCClient):
                                 send(user, "Unable to load entry: %s" % parts[1].lower())
                     else:
                         send(user, "Please provide a help topic. For example: ?? help")
+                elif parts[0] == "?!": # Check in channel without eval
+                    if len(parts) > 1:
+                        data = self.faq.get_noeval(parts[1].lower(), cinfo)
+                        if data[0]:
+                            for element in data[1]:
+                                if not element.strip() == "":
+                                    self.sendmsg(channel, "(%s) %s" % (parts[1].lower(), element))
+                        else:
+                            if data[1] is ERR_NO_SUCH_ENTRY:
+                                send(user, "No such entry: %s" % parts[1].lower())
+                            else:
+                                send(user, "Unable to load entry: %s" % parts[1].lower())
+                    else:
+                        send(user, "Please provide a help topic. For example: ?! help")
                 elif parts[0] == "??>": # Check in channel with target
                     if len(parts) > 2:
                         cinfo = {"user": user, "hostmask": userhost.split("!", 1)[1], "origin": channel, "message": msg, "target": parts[1]}

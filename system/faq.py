@@ -14,7 +14,7 @@ class FAQ(object):
             os.mkdir(path)
         self.bot = bot
         self.evalObj = evalFunctions(bot)
-    
+
     def get(self, entry, cinfo):
         entry = entry + ".txt"
         path = self.path
@@ -44,6 +44,24 @@ class FAQ(object):
                 done.append(element)
 
             return[True, done]
+        else:
+            return [False, ERR_NO_SUCH_ENTRY]
+
+    def get_noeval(self, entry, cinfo):
+        entry = entry + ".txt"
+        path = self.path
+        epath = path + "/" + entry
+        if os.path.exists(epath):
+            fh = open(epath, "r")
+            data = fh.read()
+            fh.close()
+            del fh
+            rdata = data.split("\n")
+            try:
+                rdata.remove("")
+            except:
+                pass
+            return[True, rdata]
         else:
             return [False, ERR_NO_SUCH_ENTRY]
     
