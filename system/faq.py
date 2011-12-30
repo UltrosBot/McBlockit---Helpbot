@@ -29,11 +29,9 @@ class FAQ(object):
                 rdata.remove("")
             except:
                 pass
-            print rdata
             done = []
             for element in rdata:
                 if "$(" in element and ")" in element:
-                    print "Tokens found!"
                     stuff = element.split("$(", 1)
                     stuff = stuff[1].split(")")
                     del stuff[-1]
