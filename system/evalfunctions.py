@@ -24,8 +24,8 @@ class evalFunctions(object):
             value = str(eval(command))
         except Exception as e:
             value = str(e)
-        except SystemExit as e:
-            value = "ERROR: Tried to call a SystemExit!"
+        #except SystemExit as e:
+        #    value = "ERROR: Tried to call a SystemExit!"
         return value
 
     def randint(self, lo, hi):
@@ -35,15 +35,27 @@ class evalFunctions(object):
         return hashlib.md5(data).hexdigest()
 
     def wget(self, url):
-        obj = urllib2.urlopen(url)
-        if obj.geturl().startswith("file://"):
-            return "Local file access is not allowed."
-        elif not str(obj.info()).split("Content-Type: ")[1].lower().split("\n")[0].strip() == "text/html":
-            return "Content-Type " + str(obj.info()).split("Content-Type: ")[1].split("\n")[0].strip() + " not allowed."
-        elif not int(str(obj.info()).split("Content-Length: ")[1].split("\n")[0]) < 51200:
-            return "Content is greater than 50KB in size."
+        page = urllib.urlopen(url)
+        test = self.wtest(page)
+        if not test[0]:
+            return test[1]
         else:
-            return self.rht(obj.read())
+            return page.read()
+
+    def wtest(self, message):
+        info = message.info()
+        typec = info["Content-Type"]
+        try:
+            length = int(info["Content-Length"])
+        except:
+            length = 0
+        if message.geturl().startswith("file://"):
+            return "Local file access is not allowed."
+        if not typec == "text/html":
+            return [False, "Content-Type " + typec + " is not allowed."]
+        elif length > 51200:
+            return [False, "Content is greater than 50KB in size."]
+        return [True]
 
     def msg(self, target, message, flag=False):
         try:
