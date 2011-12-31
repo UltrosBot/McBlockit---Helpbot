@@ -51,7 +51,7 @@ class evalFunctions(object):
             length = 0
         if message.geturl().startswith("file://"):
             return "Local file access is not allowed."
-        if not typec == "text/html":
+        if not (typec == "text/html" or typec == "text/plain"):
             return [False, "Content-Type " + typec + " is not allowed."]
         elif length > 51200:
             return [False, "Content is greater than 50KB in size."]
