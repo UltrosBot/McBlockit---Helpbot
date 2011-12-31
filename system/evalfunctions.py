@@ -40,7 +40,7 @@ class evalFunctions(object):
         if not test[0]:
             return test[1]
         else:
-            return page.read()
+            return self.rht(page.read())
 
     def wtest(self, message):
         info = message.info()
