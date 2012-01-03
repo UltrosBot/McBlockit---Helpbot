@@ -12,7 +12,7 @@ except ImportError:
 
 class McBans():
     def __init__(self, apikey):
-        self.url = "http://api.mcbans.com/v2" # No trailing "/"!
+        self.url = "http://72.10.39.172/v2" # No trailing "/"!
         self.key = apikey
 
     def _request(self, data):
