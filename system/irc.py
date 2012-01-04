@@ -39,6 +39,7 @@ class Bot(irc.IRCClient):
     # User system
     authorized = {}
     users = {}
+    kicked = []
 
     # Special IRC chars
     col = "" # Colour code
@@ -202,6 +203,21 @@ class Bot(irc.IRCClient):
         elif user in self.authorized.keys():
             authorized = True
             authtype = 2
+        msg_time = float(time.time())
+        self.prnt(str(msg_time - self.chanlist[channel][user]["last_time"]))
+        if not authorized:
+            if msg_time - self.chanlist[channel][user]["last_time"] < 0.5:
+                # User is a dirty spammer!
+                if self.is_op(channel, self.nickname):
+                    if not user in self.kicked:
+                        self.sendLine("KICK %s %s :%s is a dirty spammer!" % (channel, user, user))
+                        self.prnt("Kicked %s from %s for spamming." % (user, channel))
+                        self.kicked.append(user)
+                    else:
+                        self.sendLine("MODE %s +bb *!%s@* %s!*@*" % (channel, userhost.split("@")[0].split("!")[1], user))
+                        self.sendLine("KICK %s %s :%s is a dirty spammer!" % (channel, user, user))
+                        self.prnt("Banned %s from %s for spamming." % (user, channel))
+        self.chanlist[channel][user]["last_time"] = float(time.time())
         if msg.startswith("http://") or msg.startswith("https://"):
             thread.start_new_thread(self.pagetitle, (channel, msg.split(" ")[0]))
         elif msg.startswith(self.control_char) or channel == self.nickname:
@@ -749,6 +765,7 @@ class Bot(irc.IRCClient):
     def userJoined(self, user, channel):
         # Ohai, welcome to mah channel!
         self.prnt("***%s joined %s***" % (user, channel))
+        self.who(channel)
         # Flush the logfile
         self.flush()
     
@@ -877,6 +894,7 @@ class Bot(irc.IRCClient):
         done["voice"] = False
         done["oper"] = False
         done["away"] = False
+        done["last_time"] = float(time.time() - 501)
         for char in status:
             if char is "@":
                 done["op"] = True
