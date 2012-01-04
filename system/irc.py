@@ -217,7 +217,8 @@ class Bot(irc.IRCClient):
                         self.sendLine("MODE %s +bb *!%s@* %s!*@*" % (channel, userhost.split("@")[0].split("!")[1], user))
                         self.sendLine("KICK %s %s :%s is a dirty spammer!" % (channel, user, user))
                         self.prnt("Banned %s from %s for spamming." % (user, channel))
-        self.chanlist[channel][user]["last_time"] = float(time.time())
+        if channel.startswith("#"):
+            self.chanlist[channel][user]["last_time"] = float(time.time())
         if msg.startswith("http://") or msg.startswith("https://"):
             thread.start_new_thread(self.pagetitle, (channel, msg.split(" ")[0]))
         elif msg.startswith(self.control_char) or channel == self.nickname:
