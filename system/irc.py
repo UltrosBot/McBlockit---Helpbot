@@ -205,7 +205,7 @@ class Bot(irc.IRCClient):
             authtype = 2
         msg_time = float(time.time())
         self.prnt(str(msg_time - self.chanlist[channel][user]["last_time"]))
-        if not authorized:
+        if not authorized and channel.startswith("#"):
             if msg_time - self.chanlist[channel][user]["last_time"] < 0.5:
                 # User is a dirty spammer!
                 if self.is_op(channel, self.nickname):
