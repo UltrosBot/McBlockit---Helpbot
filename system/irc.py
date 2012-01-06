@@ -2,13 +2,15 @@ import sys, os, random, time, math
 import thread, socket, re, htmlentitydefs
 import urllib2 as urllib
 
-from utils import *
+from twilio.rest import TwilioRestClient
 
 from ConfigParser import RawConfigParser as ConfigParser
 from twisted.internet import reactor, protocol
 from twisted.internet.protocol import Factory
 from twisted.words.protocols import irc
 from colours import *
+
+from utils import *
 
 from system.constants import *
 from system import faq
@@ -206,7 +208,7 @@ class Bot(irc.IRCClient):
         msg_time = float(time.time())
         if not authorized and channel.startswith("#"):
             self.prnt(str(msg_time - self.chanlist[channel][user]["last_time"]))
-            if msg_time - self.chanlist[channel][user]["last_time"] < 0.5:
+            if msg_time - self.chanlist[channel][user]["last_time"] < 0.25:
                 # User is a dirty spammer!
                 if self.is_op(channel, self.nickname):
                     if not user in self.kicked:
@@ -472,9 +474,9 @@ class Bot(irc.IRCClient):
                                     send(user, "That doesn't appear to be a Minecraft server. [Latency: %smsec]" % msec)
                         except Exception as e:
                             if authorized:
-                                self.sendmsg(channel, "Error: %s [Latency: %smsec]" % (e, msec))
+                                self.sendmsg(channel, "Error: %s " % e)
                             else:
-                                send(user, "Error: %s [Latency: %smsec]" % (e, msec))
+                                send(user, "Error: %s " % e)
             elif command == "stfu":
                 if authorized:
                     if not channel in self.stfuchans:
@@ -895,7 +897,7 @@ class Bot(irc.IRCClient):
         done["voice"] = False
         done["oper"] = False
         done["away"] = False
-        done["last_time"] = float(time.time() - 501)
+        done["last_time"] = float(time.time() - 0.25)
         for char in status:
             if char is "@":
                 done["op"] = True
