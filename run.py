@@ -3,7 +3,6 @@ from system.utils import *
 import sys
 
 sys.path.append("./depends")
-sys.path.append("./depends")
 
 settings = ConfigParser()
 settings.read("settings.ini")
