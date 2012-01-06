@@ -18,6 +18,10 @@ class evalFunctions(object):
         randint = self.randint
         msg = self.msg
         notice = self.notice
+        join = self.join
+        part = self.part
+        kick = self.kick
+        mode = self.mode
 
         del self
         try:
@@ -86,16 +90,66 @@ class evalFunctions(object):
                 return ""
 
     def join(self, channel, flag=False):
-        return "Not implemented!"
+        try:
+            self.bot.join(channel)
+        except:
+            if flag:
+                return "Couldn't join channel!"
+            else:
+                return ""
+        else:
+            if flag:
+                return "Channel joined!"
+            else:
+                return ""
 
     def part(self, channel, message="Leaving", flag=False):
-        return "Not implemented!"
+        try:
+            self.bot.sendLine("PART %s :%s" % (channel, message))
+        except:
+            if flag:
+                return "Couldn't part channel!"
+            else:
+                return ""
+        else:
+            if flag:
+                return "Channel parted!"
+            else:
+                return ""
 
-    def kick(self, channel, target, message, flag=False):
-        return "Not implemented!"
+    def kick(self, channel, target, message=target, flag=False):
+        try:
+            if self.bot.is_op(channel, self.bot.nickname):
+                self.bot.sendLine("KICK %s %s :%s" % (channel, target, message))
+            else:
+                return "Don't have op in that channel!"
+        except:
+            if flag:
+                return "Couldn't kick user!"
+            else:
+                return ""
+        else:
+            if flag:
+                return "Kicked user!"
+            else:
+                return ""
 
-    def mode(self, channel, modes, flag=False):
-        return "Not implemented!"
+    def mode(self, channel, modes, targets="", flag=False):
+        try:
+            if self.bot.is_op(channel, self.bot.nickname):
+                self.bot.sendLine("MODE %s %s %s" % (channel, modes, targets))
+            else:
+                return "Don't have op in that channel!"
+        except:
+            if flag:
+                return "Couldn't send mode!"
+            else:
+                return ""
+        else:
+            if flag:
+                return "Mode set!"
+            else:
+                return ""
 
     def rht(self, data):
     # Utility, removes HTML from the input
