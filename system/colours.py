@@ -1,5 +1,8 @@
-import string
-from depends.colorama import Fore, Back, Style, init
+import string, sys
+
+sys.path.append("../depends")
+
+from colorama import Fore, Back, Style, init
 init()
 
 def colstrip(message, times=-1):
