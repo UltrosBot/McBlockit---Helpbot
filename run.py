@@ -3,6 +3,7 @@ from system.utils import *
 import sys
 
 sys.path.append("./depends")
+sys.path.append("./depends/colorama")
 
 settings = ConfigParser()
 settings.read("settings.ini")

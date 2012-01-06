@@ -1,7 +1,5 @@
 import string, sys
 
-sys.path.append("../depends")
-
 from colorama import Fore, Back, Style, init
 init()
 
