@@ -117,7 +117,9 @@ class evalFunctions(object):
             else:
                 return ""
 
-    def kick(self, channel, target, message=target, flag=False):
+    def kick(self, channel, target, message="", flag=False):
+        if message == "":
+            message = target
         try:
             if self.bot.is_op(channel, self.bot.nickname):
                 self.bot.sendLine("KICK %s %s :%s" % (channel, target, message))
