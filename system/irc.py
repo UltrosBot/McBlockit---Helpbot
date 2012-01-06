@@ -520,7 +520,7 @@ class Bot(irc.IRCClient):
                             for element in data[1]:
                                 if not element.strip() == "":
                                     self.sendmsg(channel, "(%s) %s" % (parts[1].lower(), element))
-                        else:
+                        else: 
                             if data[1] is ERR_NO_SUCH_ENTRY:
                                 send(user, "No such entry: %s" % parts[1].lower())
                             else:
