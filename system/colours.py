@@ -1,6 +1,7 @@
 import string, sys
 
 from colorama import Fore, Back, Style, init
+
 init()
 
 def colstrip(message, times=-1):
@@ -24,7 +25,8 @@ def colstrip(message, times=-1):
         done = string.replace(done, "", "")
         return done
     return ""
-    
+
+
 def colprint(message):
     if (not message.strip(" ").strip("\n") == ""):
         message = " " + message

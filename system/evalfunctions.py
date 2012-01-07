@@ -2,7 +2,6 @@ from math import *
 import urllib, urllib2, re, hashlib, random, time
 
 class evalFunctions(object):
-
     def __init__(self, bot):
         self.bot = bot
 
@@ -28,7 +27,7 @@ class evalFunctions(object):
             value = str(eval(command))
         except Exception as e:
             value = str(e)
-        #except SystemExit as e:
+            #except SystemExit as e:
         #    value = "ERROR: Tried to call a SystemExit!"
         return value
 
@@ -157,6 +156,6 @@ class evalFunctions(object):
     # Utility, removes HTML from the input
         p = re.compile(r'<.*?>')
         try:
-            return p.sub('', data.encode('ascii','ignore'))
+            return p.sub('', data.encode('ascii', 'ignore'))
         except:
             return "Unable to parse HTML."

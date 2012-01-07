@@ -7,7 +7,6 @@ from system.constants import *
 
 
 class FAQ(object):
-    
     def __init__(self, path, bot):
         self.path = path
         if not os.path.exists(path):
@@ -64,7 +63,7 @@ class FAQ(object):
             return[True, rdata]
         else:
             return [False, ERR_NO_SUCH_ENTRY]
-    
+
     def set(self, entry, data, mode):
         entry = entry + ".txt"
         path = self.path
@@ -124,17 +123,17 @@ class FAQ(object):
         files = os.listdir(path)
         dirs = []
         for element in files:
-            if os.path.isdir(path+"/"+element):
+            if os.path.isdir(path + "/" + element):
                 dirs.append(element)
-                
+
         for element in dirs:
-            if len(os.listdir(path+"/"+element)) is 0:
-                os.rmdir(path+"/"+element)
-            elif os.path.isdir(path+"/"+element):
-                self.cleandirs(path+"/"+element)
-                if len(os.listdir(path+"/"+element)) is 0:
-                    os.rmdir(path+"/"+element)
-    
+            if len(os.listdir(path + "/" + element)) is 0:
+                os.rmdir(path + "/" + element)
+            elif os.path.isdir(path + "/" + element):
+                self.cleandirs(path + "/" + element)
+                if len(os.listdir(path + "/" + element)) is 0:
+                    os.rmdir(path + "/" + element)
+
     def listentries(self, filehname="topics.txt"):
         buffer = []
         for root, dirs, files in os.walk(self.path):
