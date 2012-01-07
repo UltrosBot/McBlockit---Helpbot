@@ -645,6 +645,12 @@ class Bot(irc.IRCClient):
         # Log the message
         self.prnt("<%s:%s> %s" % (user, channel, msg))
 
+    def dnslookup(self, channel, user):
+        if self.is_op(channel):
+            pass
+        else:
+            pass
+    
     def pagetitle(self, target, url):
         if not target in self.stfuchans:
             try:
