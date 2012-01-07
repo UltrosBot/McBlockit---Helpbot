@@ -206,6 +206,7 @@ class Bot(irc.IRCClient):
                         ]
             self.norandom.append(channel)
             msg = messages[random.randint(0, len(messages) - 1)]
+            msg = msg.replace("^ruser^", self.chanlist[channel].keys()[random.randint(0, len(self.chanlist[channel].keys()) - 1)])
             self.sendmsg(channel, msg)
         reactor.callLater(900, thread.start_new_thread, self.randmsg, (channel,))
 
