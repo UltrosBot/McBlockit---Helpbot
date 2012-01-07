@@ -222,7 +222,8 @@ class Bot(irc.IRCClient):
         if channel.startswith("#"):
             self.chanlist[channel][user]["last_time"] = float(time.time())
         if msg.startswith("http://") or msg.startswith("https://"):
-            thread.start_new_thread(self.pagetitle, (channel, msg.split(" ")[0]))
+            if self.is_voice(channel, user) or self.is_op(channel, user):
+                thread.start_new_thread(self.pagetitle, (channel, msg.split(" ")[0]))
         elif msg.startswith(self.control_char) or channel == self.nickname:
             command = msg.split(" ")[0].replace(self.control_char, "", 1)
             arguments = msg.split(" ")
