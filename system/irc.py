@@ -757,10 +757,19 @@ class Bot(irc.IRCClient):
         self.prnt("[%s] %s" % (user, messages))
         # It's a CTCP query!
         if messages[0][0].lower() == "action":
-            pet = "pets " + self.nickname
-            pet = pet.lower()
-            if messages[0][1].lower() == pet:
-                self.sendmsg(me, self.ctcp + "ACTION purrs" + self.ctcp)
+            actions = {"pets": self.ctcp + "ACTION purrs"+ self.ctcp,
+                       "feeds": self.ctcp + "ACTION noms ^user^'s food" + self.ctcp + "\n=^.^="
+            }
+            for element in actions.keys():
+                action = element + " " + self.nickname
+                act = action.lower().strip()
+                if messages[0][1].lower().strip() == act:
+                    message = actions[element]
+                    message = message.replace("^user^", user.split("!")[0])
+                    message = message.replace("^hostmask^", user.split("!")[1])
+                    message = message.replace("^host^", user.split("@")[1])
+                    message = message.replace("^me^", me)
+                    self.sendmsg(me, message)
         elif messages[0][0].lower() == "version":
             self.ctcpMakeReply(name, [(messages[0][0], "A Python bot written for #mcbans")])
         elif messages[0][0].lower() == "finger":
@@ -781,9 +790,9 @@ class Bot(irc.IRCClient):
                 for element in modes:
                     if element is "o":
                         self.set_op(channel, args[i], True)
-                    if args[i].lower() == self.nickname.lower():
-                        for element in self.chanlist[channel].keys():
-                            self.dnslookup(channel, element)
+                    #if args[i].lower() == self.nickname.lower():
+                    #    for element in self.chanlist[channel].keys():
+                    #        self.dnslookup(channel, element)
                     i += 1
             else:
                 self.prnt("***%s sets mode %s -%s %s***" % (user, channel, modes, " ".join(args)))
