@@ -26,6 +26,7 @@ class Bot(irc.IRCClient):
     joinchans = []
     channels = []
     stfuchans = []
+    norandom = []
 
     lookedup = []
 
@@ -155,7 +156,11 @@ class Bot(irc.IRCClient):
             self.firstjoin = 0
             # Flush the logfile
         self.who(channel)
+        reactor.callLater(5, thread.start_new_thread, self.randmsg, (channel,))
         self.flush()
+
+    def sThread(self, channel):
+        thread.start_new_thread(self.randmsg, tuple(channel))
 
     def is_op(self, channel, user):
         if channel in self.chanlist.keys():
@@ -187,7 +192,27 @@ class Bot(irc.IRCClient):
         else:
             raise ValueError("'data' must be either True or False")
 
+    def randmsg(self, channel):
+        if channel not in self.norandom:
+            messages = [self.ctcp + "ACTION paws ^ruser^" + self.ctcp,
+                        self.ctcp + "ACTION curls up in ^ruser^'s lap" + self.ctcp,
+                        self.ctcp + "ACTION stares at ^ruser^" + self.ctcp,
+                        self.ctcp + "ACTION jumps onto the fridge" + self.ctcp + "\no3o",
+                        self.ctcp + "ACTION rubs around ^ruser^'s leg" + self.ctcp + "\n"+ self.ctcp + "ACTION purrs" + self.ctcp,
+                        "Mewl! o3o",
+                        "Meow",
+                        ":3",
+                        "Mreewww.."
+                        ]
+            self.norandom.append(channel)
+            msg = messages[random.randint(0, len(messages) - 1)]
+            self.sendmsg(channel, msg)
+        reactor.callLater(900, thread.start_new_thread, self.randmsg, (channel,))
+
+
     def privmsg(self, user, channel, msg):
+        if channel in self.norandom:
+            self.norandom.remove(channel)
         # We got a message.
         # Define the userhost
         userhost = user
