@@ -1,6 +1,7 @@
 import sys, os, random, time, math
 import thread, socket, re, htmlentitydefs
 import urllib2 as urllib
+import dns.resolver as resolver
 
 from twilio.rest import TwilioRestClient
 
@@ -25,6 +26,8 @@ class Bot(irc.IRCClient):
     joinchans = []
     channels = []
     stfuchans = []
+
+    lookedup = []
 
     chanlist = {}
 
@@ -472,10 +475,10 @@ class Bot(irc.IRCClient):
 
                                 if authorized:
                                     self.sendmsg(channel, "Server info: %s (%s/%s) [Latency: %smsec]" % (
-                                    finished[0], finished[1], finished[2], msec))
+                                        finished[0], finished[1], finished[2], msec))
                                 else:
                                     send(user, "Server info: %s (%s/%s) [Latency: %smsec]" % (
-                                    finished[0], finished[1], finished[2], msec))
+                                        finished[0], finished[1], finished[2], msec))
                             else:
                                 if authorized:
                                     self.sendmsg(channel,
@@ -640,17 +643,35 @@ class Bot(irc.IRCClient):
                             send(user, "Please provide a help topic to remove. For example: ??- help")
                     else:
                         send(user, "You do not have access to this command.")
-            # Flush the logfile
+                        # Flush the logfile
         self.flush()
         # Log the message
         self.prnt("<%s:%s> %s" % (user, channel, msg))
 
     def dnslookup(self, channel, user):
-        if self.is_op(channel):
-            pass
-        else:
-            pass
-    
+        """Looks up users on several DNS blacklists and kicks them if the bot is op"""
+        if self.is_op(channel, self.nickname):
+            ip = socket.gethostbyname(self.chanlist[channel][user]["host"])
+            if not ip in self.lookedup:
+                r_ip = ip.split(".")
+                r_ip.reverse()
+                r_ip = ".".join(r_ip)
+                blacklists = ["dnsbl.swiftbl.org", "dnsbl.ahbl.org", "ircbl.ahbl.org", "rbl.efnet.org", "dnsbl.dronebl.org"]
+                for bl in blacklists:
+                    self.prnt("Checking user %s on blacklist %s..." % (user, bl))
+                    try:
+                        resolver.query(r_ip + "." + bl, "A")
+                    except resolver.NXDOMAIN:
+                        self.prnt("User %s is clean." % user)
+                        pass
+                    else:
+                        self.prnt("User %s is blacklisted!" % user)
+                        answer = resolver.query(r_ip + "." + bl, "TXT")
+                        reason = answer[0]
+                        self.sendLine("KICK %s %s :%s" % (channel, user, reason))
+                        self.sendLine("MODE %s +b %s" % ip)
+                self.lookedup.append(ip)
+
     def pagetitle(self, target, url):
         if not target in self.stfuchans:
             try:
@@ -760,8 +781,9 @@ class Bot(irc.IRCClient):
                 for element in modes:
                     if element is "o":
                         self.set_op(channel, args[i], True)
-                        #if element is "v":
-                    #    self.set_op(channel, args[i], True)
+                    if args[i].lower() == self.nickname.lower():
+                        for element in self.chanlist[channel].keys():
+                            self.dnslookup(channel, element)
                     i += 1
             else:
                 self.prnt("***%s sets mode %s -%s %s***" % (user, channel, modes, " ".join(args)))
@@ -769,10 +791,8 @@ class Bot(irc.IRCClient):
                 for element in modes:
                     if element is "o":
                         self.set_op(channel, args[i], False)
-                        #if element is "v":
-                    #    self.set_op(channel, args[i], False)
                     i += 1
-        except Exception:
+        except:
             pass
             # Flush the logfile
         self.flush()
@@ -849,7 +869,7 @@ class Bot(irc.IRCClient):
                 oldpart = self.chanlist[element][oldnick]
                 self.chanlist[element][newnick] = oldpart
                 del self.chanlist[element][oldnick]
-            # Flush the logfile
+                # Flush the logfile
         self.flush()
 
     def messageLoop(self, wut=None):
