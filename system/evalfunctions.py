@@ -51,7 +51,11 @@ class evalFunctions(object):
         if not test[0]:
             return test[1]
         else:
-            return self.rht(page.read())
+            data = page.read()
+            if len(data) > (1024 * 5):
+                return "Content is greater than 5KB in size."
+            else:
+                return self.rht(page.read())
 
     def wtest(self, message):
         info = message.info()
@@ -62,13 +66,13 @@ class evalFunctions(object):
         try:
             length = int(info["Content-Length"])
         except:
-            length = 0
+            length = len(message.read())
         if message.geturl().startswith("file:/"):
             return [False, "Local file access is not allowed."]
         if not (typec == "text/html" or typec == "text/plain"):
             return [False, "Content-Type " + typec + " is not allowed."]
-        elif length > 10240:
-            return [False, "Content is greater than 20KB in size."]
+        elif length > (1024 * 5):
+            return [False, "Content is greater than 5KB in size."]
         return [True, ""]
 
     def msg(self, target, message, flag=False):
