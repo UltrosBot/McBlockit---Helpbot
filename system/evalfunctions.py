@@ -48,17 +48,19 @@ class evalFunctions(object):
     def wtest(self, message):
         info = message.info()
         typec = info["Content-Type"]
+        if ";" in typec:
+            typec = typec.split(";")[0]
         try:
             length = int(info["Content-Length"])
         except:
             length = 0
         if message.geturl().startswith("file://"):
-            return "Local file access is not allowed."
+            return [False, "Local file access is not allowed."]
         if not (typec == "text/html" or typec == "text/plain"):
             return [False, "Content-Type " + typec + " is not allowed."]
         elif length > 51200:
             return [False, "Content is greater than 50KB in size."]
-        return [True]
+        return [True, ""]
 
     def msg(self, target, message, flag=False):
         try:
