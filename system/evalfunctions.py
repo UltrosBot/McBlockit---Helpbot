@@ -12,6 +12,14 @@ class evalFunctions(object):
         message = cinfo["message"]
         target = cinfo["target"]
 
+        COLOUR = self.bot.col
+        COLOR = COLOUR
+        BOLD = self.bot.bold
+        ITALIC = self.bot.italic
+        UNDERLINE = self.bot.underline
+        REVERSE = self.bot.reverse
+        CTCP = self.bot.ctcp
+
         md5 = self.md5
         wget = self.wget
         randint = self.randint
