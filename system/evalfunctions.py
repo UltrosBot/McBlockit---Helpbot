@@ -38,7 +38,7 @@ class evalFunctions(object):
         return hashlib.md5(data).hexdigest()
 
     def wget(self, url):
-        page = urllib.urlopen(url)
+        page = urllib2.urlopen(url)
         test = self.wtest(page)
         if not test[0]:
             return test[1]
@@ -48,6 +48,7 @@ class evalFunctions(object):
     def wtest(self, message):
         info = message.info()
         typec = info["Content-Type"]
+        self.bot.prnt(message.geturl())
         if ";" in typec:
             typec = typec.split(";")[0]
         try:
