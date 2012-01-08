@@ -40,7 +40,14 @@ class FAQ(object):
                     except Exception as e:
                         result = str(e)
                     element = element.replace("$(%s)" % stuff, result)
-                done.append(element)
+                    if "\n" in element:
+                        for part in element.split("\n"):
+                            if part.strip() != "":
+                                done.append(part)
+                    else:
+                        done.append(element)
+                else:
+                    done.append(element)
 
             return[True, done]
         else:

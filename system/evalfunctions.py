@@ -35,8 +35,8 @@ class evalFunctions(object):
             value = str(eval(command))
         except Exception as e:
             value = str(e)
-            #except SystemExit as e:
-        #    value = "ERROR: Tried to call a SystemExit!"
+        except SystemExit as e:
+            value = "ERROR: Tried to call a SystemExit!"
         return value
 
     def randint(self, lo, hi):
@@ -46,7 +46,10 @@ class evalFunctions(object):
         return hashlib.md5(data).hexdigest()
 
     def wget(self, url):
-        page = urllib2.urlopen(url)
+        try:
+            page = urllib2.urlopen(url)
+        except Exception as e:
+            return str(e)
         test = self.wtest(page)
         if not test[0]:
             return test[1]
