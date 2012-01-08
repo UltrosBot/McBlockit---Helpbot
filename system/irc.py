@@ -10,7 +10,6 @@ from twisted.internet import reactor, protocol
 from twisted.internet.protocol import Factory
 from twisted.words.protocols import irc
 from colours import *
-from derp.system.constants import ERR_NO_SUCH_ENTRY
 
 from utils import *
 
