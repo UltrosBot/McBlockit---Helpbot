@@ -930,7 +930,10 @@ class Bot(irc.IRCClient):
                 item = self.messagequeue.pop(0).split(":", 1)
                 user = item[0]
                 message = item[1]
-                self.sendmessage(user, message)
+                if len(message) > 300:
+                    self.sendmessage(user, message[:300] + "...")
+                else:
+                    self.sendmessage(user, message)
             except IndexError:
                 pass
             except:
@@ -949,7 +952,10 @@ class Bot(irc.IRCClient):
                 item = self.noticequeue.pop(0).split(":", 1)
                 user = item[0]
                 message = item[1]
-                self.sendntc(user, message)
+                if len(message) > 300:
+                    self.sendntc(user, message[:300] + "...")
+                else:
+                    self.sendntc(user, message)
             except IndexError:
                 pass
             except:

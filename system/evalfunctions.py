@@ -59,8 +59,8 @@ class evalFunctions(object):
             return [False, "Local file access is not allowed."]
         if not (typec == "text/html" or typec == "text/plain"):
             return [False, "Content-Type " + typec + " is not allowed."]
-        elif length > 51200:
-            return [False, "Content is greater than 50KB in size."]
+        elif length > 10240:
+            return [False, "Content is greater than 20KB in size."]
         return [True, ""]
 
     def msg(self, target, message, flag=False):
