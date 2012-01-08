@@ -58,7 +58,7 @@ class evalFunctions(object):
             if len(data) > (1024 * 5):
                 return "Content is greater than 5KB in size."
             else:
-                return self.rht(page.read())
+                return self.rht(data)
 
     def wtest(self, message):
         info = message.info()
