@@ -69,7 +69,7 @@ class evalFunctions(object):
         try:
             length = int(info["Content-Length"])
         except:
-            length = len(message.read())
+            length = 0
         if message.geturl().startswith("file:/"):
             return [False, "Local file access is not allowed."]
         if not (typec == "text/html" or typec == "text/plain"):
