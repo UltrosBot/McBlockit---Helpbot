@@ -10,6 +10,7 @@ from twisted.internet import reactor, protocol
 from twisted.internet.protocol import Factory
 from twisted.words.protocols import irc
 from colours import *
+from derp.system.constants import ERR_NO_SUCH_ENTRY
 
 from utils import *
 
@@ -545,7 +546,11 @@ class Bot(irc.IRCClient):
                         if data[0]:
                             for element in data[1]:
                                 if not element.strip() == "":
-                                    self.sendmsg(channel, "(%s) %s" % (parts[1].lower(), element))
+                                    if "\n" in element:
+                                        for part in element.split("\n"):
+                                            self.sendmsg(channel, "(%s) %s" % (parts[1].lower(), part))
+                                    else:
+                                        self.sendmsg(channel, "(%s) %s" % (parts[1].lower(), element))
                         else:
                             if data[1] is ERR_NO_SUCH_ENTRY:
                                 send(user, "No such entry: %s" % parts[1].lower())
@@ -575,6 +580,10 @@ class Bot(irc.IRCClient):
                         if data[0]:
                             for element in data[1]:
                                 if not element.strip() == "":
+                                    if "\n" in element:
+                                        for part in element.split("\n"):
+                                            self.sendmsg(channel, "%s: (%s) %s" % (parts[1], parts[2].lower(), part))
+                                else:
                                     self.sendmsg(channel, "%s: (%s) %s" % (parts[1], parts[2].lower(), element))
                         else:
                             if data[1] is ERR_NO_SUCH_ENTRY:
@@ -591,7 +600,11 @@ class Bot(irc.IRCClient):
                         if data[0]:
                             for element in data[1]:
                                 if not element.strip() == "":
-                                    self.sendmsg(parts[1], "(%s) %s" % (parts[2].lower(), element))
+                                    if "\n" in element:
+                                        for part in element.split("\n"):
+                                            self.sendmsg(parts[1], "(%s) %s" % (parts[1].lower(), part))
+                                    else:
+                                        self.sendmsg(parts[1], "(%s) %s" % (parts[1].lower(), element))
                             send(user, "Topic '%s' has been sent to %s." % (parts[2].lower(), parts[1]))
                         else:
                             if data[1] is ERR_NO_SUCH_ENTRY:
@@ -608,7 +621,11 @@ class Bot(irc.IRCClient):
                         if data[0]:
                             for element in data[1]:
                                 if not element.strip() == "":
-                                    send(user, "(%s) %s" % (parts[1].lower(), element))
+                                    if "\n" in element:
+                                        for part in element.split("\n"):
+                                            send(user, "(%s) %s" % (parts[1].lower(), part))
+                                    else:
+                                        send(user, "(%s) %s" % (parts[1].lower(), element))
                         else:
                             if data[1] is ERR_NO_SUCH_ENTRY:
                                 send(user, "No such entry: %s" % parts[1].lower())
