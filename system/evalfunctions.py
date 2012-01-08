@@ -15,8 +15,8 @@ class evalFunctions(object):
         COLOUR = self.bot.col
         COLOR = COLOUR
         BOLD = self.bot.bold
-        ITALIC = self.bot.italic
-        UNDERLINE = self.bot.underline
+        ITALIC = self.bot.ital
+        UNDERLINE = self.bot.under
         REVERSE = self.bot.reverse
         CTCP = self.bot.ctcp
 
