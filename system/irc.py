@@ -355,8 +355,6 @@ class Bot(irc.IRCClient):
         elif msg.startswith(self.control_char) or channel == self.nickname:
             command = msg.split(" ")[0].replace(self.control_char, "", 1)
             arguments = msg.split(" ")
-            if len(arguments) > 1:
-                arguments[1] = arguments[1].lower()
             if command == "help":
                 if len(arguments) < 2:
                     send(user, "Syntax: %shelp <topic>" % self.control_char)
