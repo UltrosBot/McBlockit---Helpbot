@@ -22,6 +22,11 @@ class Bot(irc.IRCClient):
     # Extensions the page title parser shouldn't parse
     notParse = ["png", "jpg", "jpeg", "tiff", "bmp", "ico", "gif"]
 
+    # Plugins!
+    plugins = {}
+    hooks = {}
+    commands = {}
+
     # Channels
     joinchans = []
     channels = []
@@ -105,6 +110,99 @@ class Bot(irc.IRCClient):
             self.prnt("Done!")
             return True
 
+    def runHook(self, hook, data=None):
+        "Used to run hooks for plugins"
+        print hook, data
+        finaldata = []
+        if hook in self.hooks.keys():
+            for element in self.hooks[hook]:
+                print element
+                if data is not None:
+                    value = element[1](data)
+                else:
+                    value = element[1]()
+                if value is not None:
+                    finaldata.append(value)
+        if finaldata == []:
+            finaldata = True
+        return {"result": True, "data": finaldata} # Stupid workaround, need to fix
+
+    def loadPlugins(self):
+        files = []
+        self.hooks = {} # Clear the list of hooks
+        self.commands = {} # Clear the list of commands
+        for element in os.listdir("plugins"): # List the plugins
+            ext = element.split(".")[-1]
+            file = element.split(".")[0]
+            if element == "__init__.py": # Skip the initialiser
+                continue
+            elif ext == "py": # Check if it ends in .py
+                files.append(file)
+        self.prnt("Loading %s plugins.. " % len(files))
+        i = 0
+        while i < len(files):
+            element = files[i]
+            reloaded = False
+            if not "plugins.%s" % element in sys.modules.keys(): # Check if we already imported it
+                try:
+                    __import__("plugins.%s" % element) # If not, import it
+                except Exception as a: # Got an error!
+                    self.prnt("Unable to load plugin from %s.py!" % element)
+                    self.prnt("Error: %s" % a)
+                    i += 1
+                    continue
+                else:
+                    try:
+                        mod = sys.modules["plugins.%s" % element].plugin(self)
+                        name = mod.name # What's the name?
+                        mod.irc = self
+                        if hasattr(mod, "gotIRC"):
+                            mod.gotIRC()
+                    except Exception as a:
+                        self.prnt("Unable to load server plugin from %s" % (element + ".py"))
+                        self.prnt("Error: %s" % a)
+                        i += 1
+                        continue
+            else: # We already imported it
+                mod = self.plugins[element][0]
+                del mod
+                del self.plugins[element]
+                del sys.modules["plugins.%s" % element] # Unimport it by deleting it
+                try:
+                    __import__("plugins.%s" % element) # import it again
+                except Exception as a: # Got an error!
+                    self.prnt("Unable to load plugin from %s.py!" % element)
+                    self.prnt("Error: %s" % a)
+                    i += 1
+                    continue
+                else:
+                    try:
+                        mod = sys.modules["plugins.%s" % element].plugin(self)
+                        name = mod.name # get the name
+                    except Exception as a:
+                        self.prnt("Unable to load plugin from %s" % (element + ".py"))
+                        self.prnt("Error: %s" % a)
+                        i += 1
+                        continue
+                reloaded = True # Remember that we reloaded it
+            mod.filename = element
+            self.plugins[name] = mod # Put it in the plugins list
+            if not reloaded:
+                self.prnt("Loaded plugin: %s" % name)
+            else:
+                self.prnt("Reloaded plugin: %s" % name)
+            i += 1
+        for plugin in self.plugins.values(): # For every plugin,
+            for element, fname in plugin.hooks.items(): # For every hook in the plugin,
+                if element not in self.hooks.keys():
+                    self.hooks[element] = [] # Make a note of the hook in the hooks dict
+                self.hooks[element].append([plugin, getattr(plugin, fname)])
+            for element, data in plugin.commands.items():
+                if element in self.commands.keys():
+                    self.prnt("Command %s is already registered. Overriding." % element)
+                self.commands[element] = getattr(plugin, data)
+
+
     def __init__(self):
         # What's the name of our logfile?
         self.logfile = open("output.log", "a")
@@ -117,6 +215,7 @@ class Bot(irc.IRCClient):
             self.prnt("Unable to parse quotes.txt. Does it exist? Bot will now quit.")
             reactor.stop()
             exit()
+        self.loadPlugins();
         self.faq = faq.FAQ(self.data_dir, self)
         self.faq.listentries(self.index_file)
         self.mcb = mcbans.McBans(self.api_key)
@@ -256,10 +355,16 @@ class Bot(irc.IRCClient):
         elif msg.startswith(self.control_char) or channel == self.nickname:
             command = msg.split(" ")[0].replace(self.control_char, "", 1)
             arguments = msg.split(" ")
+            if len(arguments) > 1:
+                arguments[1] = arguments[1].lower()
             if command == "help":
                 if len(arguments) < 2:
                     send(user, "Syntax: %shelp <topic>" % self.control_char)
                     send(user, "Available topics: about, login, logout, lookup")
+                    done = "";
+                    for element in self.commands.keys():
+                        done = done + element
+                    send(user, done)
                     if authorized:
                         send(user, "Admin topics: raw, quit")
                 else:
@@ -296,6 +401,8 @@ class Bot(irc.IRCClient):
                             send(user, "Syntax: %squit [message]" % self.control_char)
                             send(user, "Makes the bot quit, with an optional user-defined message.")
                             send(user, "If no message is defined, uses a random quote.")
+                    elif arguments[1] in self.commands.keys():
+                        send(user, self.commands[arguments[1]].__doc__)
                     else:
                         send(user, "Unknown help topic: %s" % arguments[1])
             elif command == "login":
@@ -534,6 +641,8 @@ class Bot(irc.IRCClient):
                         send(user, "Already parsing page titles in %s ." % channel)
                 else:
                     send(user, "You do not have access to this command.")
+            elif command.lower() in self.commands.keys():
+                self.commands[command.lower()](user, channel, arguments)
         elif msg.startswith("??") or msg.startswith("?!"):
             cinfo = {"user": user, "hostmask": userhost.split("!", 1)[1], "origin": channel, "message": msg,
                      "target": channel}
