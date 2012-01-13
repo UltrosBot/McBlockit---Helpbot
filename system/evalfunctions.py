@@ -57,8 +57,8 @@ class evalFunctions(object):
             data = page.read()
             if len(data) > (1024 * 5):
                 return "Content is greater than 5KB in size."
-            elif data.count("\n") > 3:
-                return "Content contains more than three newlines."
+            # elif data.count("\n") > 3:
+            #     return "Content contains more than three newlines."
             else:
                 return self.rht(data)
 
