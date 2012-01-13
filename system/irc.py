@@ -1,6 +1,6 @@
 import sys, os, random, time, math
 import thread, socket, re, htmlentitydefs
-import urllib2 as urllib
+import mechanize
 import dns.resolver as resolver
 
 from twilio.rest import TwilioRestClient
@@ -825,65 +825,24 @@ class Bot(irc.IRCClient):
 
     def pagetitle(self, target, url):
         if not target in self.stfuchans:
-            try:
-                if not url.split(".")[-1] in self.notParse:
-                    isHTTPS = 0
-                    domain = ""
+            if not url.split(".")[-1] in self.notParse:
+                isHTTPS = 0
+                domain = ""
+                try:
                     if url.startswith("http://"):
                         domain = url.split("http://")[1].split("/")[0]
                         isHTTPS = 0
                     elif url.startswith("https://"):
                         domain = url.split("https://")[1].split("/")[0]
                         isHTTPS = 1
-                    try:
-                        request = urllib.Request(url, "",
-                                {"User-Agent": "Mozilla/5.0 (X11; U; Linux i686) Gecko/20071127 Firefox/2.0.0.11"})
-                        response = urllib.urlopen(request)
-                        html = response.read()
-                        title = html.split("<title>")[1].split("</title>")[0]
-                        data = string.replace(title, "\n", "")
-                        data = string.replace(data, "\t\t\t", "\t")
-                        data = string.replace(data, "\t\t", "\t")
-                        data = string.replace(data, "\t", " ")
-                        while "  " in data:
-                            data = string.replace(data, "  ", " ")
-                        while data.startswith(" "):
-                            data = data[1:]
-                        data = string.replace(self.unescape(data), "  ", " ")
-                        if not isHTTPS == 1:
-                            self.sendmsg(target, ("\"%s\" at %s" % (data, domain)))
-                        else:
-                            self.sendmsg(target, ("\"%s\" (Secure) at %s" % (data, domain)))
-                    except urllib.HTTPError as error:
-                        if str(error) == "HTTP Error 405: Method Not Allowed":
-                            try:
-                                response = urllib.urlopen(url)
-                                html = response.read()
-                                title = html.split("<title>")[1].split("</title>")[0]
-                                data = string.replace(title, "\n", "")
-                                data = string.replace(data, "\t\t\t", "\t")
-                                data = string.replace(data, "\t\t", "\t")
-                                data = string.replace(data, "\t", " ")
-                                while "  " in data:
-                                    data = string.replace(data, "  ", " ")
-                                while data.startswith(" "):
-                                    data = data[1:]
-                                data = string.replace(self.unescape(data), "  ", " ")
-                                if not isHTTPS == 1:
-                                    self.sendmsg(target, ("\"%s\" at %s" % (data, domain)))
-                                else:
-                                    self.sendmsg(target, ("\"%s\" (Secure) at %s" % (data, domain)))
-                            except urllib.HTTPError as error:
-                                self.sendmsg(target, ("%s (%s)" % (error, domain)))
-                            except IndexError:
-                                self.prnt("URL %s has no title. Parse?" % url)
-                        else:
-                            self.sendmsg(target, ("%s (%s)" % (error, domain)))
-                    except IndexError:
-                        self.prnt("URL %s has no title. Parse?" % url)
-            except Exception as e:
-                # self.sendmsg(target, "Error: %s" % e)
-                print "Error: %s" % e
+                    br = mechanize.Browser()
+                    br.addheaders = [('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9-1.fc9 Firefox/3.0.1')]
+                    br.set_handle_robots(False)
+                    br.open(url)
+                    self.sendmsg(target, "\"%s\" at %s" % (br.title(), domain))
+                except Exception as e:
+                    # self.sendmsg(target, "Error: %s" % e)
+                    self.prnt("Error: %s" % e)
 
     def squit(self, reason=""):
         if not reason == "":
