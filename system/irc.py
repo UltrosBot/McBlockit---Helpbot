@@ -344,7 +344,7 @@ class Bot(irc.IRCClient):
                         self.kicked.append(user)
                     else:
                         self.sendLine(
-                            "MODE %s +bb *!%s@* %s!*@*" % (channel, userhost.split("@")[0].split("!")[1], user))
+                            "MODE %s +bbb *!%s@* %s!*@* *!*@%s" % (channel, userhost.split("@")[0].split("!")[1], user, userhost.split("@")[1]))
                         self.sendLine("KICK %s %s :%s is a dirty spammer!" % (channel, user, user))
                         self.prnt("Banned %s from %s for spamming." % (user, channel))
         if channel.startswith("#"):
