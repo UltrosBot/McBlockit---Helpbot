@@ -361,7 +361,7 @@ class Bot(irc.IRCClient):
                     done = "";
                     for element in self.plugins.keys():
                         try:
-                            done += " " + " ".join(self.plugins[element].help.keys())
+                            done += " ".join(self.plugins[element].help.keys()) + " "
                         except:
                             self.prnt("Plugin %s has no help object!" % element.name)
                     send(user, done)
