@@ -164,8 +164,7 @@ class Bot(irc.IRCClient):
                         i += 1
                         continue
             else: # We already imported it
-                mod = self.plugins[element][0]
-                del mod
+                del self.plugins[element][0]
                 del self.plugins[element]
                 del sys.modules["plugins.%s" % element] # Unimport it by deleting it
                 try:
@@ -360,8 +359,8 @@ class Bot(irc.IRCClient):
                     send(user, "Syntax: %shelp <topic>" % self.control_char)
                     send(user, "Available topics: about, login, logout, lookup")
                     done = "";
-                    for element in self.commands.keys():
-                        done = done + element
+                    for element in self.plugins.keys():
+                        done += " ".join(self.plugins[element].help.keys())
                     send(user, done)
                     if authorized:
                         send(user, "Admin topics: raw, quit")
@@ -399,10 +398,20 @@ class Bot(irc.IRCClient):
                             send(user, "Syntax: %squit [message]" % self.control_char)
                             send(user, "Makes the bot quit, with an optional user-defined message.")
                             send(user, "If no message is defined, uses a random quote.")
-                    elif arguments[1] in self.commands.keys():
-                        send(user, self.commands[arguments[1]].__doc__)
                     else:
-                        send(user, "Unknown help topic: %s" % arguments[1])
+                        sent = 0
+                        for element in self.plugins.keys():
+                            if arguments[1] in self.plugins[element].help.keys():
+                                helptxt = self.plugins[element].help[arguments[1]]
+                                if "\n" in helptxt:
+                                    for element in helptxt.split("\n"):
+                                        send(user, element)
+                                else:
+                                    send(user, helptxt)
+                                sent = 1
+                                break
+                        if not sent:
+                            send(user, "Unknown help topic: %s" % arguments[1])
             elif command == "login":
                 if len(arguments) < 2:
                     send(user, "Syntax: %slogin <password>" % self.control_char)
@@ -640,7 +649,10 @@ class Bot(irc.IRCClient):
                 else:
                     send(user, "You do not have access to this command.")
             elif command.lower() in self.commands.keys():
-                self.commands[command.lower()](user, channel, arguments)
+                try:
+                    self.commands[command.lower()](user, channel, arguments)
+                except Exception as e:
+                    send(user, str(e))
         elif msg.startswith("??") or msg.startswith("?!"):
             cinfo = {"user": user, "hostmask": userhost.split("!", 1)[1], "origin": channel, "message": msg,
                      "target": channel}
