@@ -10,6 +10,9 @@ class plugin(object):
 
     def __init__(self, irc):
         self.irc = irc
+        self.help = {
+            "staff": "Get information about our staff members\nUsage: %sstaff <username>" % self.irc.control_char
+        }
 
     def getStaff(self):
         users = urllib.urlopen('http://www.mcbans.com/staff?getStaff').read()
@@ -35,7 +38,6 @@ class plugin(object):
         return output
 
     def staff(self, user, channel, arguments):
-        "Get information about our staff members"
         if len(arguments) < 2:
             self.irc.sendnotice(user, 'You must provide a username.')
         users = self.getStaff()

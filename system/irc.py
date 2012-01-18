@@ -360,7 +360,10 @@ class Bot(irc.IRCClient):
                     send(user, "Available topics: about, login, logout, lookup")
                     done = "";
                     for element in self.plugins.keys():
-                        done += " ".join(self.plugins[element].help.keys())
+                        try:
+                            done += " ".join(self.plugins[element].help.keys())
+                        except:
+                            self.prnt("Plugin %s has no help object!" % element.name)
                     send(user, done)
                     if authorized:
                         send(user, "Admin topics: raw, quit")
@@ -401,15 +404,18 @@ class Bot(irc.IRCClient):
                     else:
                         sent = 0
                         for element in self.plugins.keys():
-                            if arguments[1] in self.plugins[element].help.keys():
-                                helptxt = self.plugins[element].help[arguments[1]]
-                                if "\n" in helptxt:
-                                    for element in helptxt.split("\n"):
-                                        send(user, element)
-                                else:
-                                    send(user, helptxt)
-                                sent = 1
-                                break
+                            try:
+                                if arguments[1] in self.plugins[element].help.keys():
+                                    helptxt = self.plugins[element].help[arguments[1]]
+                                    if "\n" in helptxt:
+                                        for element in helptxt.split("\n"):
+                                            send(user, element)
+                                    else:
+                                        send(user, helptxt)
+                                    sent = 1
+                                    break
+                            except:
+                                self.prnt("Plugin %s has no help object!" % element)
                         if not sent:
                             send(user, "Unknown help topic: %s" % arguments[1])
             elif command == "login":
