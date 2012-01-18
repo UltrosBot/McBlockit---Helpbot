@@ -658,7 +658,7 @@ class Bot(irc.IRCClient):
                 try:
                     self.commands[command.lower()](user, channel, arguments)
                 except Exception as e:
-                    send(user, str(e))
+                    send(user, "Error: " + str(e))
         elif msg.startswith("??") or msg.startswith("?!"):
             cinfo = {"user": user, "hostmask": userhost.split("!", 1)[1], "origin": channel, "message": msg,
                      "target": channel}
