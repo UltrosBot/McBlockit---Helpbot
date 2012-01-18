@@ -1,3 +1,7 @@
+import re
+import string
+import urllib
+
 class plugin(object):
 
     commands = {
@@ -11,17 +15,17 @@ class plugin(object):
         users = urllib.urlopen('http://www.mcbans.com/staff?getStaff').read()
         return users.split("\n")
 
-    def getUser(users, user):
+    def getUser(self, users, user):
         for rawline in users:
             splitline = rawline.split(':')
             if splitline[0] == user or splitline[1] == user:
                 return splitline
         return 'NOUSER'
 
-    def getUserInfo(user, rank):
+    def getUserInfo(self, user, rank):
         return urllib.urlopen('http://www.mcbans.com/staff?getInfoOn=' + user + '&staffRank=' + rank).read()
 
-    def stripHtml(input):
+    def stripHtml(self, input):
         input = string.replace(input, '<br/>', "\n")
         p = re.compile(r'<[^<]*?/?>')
         q = re.compile(r'\n{2,}')
@@ -32,7 +36,6 @@ class plugin(object):
 
     def staff(self, user, channel, arguments):
         "Get information about our staff members"
-        self.irc.sendnotice(user, "Success!")
         if len(arguments) < 2:
             self.irc.sendnotice(user, 'You must provide a username.')
         users = self.getStaff()
