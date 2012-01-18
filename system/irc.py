@@ -306,7 +306,7 @@ class Bot(irc.IRCClient):
             msg = messages[random.randint(0, len(messages) - 1)]
             msg = msg.replace("^ruser^", self.chanlist[channel].keys()[random.randint(0, len(self.chanlist[channel].keys()) - 1)])
             self.sendmsg(channel, msg)
-        reactor.callLater(900, thread.start_new_thread, self.randmsg, (channel,))
+        reactor.callLater(3600, thread.start_new_thread, self.randmsg, (channel,))
 
 
     def privmsg(self, user, channel, msg):
