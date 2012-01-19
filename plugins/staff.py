@@ -40,11 +40,12 @@ class plugin(object):
     def staff(self, user, channel, arguments):
         if len(arguments) < 2:
             self.irc.sendnotice(user, 'You must provide a username.')
+            return
         users = self.getStaff()
-        user = self.getUser(users, arguments[1])
-        if user == 'NOUSER':
+        staffMember = self.getUser(users, arguments[1])
+        if staffMember == 'NOUSER':
             self.irc.sendnotice(user, 'No staff member by this name exists.')
-        self.irc.sendnotice(user, self.stripHtml(self.getUserInfo(user[0], user[2])))
+        self.irc.sendnotice(user, self.stripHtml(self.getUserInfo(staffMember[0], staffMember[2])))
 
     hooks = {}
 
