@@ -46,7 +46,8 @@ class plugin(object):
         if staffMember == 'NOUSER':
             self.irc.sendnotice(user, 'No staff member by this name exists.')
         for line in self.stripHtml(self.getUserInfo(staffMember[0], staffMember[2])).split('\n'):
-            self.irc.sendnotice(user, line)
+            if line.strip() != '':
+                self.irc.sendnotice(user, line)
 
     hooks = {}
 
