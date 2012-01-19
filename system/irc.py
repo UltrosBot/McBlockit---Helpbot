@@ -833,8 +833,11 @@ class Bot(irc.IRCClient):
                         pass
                     else:
                         self.prnt("User %s is blacklisted!" % user)
-                        answer = resolver.query(r_ip + "." + bl, "TXT")
-                        reason = answer[0]
+                        try:
+                            answer = resolver.query(r_ip + "." + bl, "TXT")
+                            reason = answer[0]
+                        except:
+                            reason = bl
                         self.sendLine("KICK %s %s :%s" % (channel, user, reason))
                         self.sendLine("MODE %s +b %s" % ip)
                 self.lookedup.append(ip)
