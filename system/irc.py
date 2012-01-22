@@ -106,10 +106,10 @@ class Bot(irc.IRCClient):
             self.api_key = settings.get("mcbans", "api_key")
             self.r_emotes = settings.getboolean("other", "emotes")
         except Exception as e:
-            return False
+            return [False, e]
         else:
             self.prnt("Done!")
-            return True
+            return [True, ""]
 
     def runHook(self, hook, data=None):
         "Used to run hooks for plugins"
