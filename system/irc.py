@@ -104,7 +104,8 @@ class Bot(irc.IRCClient):
             self.data_dir = settings.get("info", "data_folder")
             self.index_file = settings.get("info", "index_file")
             self.api_key = settings.get("mcbans", "api_key")
-        except:
+            self.r_emotes = settings.getboolean("other", "emotes")
+        except Exception as e:
             return False
         else:
             self.prnt("Done!")
@@ -206,8 +207,11 @@ class Bot(irc.IRCClient):
         # What's the name of our logfile?
         self.logfile = open("output.log", "a")
 
-        if not(self.parseSettings()):
-            self.prnt("Unable to parse settings.ini. Does it exist? Bot will now quit.")
+        stuff = self.parseSettings()
+
+        if not(stuff[0]):
+            self.prnt("Unable to parse settings.ini.")
+            self.prnt("Error: %s" % stuff[1])
             reactor.stop()
             exit()
         if not(self.parseQuotes()):
@@ -254,7 +258,8 @@ class Bot(irc.IRCClient):
             self.firstjoin = 0
             # Flush the logfile
         self.who(channel)
-        reactor.callLater(5, thread.start_new_thread, self.randmsg, (channel,))
+        if self.r_emotes:
+            reactor.callLater(5, thread.start_new_thread, self.randmsg, (channel,))
         self.flush()
 
     def sThread(self, channel):
@@ -291,22 +296,23 @@ class Bot(irc.IRCClient):
             raise ValueError("'data' must be either True or False")
 
     def randmsg(self, channel):
-        if channel not in self.norandom:
-            messages = [self.ctcp + "ACTION paws ^ruser^" + self.ctcp,
-                        self.ctcp + "ACTION curls up in ^ruser^'s lap" + self.ctcp,
-                        self.ctcp + "ACTION stares at ^ruser^" + self.ctcp,
-                        self.ctcp + "ACTION jumps onto the fridge" + self.ctcp + "\no3o",
-                        self.ctcp + "ACTION rubs around ^ruser^'s leg" + self.ctcp + "\n"+ self.ctcp + "ACTION purrs" + self.ctcp,
-                        "Mewl! o3o",
-                        "Meow",
-                        ":3",
-                        "Mreewww.."
-                        ]
-            self.norandom.append(channel)
-            msg = messages[random.randint(0, len(messages) - 1)]
-            msg = msg.replace("^ruser^", self.chanlist[channel].keys()[random.randint(0, len(self.chanlist[channel].keys()) - 1)])
-            self.sendmsg(channel, msg)
-        reactor.callLater(3600, thread.start_new_thread, self.randmsg, (channel,))
+        if self.r_emotes:
+            if channel not in self.norandom:
+                messages = [self.ctcp + "ACTION paws ^ruser^" + self.ctcp,
+                            self.ctcp + "ACTION curls up in ^ruser^'s lap" + self.ctcp,
+                            self.ctcp + "ACTION stares at ^ruser^" + self.ctcp,
+                            self.ctcp + "ACTION jumps onto the fridge" + self.ctcp + "\no3o",
+                            self.ctcp + "ACTION rubs around ^ruser^'s leg" + self.ctcp + "\n"+ self.ctcp + "ACTION purrs" + self.ctcp,
+                            "Mewl! o3o",
+                            "Meow",
+                            ":3",
+                            "Mreewww.."
+                            ]
+                self.norandom.append(channel)
+                msg = messages[random.randint(0, len(messages) - 1)]
+                msg = msg.replace("^ruser^", self.chanlist[channel].keys()[random.randint(0, len(self.chanlist[channel].keys()) - 1)])
+                self.sendmsg(channel, msg)
+            reactor.callLater(3600, thread.start_new_thread, self.randmsg, (channel,))
 
 
     def privmsg(self, user, channel, msg):

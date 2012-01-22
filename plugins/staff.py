@@ -1,8 +1,14 @@
 import re
 import string
-import urllib
+import urllib2
 
 class plugin(object):
+
+    """
+    This plugin is used to look up
+    users in the MCBans staff list.
+    It uses urllib2 to handle http errors.
+    """
 
     commands = {
         "staff": "staff"
@@ -15,7 +21,7 @@ class plugin(object):
         }
 
     def getStaff(self):
-        users = urllib.urlopen('http://www.mcbans.com/staff?getStaff').read()
+        users = urllib2.urlopen('http://www.mcbans.com/staff?getStaff').read()
         return users.split("\n")
 
     def getUser(self, users, user):
@@ -26,7 +32,7 @@ class plugin(object):
         return 'NOUSER'
 
     def getUserInfo(self, user, rank):
-        return urllib.urlopen('http://www.mcbans.com/staff?getInfoOn=' + user + '&staffRank=' + rank).read()
+        return urllib2.urlopen('http://www.mcbans.com/staff?getInfoOn=' + user + '&staffRank=' + rank).read()
 
     def stripHtml(self, input):
         input = string.replace(input, '<br/>', "\n")
@@ -49,4 +55,4 @@ class plugin(object):
 
     hooks = {}
 
-    name = "Staff Information"
+    name = "MCBans Staff Information"
