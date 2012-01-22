@@ -823,7 +823,7 @@ class Bot(irc.IRCClient):
                 r_ip = ip.split(".")
                 r_ip.reverse()
                 r_ip = ".".join(r_ip)
-                blacklists = ["dnsbl.swiftbl.org", "dnsbl.ahbl.org", "ircbl.ahbl.org", "rbl.efnet.org", "dnsbl.dronebl.org"]
+                blacklists = ["dnsbl.swiftbl.org", "dnsbl.ahbl.org", "ircbl.ahbl.org", "rbl.efnet.org", "dnsbl.dronebl.org", "dnsbl.mcblacklist.com"]
                 for bl in blacklists:
                     self.prnt("Checking user %s on blacklist %s..." % (user, bl))
                     try:
