@@ -248,6 +248,7 @@ class Bot(irc.IRCClient):
         #Start the two loops for sending messages and notices
         self.messageLoop()
         self.noticeLoop()
+        self.rawLoop()
 
     def flush(self):
         self.logfile.flush()
