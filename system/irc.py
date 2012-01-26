@@ -1195,7 +1195,7 @@ class Bot(irc.IRCClient):
         self.flush()
 
     def send_raw(self, data):
-        self.rawqueue.apend(str(data))
+        self.rawqueue.append(str(data))
 
     def unescape_charref(self, ref):
         name = ref[2:-1]
