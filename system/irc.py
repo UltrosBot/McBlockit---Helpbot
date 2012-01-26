@@ -71,14 +71,17 @@ class Bot(irc.IRCClient):
         self.logfile.write("%s\n" % (colstrip(msg)))
         self.flush()
 
-    def prnt(self, msg):
-        msg = string.replace(msg, self.bold, "")
-        msg = string.replace(msg, self.under, "")
-        msg = string.replace(msg, self.ital, "")
-        msg = string.replace(msg, self.reverse, "")
-        colprint(msg)
-        self.logfile.write("%s\n" % (colstrip(msg)))
-        self.flush()
+    def parseObjects(self):
+        try:
+            self.prnt("Reading in objects quotes from objects.txt...")
+            file = open("objects.txt", "r")
+            data = file.read()
+            self.emoteobjects = data.split("\n")
+            self.prnt("Read %s quotes." % len(self.quotes))
+        except:
+            return False
+        else:
+            return True
 
     def parseQuotes(self):
         try:
