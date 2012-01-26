@@ -732,9 +732,9 @@ class Bot(irc.IRCClient):
                                 if not element.strip() == "":
                                     if "\n" in element:
                                         for part in element.split("\n"):
-                                            self.sendmsg(parts[1], "(%s) %s" % (parts[1].lower(), part))
+                                            self.sendmsg(parts[1], "(%s) %s" % (parts[2].lower(), part))
                                     else:
-                                        self.sendmsg(parts[1], "(%s) %s" % (parts[1].lower(), element))
+                                        self.sendmsg(parts[1], "(%s) %s" % (parts[2].lower(), element))
                             send(user, "Topic '%s' has been sent to %s." % (parts[2].lower(), parts[1]))
                         else:
                             if data[1] is ERR_NO_SUCH_ENTRY:
