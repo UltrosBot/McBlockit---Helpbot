@@ -42,6 +42,7 @@ class Bot(irc.IRCClient):
     # Message queues
     messagequeue = []
     noticequeue = []
+    rawqueue = []
 
     # Quit quotes
     quotes = []
@@ -102,15 +103,18 @@ class Bot(irc.IRCClient):
             settings = ConfigParser()
             settings.read("settings.ini")
             channels = settings.items("channels")
+            perform = open("perform.txt", "r").readlines()
+            for element in perform:
+                self.send_raw(element)
             for element in self.joinchans:
                 self.joinchans.remove(element)
             for element in channels:
                 self.joinchans.append(element)
                 if not element in oldchans and not self.firstjoin == 1:
-                    self.join("#%s" % element[0])
+                    self.self.send_raw("JOIN #%s" % element[0])
             for element in oldchans:
                 if element not in self.joinchans and not self.firstjoin == 1:
-                    self.part("#%s" % element[0])
+                    self.send_raw("PART #%s Configuration changed" % element[0])
             self.password = settings.get("info", "password")
             if not self.firstjoin == 1:
                 self.sendmsg("nickserv", "IDENTIFY %s" % self.password)
@@ -225,7 +229,7 @@ class Bot(irc.IRCClient):
         stuff = self.parseSettings()
 
         if not(stuff[0]):
-            self.prnt("Unable to parse settings.ini.")
+            self.prnt("Unable to parse settings. Does settings.ini and perform.txt exist?")
             self.prnt("Error: %s" % stuff[1])
             reactor.stop()
             exit()
@@ -265,8 +269,11 @@ class Bot(irc.IRCClient):
         self.sendmsg("NickServ", "IDENTIFY %s" % self.password)
         # Join all the channels in the file, as parsed earlier.
         for element in self.joinchans:
-            self.join(element[0])
+            self.send_raw("JOIN " + element[0])
             # Flush the logfile - so we can read it.
+        perform = open("perform.txt", "r").readlines()
+        for element in perform:
+            self.send_raw(element)
         self.flush()
 
     def joined(self, channel):
@@ -478,7 +485,7 @@ class Bot(irc.IRCClient):
                 if authorized and authtype > 1:
                     if not len(arguments) < 2:
                         send(user, "Done!")
-                        self.sendLine(" ".join(arguments[1:]))
+                        self.send_raw(" ".join(arguments[1:]))
                     else:
                         send(user, "Syntax: %sraw <data>" % self.control_char)
                 else:
@@ -1048,15 +1055,33 @@ class Bot(irc.IRCClient):
                 else:
                     self.sendmessage(user, message)
             except IndexError:
-                pass
-            except:
+                break
+            except Exception as e:
                 try:
-                    print("Failed to send message!")
+                    print("Failed to send message! Error: %s" % e)
                     print(user + " -> " + message)
                 except:
                     pass
-            self.m_protect = self.m_protect + 1
+            self.m_protect += 1
         reactor.callLater(2.5, self.messageLoop, ())
+
+    def rawLoop(self, wut=None):
+        self.r_protect = 0
+        while self.r_protect < 5:
+            try:
+                item = self.rawqueue.pop(0)
+                self.sendLine(item)
+                print("--> server: %s" % item)
+            except IndexError:
+                break
+            except Exception as e:
+                try:
+                    print("Failed to send raw data to server! Error: %s" % e)
+                    print(item)
+                except:
+                    pass
+            self.r_protect += 1
+        reactor.callLater(2.5, self.rawLoop, ())
 
     def noticeLoop(self, wut=None):
         self.n_protect = 0
@@ -1070,14 +1095,14 @@ class Bot(irc.IRCClient):
                 else:
                     self.sendntc(user, message)
             except IndexError:
-                pass
-            except:
+                break
+            except Exception as e:
                 try:
-                    print("Failed to send notice!")
+                    print("Failed to send notice! Error: %s" % e)
                     print(user + " -> " + message)
                 except:
                     pass
-            self.n_protect = self.n_protect + 1
+            self.n_protect += 1
         reactor.callLater(2.5, self.noticeLoop, ())
 
     def who(self, channel):
@@ -1169,6 +1194,9 @@ class Bot(irc.IRCClient):
         # Flush the logfile
         self.flush()
 
+    def send_raw(self, data):
+        self.rawqueue.apend(str(data))
+
     def unescape_charref(self, ref):
         name = ref[2:-1]
         base = 10
@@ -1224,6 +1252,7 @@ class BotFactory(protocol.ClientFactory):
         settings = ConfigParser()
         settings.read("settings.ini")
         self.nickname = settings.get("info", "nickname")
+        del settings
 
     def prnt(self, msg):
         colprint(msg)
