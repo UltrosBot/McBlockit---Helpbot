@@ -269,7 +269,7 @@ class Bot(irc.IRCClient):
         self.noticeLoop()
         self.rawLoop()
         for element in self.joinchans:
-            reactor.callLater(5, self.join("#%s" % element[0]))
+            reactor.callLater(5, self.join, ("#%s" % element[0]))
         self.flush() # Flush the log
 
     def joined(self, channel):
