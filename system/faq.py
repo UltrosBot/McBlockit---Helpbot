@@ -18,6 +18,8 @@ class FAQ(object):
         entry = entry + ".txt"
         path = self.path
         epath = path + "/" + entry
+        epath = epath.replace("../", "")
+        epath = epath.replace("..\\", "")
         if os.path.exists(epath):
             fh = open(epath, "r")
             data = fh.read()
