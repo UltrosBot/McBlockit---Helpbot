@@ -105,7 +105,7 @@ class Bot(irc.IRCClient):
             channels = settings.items("channels")
             perform = open("perform.txt", "r").readlines()
             for element in perform:
-                self.send_raw(element)
+                self.send_raw(element.strip("\n").strip("\r"))
             for element in self.joinchans:
                 self.joinchans.remove(element)
             for element in channels:
