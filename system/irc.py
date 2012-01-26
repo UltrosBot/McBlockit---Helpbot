@@ -233,6 +233,10 @@ class Bot(irc.IRCClient):
             self.prnt("Unable to parse quotes.txt. Does it exist? Bot will now quit.")
             reactor.stop()
             exit()
+        if not(self.parseObjects()):
+            self.prnt("Unable to parse objects.txt. Does it exist? Bot will now quit.")
+            reactor.stop()
+            exit()
         self.loadPlugins();
         self.faq = faq.FAQ(self.data_dir, self)
         self.faq.listentries(self.index_file)
