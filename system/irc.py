@@ -46,6 +46,9 @@ class Bot(irc.IRCClient):
     # Quit quotes
     quotes = []
 
+    # Random emote objects
+    emoteobjects = []
+
     # User system
     authorized = {}
     users = {}
@@ -58,6 +61,15 @@ class Bot(irc.IRCClient):
     ital = "" # Italics code
     reverse = "" # Reverse code
     ctcp = "\1" # CTCP code, as if we'll ever need this
+
+    def prnt(self, msg):
+        msg = string.replace(msg, self.bold, "")
+        msg = string.replace(msg, self.under, "")
+        msg = string.replace(msg, self.ital, "")
+        msg = string.replace(msg, self.reverse, "")
+        colprint(msg)
+        self.logfile.write("%s\n" % (colstrip(msg)))
+        self.flush()
 
     def prnt(self, msg):
         msg = string.replace(msg, self.bold, "")
@@ -298,19 +310,20 @@ class Bot(irc.IRCClient):
     def randmsg(self, channel):
         if self.r_emotes:
             if channel not in self.norandom:
-                messages = [self.ctcp + "ACTION paws ^ruser^" + self.ctcp,
+                messages = [self.ctcp + "ACTION paws ^ruser^" + self.ctcp, # Oh look, we did need it
                             self.ctcp + "ACTION curls up in ^ruser^'s lap" + self.ctcp,
                             self.ctcp + "ACTION stares at ^ruser^" + self.ctcp,
-                            self.ctcp + "ACTION jumps onto the fridge" + self.ctcp + "\no3o",
+                            self.ctcp + "ACTION jumps onto the ^robject^" + self.ctcp + "\no3o",
                             self.ctcp + "ACTION rubs around ^ruser^'s leg" + self.ctcp + "\n"+ self.ctcp + "ACTION purrs" + self.ctcp,
                             "Mewl! o3o",
                             "Meow",
                             ":3",
                             "Mreewww.."
-                            ]
+                ]
                 self.norandom.append(channel)
                 msg = messages[random.randint(0, len(messages) - 1)]
                 msg = msg.replace("^ruser^", self.chanlist[channel].keys()[random.randint(0, len(self.chanlist[channel].keys()) - 1)])
+                msg = msg.replace("^robject^", self.emoteobjects[random.randint(0, len(self.emoteobjects) - 1)])
                 self.sendmsg(channel, msg)
             reactor.callLater(3600, thread.start_new_thread, self.randmsg, (channel,))
 
