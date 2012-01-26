@@ -111,7 +111,7 @@ class Bot(irc.IRCClient):
             for element in channels:
                 self.joinchans.append(element)
                 if not element in oldchans and not self.firstjoin == 1:
-                    self.self.send_raw("JOIN #%s" % element[0])
+                    self.send_raw("JOIN #%s" % element[0])
             for element in oldchans:
                 if element not in self.joinchans and not self.firstjoin == 1:
                     self.send_raw("PART #%s Configuration changed" % element[0])
@@ -268,6 +268,8 @@ class Bot(irc.IRCClient):
         self.messageLoop()
         self.noticeLoop()
         self.rawLoop()
+        for element in self.joinchans:
+            self.send_raw("JOIN #%s" % element[0])
         self.flush() # Flush the log
 
     def joined(self, channel):
