@@ -85,7 +85,7 @@ class Bot(irc.IRCClient):
 
     def parseQuotes(self):
         try:
-            self.prnt("Reading in quit quotes from quits.txt...")
+            self.prnt("Reading in quit quotes from quotes.txt...")
             file = open("quotes.txt", "r")
             data = file.read()
             self.quotes = data.split("\n")
