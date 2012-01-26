@@ -423,10 +423,7 @@ class Bot(irc.IRCClient):
                         send(user, "Retrieves the server information from a Beta/Release server.")
                         send(user, "Can be useful to check if a server is accepting connections.")
                     elif user in self.authorized.keys():
-                        if arguments[1] == "raw":
-                            send(user, "Syntax: %sraw <data>" % self.control_char)
-                            send(user, "Sends raw data to the server.")
-                        elif arguments[1] == "quit":
+                        if arguments[1] == "quit":
                             send(user, "Syntax: %squit [message]" % self.control_char)
                             send(user, "Makes the bot quit, with an optional user-defined message.")
                             send(user, "If no message is defined, uses a random quote.")
@@ -475,15 +472,6 @@ class Bot(irc.IRCClient):
                         self.squit()
                     else:
                         self.squit(" ".join(arguments[1:]))
-                else:
-                    send(user, "You do not have access to this command.")
-            elif command == "raw":
-                if authorized and authtype > 1:
-                    if not len(arguments) < 2:
-                        send(user, "Done!")
-                        self.send_raw(" ".join(arguments[1:]))
-                    else:
-                        send(user, "Syntax: %sraw <data>" % self.control_char)
                 else:
                     send(user, "You do not have access to this command.")
             elif command == "lookup":
