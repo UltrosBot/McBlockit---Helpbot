@@ -245,10 +245,6 @@ class Bot(irc.IRCClient):
         self.faq = faq.FAQ(self.data_dir, self)
         self.faq.listentries(self.index_file)
         self.mcb = mcbans.McBans(self.api_key)
-        #Start the two loops for sending messages and notices
-        self.messageLoop()
-        self.noticeLoop()
-        self.rawLoop()
 
     def flush(self):
         self.logfile.flush()
@@ -268,14 +264,11 @@ class Bot(irc.IRCClient):
         self.prnt("***Signed on as %s.***" % self.nickname)
         # Log in with NickServ.
         self.sendmsg("NickServ", "IDENTIFY %s" % self.password)
-        # Join all the channels in the file, as parsed earlier.
-        for element in self.joinchans:
-            self.send_raw("JOIN " + element[0])
-            # Flush the logfile - so we can read it.
-        perform = open("perform.txt", "r").readlines()
-        for element in perform:
-            self.send_raw(element)
-        self.flush()
+        #Start the three loops for sending messages and notices and raw lines
+        self.messageLoop()
+        self.noticeLoop()
+        self.rawLoop()
+        self.flush() # Flush the log
 
     def joined(self, channel):
         # We joined a channel
