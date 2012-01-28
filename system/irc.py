@@ -20,7 +20,7 @@ from depends import mcbans_api as mcbans
 
 class Bot(irc.IRCClient):
     # Extensions the page title parser shouldn't parse
-    notParse = ["png", "jpg", "jpeg", "tiff", "bmp", "ico", "gif"]
+    notParse = ["png", "jpg", "jpeg", "tiff", "bmp", "ico", "gif", "iso", "bin", "pub", "ppk", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "svg"]
 
     # Plugins!
     plugins = {}
