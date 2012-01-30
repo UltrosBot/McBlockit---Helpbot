@@ -286,6 +286,14 @@ td, th
         html += """        </table>
     </body>
 </html>"""
+
+        html = html.replace(self.bot.col , "[COLOUR]")
+        html = html.replace(self.bot.bold , "[BOLD]")
+        html = html.replace(self.bot.under , "[UNDERLINE]")
+        html = html.replace(self.bot.ital , "[ITALIC]")
+        html = html.replace(self.bot.reverse , "[REVERSE]")
+        html = html.replace(self.bot.ctcp , "[CTCP]")
+
         fh = open(f_path + f_html, "w")
         fh.write(html)
         fh.flush()
