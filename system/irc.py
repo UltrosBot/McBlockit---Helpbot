@@ -20,7 +20,7 @@ from depends import mcbans_api as mcbans
 
 class Bot(irc.IRCClient):
     # Extensions the page title parser shouldn't parse
-    notParse = ["png", "jpg", "jpeg", "tiff", "bmp", "ico", "gif"]
+    notParse = ["png", "jpg", "jpeg", "tiff", "bmp", "ico", "gif", "iso", "bin", "pub", "ppk", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "svg"]
 
     # Plugins!
     plugins = {}
@@ -320,7 +320,7 @@ class Bot(irc.IRCClient):
     def randmsg(self, channel):
         if self.r_emotes:
             if channel not in self.norandom:
-                messages = [self.ctcp + "ACTION paws ^ruser^" + self.ctcp, # Oh look, we did need it
+                messages = [self.ctcp + "ACTION paws at ^ruser^" + self.ctcp, # Oh look, we did need it
                             self.ctcp + "ACTION curls up in ^ruser^'s lap" + self.ctcp,
                             self.ctcp + "ACTION stares at ^ruser^" + self.ctcp,
                             self.ctcp + "ACTION jumps onto the ^robject^" + self.ctcp + "\no3o",
