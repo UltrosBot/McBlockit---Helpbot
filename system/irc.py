@@ -121,7 +121,6 @@ class Bot(irc.IRCClient):
             self.loginpass = settings.get("info", "loginpass")
             self.control_char = settings.get("info", "control_character")
             self.data_dir = settings.get("info", "data_folder")
-            self.index_file = settings.get("info", "index_file")
             self.api_key = settings.get("mcbans", "api_key")
             self.r_emotes = settings.getboolean("other", "emotes")
         except Exception as e:
@@ -243,7 +242,7 @@ class Bot(irc.IRCClient):
             exit()
         self.loadPlugins();
         self.faq = faq.FAQ(self.data_dir, self)
-        self.faq.listentries(self.index_file)
+        self.faq.listentries()
         self.mcb = mcbans.McBans(self.api_key)
 
     def flush(self):
@@ -778,7 +777,7 @@ class Bot(irc.IRCClient):
                     if authorized:
                         if len(parts) > 2:
                             data = self.faq.set(parts[1].lower(), " ".join(parts[2:]), MODE_APPEND)
-                            self.faq.listentries(self.index_file)
+                            self.faq.listentries()
                             if data[0]:
                                 send(user, "Successfully added to the topic: %s" % parts[1].lower())
                             else:
@@ -796,7 +795,7 @@ class Bot(irc.IRCClient):
                     if authorized:
                         if len(parts) > 2:
                             data = self.faq.set(parts[1].lower(), " ".join(parts[2:]), MODE_REPLACE)
-                            self.faq.listentries(self.index_file)
+                            self.faq.listentries()
                             if data[0]:
                                 send(user, "Successfully replaced topic: %s" % parts[1].lower())
                             else:
@@ -814,7 +813,7 @@ class Bot(irc.IRCClient):
                     if authorized:
                         if len(parts) > 1:
                             data = self.faq.set(parts[1].lower(), '', MODE_REMOVE)
-                            self.faq.listentries(self.index_file)
+                            self.faq.listentries()
                             if(data[0]):
                                 send(user, "Successfully removed the topic: %s" % parts[1].lower())
                             else:

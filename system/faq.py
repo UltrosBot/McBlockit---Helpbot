@@ -1,12 +1,15 @@
 import os, string
 import fnmatch
 
-from evalfunctions import evalFunctions
+from ConfigParser import RawConfigParser as ConfigParser
 
+from evalfunctions import evalFunctions
 from system.constants import *
 
 
 class FAQ(object):
+    config = {}
+
     def __init__(self, path, bot):
         self.path = path
         if not os.path.exists(path):
@@ -14,8 +17,23 @@ class FAQ(object):
         self.bot = bot
         self.evalObj = evalFunctions(bot)
 
+        settings = ConfigParser()
+        settings.read("faq.ini")
+
+        self.config["type"] = settings.get("other", "type")
+        location = settings.get("other", "location")
+        if location[-1] == "/" or location[-1] == "\\":
+            self.config["location"] = location
+        else:
+            self.config["location"] = location + "/"
+        self.config["name"] = settings.get("other", "name")
+        self.config["num_colours"] = settings.getint("other", "colours")
+        self.config["css"] = settings.get("other", "css")
+
+        self.config["colours"] = settings.items("colours")
+
     def get(self, entry, cinfo):
-        entry = entry + ".txt"
+        entry += ".txt"
         path = self.path
         epath = path + "/" + entry
         epath = epath.replace("../", "")
@@ -56,7 +74,7 @@ class FAQ(object):
             return [False, ERR_NO_SUCH_ENTRY]
 
     def get_noeval(self, entry, cinfo):
-        entry = entry + ".txt"
+        entry += ".txt"
         path = self.path
         epath = path + "/" + entry
         if os.path.exists(epath):
@@ -74,7 +92,7 @@ class FAQ(object):
             return [False, ERR_NO_SUCH_ENTRY]
 
     def set(self, entry, data, mode):
-        entry = entry + ".txt"
+        entry += ".txt"
         path = self.path
         epath = path + "/" + entry
         epath = epath.replace("../", "")
@@ -145,7 +163,18 @@ class FAQ(object):
                 if len(os.listdir(path + "/" + element)) is 0:
                     os.rmdir(path + "/" + element)
 
-    def listentries(self, filehname="topics.txt"):
+    def listentries(self, depreciated=None):
+        if self.config["type"] in ["html", "txt"]:
+            if self.config["type"] == "html":
+                if self.config["css"] == "generated":
+                    self.listentries_html(self.config["location"], self.config["name"], self.config["colours"], cols=0)
+                else:
+                    self.listentries_html(self.config["location"], self.config["name"], [], False,
+                        self.config["num_colours"])
+            else:
+                self.listentries_text(self.config["location"] + self.config["name"] + ".txt")
+
+    def listentries_text(self, filehname="topics.txt"):
         buffer = []
         for root, dirs, files in os.walk(self.path):
             for filename in fnmatch.filter(files, "*.txt"):
@@ -157,8 +186,113 @@ class FAQ(object):
                     buffer.append("%s/%s" % (data, filename.split(".txt")[0]))
         buffer.sort(key=str.lower)
         buffer = "\n".join(buffer)
-        buffer
         fh = open(filehname, "w")
         fh.write(buffer)
         fh.flush()
         fh.close()
+
+    def listentries_html(self, f_path="./", f_name="topics", colours=["#99CCFF", "#99FF99", "#FF9999"], css_switch=True,
+                         cols=3):
+        buffer = []
+        for root, dirs, files in os.walk(self.path):
+            for filename in fnmatch.filter(files, "*.txt"):
+                if root is self.path:
+                    buffer.append("%s" % filename.split(".txt")[0])
+                else:
+                    data = string.replace(root, "\\", "/")
+                    data = "".join(data.split("/")[1:])
+                    buffer.append("%s/%s" % (data, filename.split(".txt")[0]))
+        f_html = f_name + ".html"
+        if css_switch:
+            f_css = f_name + ".css"
+        else:
+            f_css = self.config["css"]
+
+        html = """
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta lang=\"en/us\" />
+        <title>FAQ Topics</title>
+        <link rel=\"stylesheet\" href=\"{CSSFILE}\" />
+    </head>
+    <body>
+        <table>
+            <tr>
+                <th> Entry </th>
+                <th> Content </th>
+            </tr>"""
+
+        html = html.replace("{CSSFILE}", f_css)
+
+        template = """
+            <tr class=\"{LINESTYLE}\">
+                <th> {ENTRY} </th>
+                <td> {CONTENT} </th>
+            </tr>"""
+
+        css = """
+table
+{
+    border-collapse: collapse;
+}
+
+td, th
+{
+    vertical-align: top;
+    border: 1px double black;
+}
+"""
+
+        if css_switch:
+
+            i = 0
+
+            for element in colours:
+                css_class = "COLOUR-" + str(i)
+                css += "." + css_class + "\n{\n    background-color: " + element[0].replace("-", "#") + ";\n}\n"
+                i += 1
+
+        i = 0
+
+        for element in buffer:
+            entries = self.get_noeval(element, None)
+            if css_switch:
+                css_class = "COLOUR-" + str(i)
+                if i == len(colours) - 1:
+                    i = 0
+                else:
+                    i += 1
+
+            else:
+                css_class = "COLOUR-" + str(i)
+                if i == cols - 1:
+                    i = 0
+                else:
+                    i += 1
+            entries = "<br />".join(entries[1])
+
+            done = template.replace("{LINESTYLE}", css_class)
+            done = done.replace("{ENTRY}", element)
+            done = done.replace("{CONTENT}", entries)
+
+            html += done
+
+        html += """        </table>
+    </body>
+</html>"""
+        fh = open(f_path + f_html, "w")
+        fh.write(html)
+        fh.flush()
+        fh.close()
+
+        del fh
+
+        if css_switch:
+
+            fh = open(f_path + f_css, "w")
+            fh.write(css)
+            fh.flush()
+            fh.close()
+
+            del fh
