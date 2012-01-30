@@ -164,13 +164,15 @@ class FAQ(object):
                     os.rmdir(path + "/" + element)
 
     def listentries(self, depreciated=None):
-        if self.config["type"] in ["html", "txt"]:
-            if self.config["type"] == "html":
+        if self.config["type"] in ["html", "txt", "both"]:
+            if self.config["type"] == "html" or self.config["type"] == "both":
                 if self.config["css"] == "generated":
                     self.listentries_html(self.config["location"], self.config["name"], self.config["colours"], cols=0)
                 else:
                     self.listentries_html(self.config["location"], self.config["name"], [], False,
                         self.config["num_colours"])
+                if self.config["type"] == "both":
+                    self.listentries_text(self.config["location"] + self.config["name"] + ".txt")
             else:
                 self.listentries_text(self.config["location"] + self.config["name"] + ".txt")
 
@@ -202,6 +204,7 @@ class FAQ(object):
                     data = string.replace(root, "\\", "/")
                     data = "".join(data.split("/")[1:])
                     buffer.append("%s/%s" % (data, filename.split(".txt")[0]))
+        buffer.sort(key=str.lower)
         f_html = f_name + ".html"
         if css_switch:
             f_css = f_name + ".css"
