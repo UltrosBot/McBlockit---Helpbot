@@ -244,16 +244,18 @@ td, th
 {
     vertical-align: top;
     border: 1px double black;
+    padding-left: 1em;
+    padding-right:1em;
 }
 """
 
         if css_switch:
-
             i = 0
 
             for element in colours:
                 css_class = "COLOUR-" + str(i)
-                css += "." + css_class + "\n{\n    background-color: " + element[0].replace("-", "#") + ";\n}\n"
+                css += "." + css_class + "\n{\n    background-color: " + element[0].replace("-",
+                    "#") + ";\n    text-align: left;\n}\n"
                 i += 1
 
         i = 0
@@ -292,7 +294,6 @@ td, th
         del fh
 
         if css_switch:
-
             fh = open(f_path + f_css, "w")
             fh.write(css)
             fh.flush()
