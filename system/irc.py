@@ -395,7 +395,7 @@ class Bot(irc.IRCClient):
                             self.prnt("Plugin %s has no help object!" % element.name)
                     send(user, done)
                     if authorized:
-                        send(user, "Admin topics: raw, quit")
+                        send(user, "Admin topics: quit")
                 else:
                     if arguments[1] == "about":
                         send(user, "I'm the #MCBans IRC helper bot.")
