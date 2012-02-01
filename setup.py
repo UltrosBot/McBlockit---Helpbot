@@ -100,7 +100,7 @@ def extract_file(filename):
             fh = ZipFile(rpath, "r")
             fh.extractall(path)
         else:
-            os.system("unzip "+ rpath +"-d " + path)
+            os.system("unzip "+ rpath +" -d " + path)
 
     print "Extracted %s successfully." % filename
     print ""
