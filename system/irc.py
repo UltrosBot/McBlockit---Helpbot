@@ -903,6 +903,7 @@ class Bot(irc.IRCClient):
         # It's a CTCP query!
         if messages[0][0].lower() == "action":
             actions = {"pets": self.ctcp + "ACTION purrs"+ self.ctcp,
+                       "strokes": self.ctcp + "ACTION purrs"+ self.ctcp,
                        "feeds": self.ctcp + "ACTION noms ^user^'s food" + self.ctcp + "\n=^.^="
             }
             for element in actions.keys():
