@@ -1,4 +1,4 @@
-import os
+import os, sys
 import urllib2
 from time import sleep
 
@@ -46,6 +46,8 @@ if not os.path.exists("temp"):
 
 def download_file(url, size):
     filename = url.split("/")[-1]
+    if not "." in filename:
+        filename += ".zip"
 
     print "Downloading %s (%s)" % (filename, size)
     print ""
@@ -82,8 +84,11 @@ def extract_file(filename):
         fh.extractall(path)
 
     else:
-        fh = ZipFile(rpath, "r")
-        fh.extractall(path)
+        if sys.platform == "win32":
+            fh = ZipFile(rpath, "r")
+            fh.extractall(path)
+        else:
+            os.system("unzip "+ rpath +"-qq -d " + path)
 
     print "Extracted %s successfully." % filename
     print ""
