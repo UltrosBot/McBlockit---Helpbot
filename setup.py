@@ -17,6 +17,14 @@ downloads = { "yaml": [ "http://pyyaml.org/download/pyyaml/PyYAML-3.10.zip", "35
               "twisted": ["http://twistedmatrix.com/Releases/Twisted/11.1/Twisted-11.1.0.tar.bz2", "2.7MB"]
 }
 
+python_command = "python"
+if len(sys.argv) > 1:
+    python_command = sys.argv[1]
+
+os.system(python_command + " --version")
+
+print ""
+
 print "Welcome to the install script for the dependencies required to run the bot."
 print "Please note, this script will download some zipfiles, extract them to a temporary folder and install the contents."
 print "The install scripts within may, in fact, download additional data. Please be aware of this before continuing."
@@ -26,7 +34,11 @@ print "-------------------------------------------------------------------------
 print ""
 
 print "This installer REQUIRES that your python executable is in your PATH."
-print "If it is not, the script WILL fail."
+print "If it is not, you may specify it by placing it as an argument. For example.."
+print ""
+print "C:\python26\python setup.py C:\python26\python"
+print ""
+print "This also allows you to install the packages for a different version of python."
 print ""
 
 print "The following packages will be installed:"
@@ -88,7 +100,7 @@ def extract_file(filename):
             fh = ZipFile(rpath, "r")
             fh.extractall(path)
         else:
-            os.system("unzip "+ rpath +" -qq -d " + path)
+            os.system("unzip "+ rpath +"-d " + path)
 
     print "Extracted %s successfully." % filename
     print ""
@@ -99,7 +111,7 @@ def install_modules():
         if os.path.isdir(base_dir + element):
             print "Installing " + element + "..."
             sleep(3)
-            os.system("cd temp/%s && python setup.py install" % element)
+            os.system("cd temp/" + element + " && " + python_command + " setup.py install")
             print ""
 
 for element in downloads.keys():
