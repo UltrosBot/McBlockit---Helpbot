@@ -77,6 +77,13 @@ class McBans():
         values = self._request(data)
         return values # {'global': ['servername .:. reason', 'servername .:. reason'], u'total': 4, u'local': ['servername .:. reason'], 'reputation': 5}
 
+    def lookupAlts(self, player):
+        #Premium-only
+        #Non-premium usage returns {'result': 'n'}
+        data = {"player": player, "exec": "altList"}
+        values = self._request(data)
+        return values # {'altListCount': 2, 'altList': 'altname: REP 10, anotheraltname: REP 10'}
+
     # Account confirmation
 
     def confirm(self, player, key):
