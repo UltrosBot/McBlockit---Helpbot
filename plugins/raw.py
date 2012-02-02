@@ -1,9 +1,8 @@
 class plugin(object):
 
     """
-    This plugin is used to look up
-    users in the MCBans staff list.
-    It uses urllib2 to handle http errors.
+    This plugin is used to send raw
+    messages to the server from the bot.
     """
 
     commands = {
