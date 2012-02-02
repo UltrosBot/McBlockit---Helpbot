@@ -19,10 +19,13 @@ class plugin(object):
         if self.irc.is_op(channel, user):
             if arguments[1:]:
                 result = self.irc.mcb.lookupAlts(arguments[1])
-                self.irc.sendnotice(user, "Player %s has %s alt accounts" % (arguments[1], result["altListCount"]))
-                if int(result["altListCount"]) > 0:
-                    for alt in result["altList"].split(", "):
-                        self.irc.sendnotice(user, " - %s" % alt)
+                if 'result' in result.keys():
+                    self.irc.sendnotice(user, "Player %s has %s alt accounts" % (arguments[1], result["altListCount"]))
+                    if int(result["altListCount"]) > 0:
+                        for alt in result["altList"].split(", "):
+                            self.irc.sendnotice(user, " - %s" % alt)
+                else:
+                    self.irc.sendnotice(user, "This plugin requires MCBans premium")
             else:
                 self.irc.sendnotice(user, "Usage: %salts <data>" % self.irc.control_char)
         else:
