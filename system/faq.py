@@ -36,8 +36,8 @@ class FAQ(object):
         entry += ".txt"
         path = self.path
         epath = path + "/" + entry
-        epath = epath.replace("../", "")
-        epath = epath.replace("..\\", "")
+        while ".." in epath:
+            epath = epath.replace("..", ".")
         if os.path.exists(epath):
             fh = open(epath, "r")
             data = fh.read()
@@ -77,6 +77,8 @@ class FAQ(object):
         entry += ".txt"
         path = self.path
         epath = path + "/" + entry
+        while ".." in epath:
+            epath = epath.replace("..", ".")
         if os.path.exists(epath):
             fh = open(epath, "r")
             data = fh.read()
@@ -95,8 +97,8 @@ class FAQ(object):
         entry += ".txt"
         path = self.path
         epath = path + "/" + entry
-        epath = epath.replace("../", "")
-        epath = epath.replace("..\\", "")
+        while ".." in epath:
+            epath = epath.replace("..", ".")
         if os.path.exists(epath):
             if mode == MODE_APPEND:
                 fh = open(epath, "a")
@@ -287,12 +289,12 @@ td, th
     </body>
 </html>"""
 
-        html = html.replace(self.bot.col , "[COLOUR]")
-        html = html.replace(self.bot.bold , "[BOLD]")
-        html = html.replace(self.bot.under , "[UNDERLINE]")
-        html = html.replace(self.bot.ital , "[ITALIC]")
-        html = html.replace(self.bot.reverse , "[REVERSE]")
-        html = html.replace(self.bot.ctcp , "[CTCP]")
+        html = html.replace(self.bot.col, "[COLOUR]")
+        html = html.replace(self.bot.bold, "[BOLD]")
+        html = html.replace(self.bot.under, "[UNDERLINE]")
+        html = html.replace(self.bot.ital, "[ITALIC]")
+        html = html.replace(self.bot.reverse, "[REVERSE]")
+        html = html.replace(self.bot.ctcp, "[CTCP]")
 
         fh = open(f_path + f_html, "w")
         fh.write(html)
