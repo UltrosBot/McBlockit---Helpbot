@@ -264,6 +264,8 @@ td, th
 
         for element in buffer:
             entries = self.get_noeval(element, None)
+            if not entries[0]:
+                continue # Simple fix for a missing entry fail
             if css_switch:
                 css_class = "COLOUR-" + str(i)
                 if i == len(colours) - 1:
