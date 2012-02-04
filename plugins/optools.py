@@ -28,7 +28,7 @@ class plugin(object):
                 k_reason = arguments[2]
             if user in self.irc.authorized.keys() or self.irc.is_voice(k_chan, user) or self.irc.is_op(k_chan, user):
                 if self.irc.is_op(k_chan, self.irc.nickname):
-                    self.irc.send_raw("KICK %s %s: %s" % (k_chan, k_user, k_reason))
+                    self.irc.send_raw("KICK %s %s :%s" % (k_chan, k_user, k_reason))
                     self.irc.sendnotice(user, "User %s kicked from %s." % (k_user, k_chan))
                 else:
                     self.irc.sendnotice(user, "I do not have op on %s" % k_chan)
