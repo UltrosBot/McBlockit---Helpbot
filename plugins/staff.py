@@ -1,6 +1,5 @@
-import re
-import string
-import urllib2
+import re, string
+import urllib, urllib2
 
 class plugin(object):
 
@@ -21,7 +20,16 @@ class plugin(object):
         }
 
     def getStaff(self):
-        users = urllib2.urlopen('http://www.mcbans.com/staff?getStaff').read()
+        url = 'http://www.mcbans.com/staff'
+        data = {}
+        data ["getStaff"] = None
+
+        data = urllib.urlencode(data)
+        req = urllib2.Request(url, data)
+        response = urllib2.urlopen(req)
+
+        users = response.read()
+
         return users.split("\n")
 
     def getUser(self, users, user):
@@ -32,7 +40,16 @@ class plugin(object):
         return 'NOUSER'
 
     def getUserInfo(self, user, rank):
-        return urllib2.urlopen('http://www.mcbans.com/staff?getInfoOn=' + user + '&staffRank=' + rank).read()
+        url = 'http://www.mcbans.com/staff'
+        data = {}
+        data ["getInfoOn"] = user
+        data ["staffRank"] = rank
+
+        data = urllib.urlencode(data)
+        req = urllib2.Request(url, data)
+        response = urllib2.urlopen(req)
+
+        return response.read()
 
     def stripHtml(self, input):
         input = string.replace(input, '<br/>', "\n")
