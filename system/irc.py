@@ -1,9 +1,7 @@
-import sys, os, random, time, math
-import thread, socket, re, htmlentitydefs
+import os, random, time, math
+import thread, socket, htmlentitydefs
 import mechanize
 import dns.resolver as resolver
-
-from twilio.rest import TwilioRestClient
 
 from ConfigParser import RawConfigParser as ConfigParser
 from twisted.internet import reactor, protocol
@@ -20,7 +18,8 @@ from depends import mcbans_api as mcbans
 
 class Bot(irc.IRCClient):
     # Extensions the page title parser shouldn't parse
-    notParse = ["png", "jpg", "jpeg", "tiff", "bmp", "ico", "gif", "iso", "bin", "pub", "ppk", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "svg"]
+    notParse = ["png", "jpg", "jpeg", "tiff", "bmp", "ico", "gif", "iso", "bin", "pub", "ppk", "doc", "docx", "xls",
+                "xlsx", "ppt", "pptx", "svg"]
 
     # Plugins!
     plugins = {}
@@ -123,8 +122,8 @@ class Bot(irc.IRCClient):
             self.data_dir = settings.get("info", "data_folder")
             self.api_key = settings.get("mcbans", "api_key")
             self.r_emotes = settings.getboolean("other", "emotes")
-        except Exception as e:
-            return [False, e]
+        except Exception:
+            return [False, sys.exc_info()[0]]
         else:
             self.prnt("Done!")
             return [True, ""]
@@ -142,7 +141,7 @@ class Bot(irc.IRCClient):
                     value = element[1]()
                 if value is not None:
                     finaldata.append(value)
-        if finaldata == []:
+        if finaldata is []:
             finaldata = True
         return {"result": True, "data": finaldata} # Stupid workaround, need to fix
 
@@ -165,9 +164,9 @@ class Bot(irc.IRCClient):
             if not "plugins.%s" % element in sys.modules.keys(): # Check if we already imported it
                 try:
                     __import__("plugins.%s" % element) # If not, import it
-                except Exception as a: # Got an error!
+                except Exception: # Got an error!
                     self.prnt("Unable to load plugin from %s.py!" % element)
-                    self.prnt("Error: %s" % a)
+                    self.prnt("Error: %s" % sys.exc_info()[0])
                     i += 1
                     continue
                 else:
@@ -177,9 +176,9 @@ class Bot(irc.IRCClient):
                         mod.irc = self
                         if hasattr(mod, "gotIRC"):
                             mod.gotIRC()
-                    except Exception as a:
+                    except Exception:
                         self.prnt("Unable to load server plugin from %s" % (element + ".py"))
-                        self.prnt("Error: %s" % a)
+                        self.prnt("Error: %s" % sys.exc_info()[0])
                         i += 1
                         continue
             else: # We already imported it
@@ -188,18 +187,18 @@ class Bot(irc.IRCClient):
                 del sys.modules["plugins.%s" % element] # Unimport it by deleting it
                 try:
                     __import__("plugins.%s" % element) # import it again
-                except Exception as a: # Got an error!
+                except Exception: # Got an error!
                     self.prnt("Unable to load plugin from %s.py!" % element)
-                    self.prnt("Error: %s" % a)
+                    self.prnt("Error: %s" % sys.exc_info()[0])
                     i += 1
                     continue
                 else:
                     try:
                         mod = sys.modules["plugins.%s" % element].plugin(self)
                         name = mod.name # get the name
-                    except Exception as a:
+                    except Exception:
                         self.prnt("Unable to load plugin from %s" % (element + ".py"))
-                        self.prnt("Error: %s" % a)
+                        self.prnt("Error: %s" % sys.exc_info()[0])
                         i += 1
                         continue
                 reloaded = True # Remember that we reloaded it
@@ -296,7 +295,7 @@ class Bot(irc.IRCClient):
     def is_voice(self, channel, user):
         if channel in self.chanlist.keys():
             if user in self.chanlist[channel].keys():
-                return self.chanlist[channel][user]["op"]
+                return self.chanlist[channel][user]["voice"]
             return False
         return False
 
@@ -323,7 +322,7 @@ class Bot(irc.IRCClient):
                             self.ctcp + "ACTION curls up in ^ruser^'s lap" + self.ctcp,
                             self.ctcp + "ACTION stares at ^ruser^" + self.ctcp,
                             self.ctcp + "ACTION jumps onto the ^robject^" + self.ctcp + "\no3o",
-                            self.ctcp + "ACTION rubs around ^ruser^'s leg" + self.ctcp + "\n"+ self.ctcp + "ACTION purrs" + self.ctcp,
+                            self.ctcp + "ACTION rubs around ^ruser^'s leg" + self.ctcp + "\n" + self.ctcp + "ACTION purrs" + self.ctcp,
                             "Mewl! o3o",
                             "Meow",
                             ":3",
@@ -331,7 +330,8 @@ class Bot(irc.IRCClient):
                 ]
                 self.norandom.append(channel)
                 msg = messages[random.randint(0, len(messages) - 1)]
-                msg = msg.replace("^ruser^", self.chanlist[channel].keys()[random.randint(0, len(self.chanlist[channel].keys()) - 1)])
+                msg = msg.replace("^ruser^",
+                    self.chanlist[channel].keys()[random.randint(0, len(self.chanlist[channel].keys()) - 1)])
                 msg = msg.replace("^robject^", self.emoteobjects[random.randint(0, len(self.emoteobjects) - 1)])
                 self.sendmsg(channel, msg)
             reactor.callLater(3600, thread.start_new_thread, self.randmsg, (channel,))
@@ -340,7 +340,7 @@ class Bot(irc.IRCClient):
     def privmsg(self, user, channel, msg):
         if channel in self.norandom:
             self.norandom.remove(channel)
-        # We got a message.
+            # We got a message.
         # Define the userhost
         userhost = user
         # Get the username
@@ -361,7 +361,6 @@ class Bot(irc.IRCClient):
             authtype = 2
         msg_time = float(time.time())
         if not authorized and channel.startswith("#"):
-            self.prnt(str(msg_time - self.chanlist[channel][user]["last_time"]))
             if msg_time - self.chanlist[channel][user]["last_time"] < 0.25:
                 # User is a dirty spammer!
                 if self.is_op(channel, self.nickname):
@@ -369,9 +368,11 @@ class Bot(irc.IRCClient):
                         self.sendLine("KICK %s %s :%s is a dirty spammer!" % (channel, user, user))
                         self.prnt("Kicked %s from %s for spamming." % (user, channel))
                         self.kicked.append(user)
+                        self.chanlist[channel][user]["last_time"] = msg_time
                     else:
                         self.sendLine(
-                            "MODE %s +bbb *!%s@* %s!*@* *!*@%s" % (channel, userhost.split("@")[0].split("!")[1], user, userhost.split("@")[1]))
+                            "MODE %s +bbb *!%s@* %s!*@* *!*@%s" % (
+                            channel, userhost.split("@")[0].split("!")[1], user, userhost.split("@")[1]))
                         self.sendLine("KICK %s %s :%s is a dirty spammer!" % (channel, user, user))
                         self.prnt("Banned %s from %s for spamming." % (user, channel))
         if channel.startswith("#"):
@@ -647,11 +648,11 @@ class Bot(irc.IRCClient):
                                         "That doesn't appear to be a Minecraft server. [Latency: %smsec]" % msec)
                                 else:
                                     send(user, "That doesn't appear to be a Minecraft server. [Latency: %smsec]" % msec)
-                        except Exception as e:
+                        except Exception:
                             if authorized:
-                                self.sendmsg(channel, "Error: %s " % e)
+                                self.sendmsg(channel, "Error: %s " % sys.exc_info()[0])
                             else:
-                                send(user, "Error: %s " % e)
+                                send(user, "Error: %s " % sys.exc_info()[0])
             elif command == "stfu":
                 if authorized:
                     if not channel in self.stfuchans:
@@ -671,10 +672,10 @@ class Bot(irc.IRCClient):
                 else:
                     send(user, "You do not have access to this command.")
             elif command.lower() in self.commands.keys():
-                try:
+                #try:
                     self.commands[command.lower()](user, channel, arguments)
-                except Exception as e:
-                    send(user, "Error: " + str(e))
+                #except Exception:
+                #    send(user, "Error: " + str(sys.exc_info()[0]))
         elif msg.startswith("??") or msg.startswith("?!"):
             cinfo = {"user": user, "hostmask": userhost.split("!", 1)[1], "origin": channel, "message": msg,
                      "target": channel}
@@ -839,7 +840,8 @@ class Bot(irc.IRCClient):
                 r_ip = ip.split(".")
                 r_ip.reverse()
                 r_ip = ".".join(r_ip)
-                blacklists = ["dnsbl.swiftbl.org", "dnsbl.ahbl.org", "ircbl.ahbl.org", "rbl.efnet.org", "dnsbl.dronebl.org", "dnsbl.mcblacklist.com"]
+                blacklists = ["dnsbl.swiftbl.org", "dnsbl.ahbl.org", "ircbl.ahbl.org", "rbl.efnet.org",
+                              "dnsbl.dronebl.org", "dnsbl.mcblacklist.com"]
                 for bl in blacklists:
                     self.prnt("Checking user %s on blacklist %s..." % (user, bl))
                     try:
@@ -871,13 +873,14 @@ class Bot(irc.IRCClient):
                         domain = url.split("https://")[1].split("/")[0]
                         isHTTPS = 1
                     br = mechanize.Browser()
-                    br.addheaders = [('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9-1.fc9 Firefox/3.0.1')]
+                    br.addheaders = [('User-agent',
+                                      'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9-1.fc9 Firefox/3.0.1')]
                     br.set_handle_robots(False)
                     br.open(url)
                     self.sendmsg(target, "\"%s\" at %s" % (br.title(), domain))
-                except Exception as e:
+                except Exception:
                     # self.sendmsg(target, "Error: %s" % e)
-                    self.prnt("Error: %s" % e)
+                    self.prnt("Error: %s" % sys.exc_info()[0])
 
     def squit(self, reason=""):
         if not reason == "":
@@ -902,8 +905,8 @@ class Bot(irc.IRCClient):
         self.prnt("[%s] %s" % (user, messages))
         # It's a CTCP query!
         if messages[0][0].lower() == "action":
-            actions = {"pets": self.ctcp + "ACTION purrs"+ self.ctcp,
-                       "strokes": self.ctcp + "ACTION purrs"+ self.ctcp,
+            actions = {"pets": self.ctcp + "ACTION purrs" + self.ctcp,
+                       "strokes": self.ctcp + "ACTION purrs" + self.ctcp,
                        "feeds": self.ctcp + "ACTION noms ^user^'s food" + self.ctcp + "\n=^.^="
             }
             for element in actions.keys():
@@ -936,7 +939,7 @@ class Bot(irc.IRCClient):
                 for element in modes:
                     if element is "o":
                         self.set_op(channel, args[i], True)
-                    #if args[i].lower() == self.nickname.lower():
+                        #if args[i].lower() == self.nickname.lower():
                     #    for element in self.chanlist[channel].keys():
                     #        self.dnslookup(channel, element)
                     i += 1
@@ -1040,9 +1043,9 @@ class Bot(irc.IRCClient):
                     self.sendmessage(user, message)
             except IndexError:
                 break
-            except Exception as e:
+            except Exception:
                 try:
-                    print("Failed to send message! Error: %s" % e)
+                    print("Failed to send message! Error: %s" % sys.exc_info()[0])
                     print(user + " -> " + message)
                 except:
                     pass
@@ -1058,9 +1061,9 @@ class Bot(irc.IRCClient):
                 print("--> server: %s" % item)
             except IndexError:
                 break
-            except Exception as e:
+            except Exception:
                 try:
-                    print("Failed to send raw data to server! Error: %s" % e)
+                    print("Failed to send raw data to server! Error: %s" % sys.exc_info()[0])
                     print(item)
                 except:
                     pass
@@ -1080,9 +1083,9 @@ class Bot(irc.IRCClient):
                     self.sendntc(user, message)
             except IndexError:
                 break
-            except Exception as e:
+            except Exception:
                 try:
-                    print("Failed to send notice! Error: %s" % e)
+                    print("Failed to send notice! Error: %s" % sys.exc_info()[0])
                     print(user + " -> " + message)
                 except:
                     pass
