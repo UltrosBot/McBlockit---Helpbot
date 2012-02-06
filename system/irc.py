@@ -129,7 +129,7 @@ class Bot(irc.IRCClient):
             return [True, ""]
 
     def runHook(self, hook, data=None):
-        "Used to run hooks for plugins"
+        """Used to run hooks for plugins"""
         print hook, data
         finaldata = []
         if hook in self.hooks.keys():
@@ -239,7 +239,7 @@ class Bot(irc.IRCClient):
             self.prnt("Unable to parse objects.txt. Does it exist? Bot will now quit.")
             reactor.stop()
             exit()
-        self.loadPlugins();
+        self.loadPlugins()
         self.faq = faq.FAQ(self.data_dir, self)
         self.faq.listentries()
         self.mcb = mcbans.McBans(self.api_key)
@@ -387,7 +387,7 @@ class Bot(irc.IRCClient):
                 if len(arguments) < 2:
                     send(user, "Syntax: %shelp <topic>" % self.control_char)
                     send(user, "Available topics: about, login, logout, lookup")
-                    done = "";
+                    done = ""
                     for element in self.plugins.keys():
                         try:
                             done += " ".join(self.plugins[element].help.keys()) + " "
@@ -611,8 +611,7 @@ class Bot(irc.IRCClient):
                     if derp is 0:
                         try:
                             timing = time.time()
-                            s = socket.socket(
-                                socket.AF_INET, socket.SOCK_STREAM)
+                            s = socket.socket()
                             s.settimeout(5.0)
                             s.connect((server, port))
                             ntiming = time.time()
@@ -815,7 +814,7 @@ class Bot(irc.IRCClient):
                         if len(parts) > 1:
                             data = self.faq.set(parts[1].lower(), '', MODE_REMOVE)
                             self.faq.listentries()
-                            if(data[0]):
+                            if data[0]:
                                 send(user, "Successfully removed the topic: %s" % parts[1].lower())
                             else:
                                 send(user, "Unable to remove the topic: %s" % parts[1].lower())
@@ -1033,6 +1032,8 @@ class Bot(irc.IRCClient):
     def messageLoop(self, wut=None):
         self.m_protect = 0
         while self.m_protect < 5:
+            user = ""
+            message = ""
             try:
                 item = self.messagequeue.pop(0).split(":", 1)
                 user = item[0]
@@ -1055,6 +1056,7 @@ class Bot(irc.IRCClient):
     def rawLoop(self, wut=None):
         self.r_protect = 0
         while self.r_protect < 5:
+            item = ""
             try:
                 item = self.rawqueue.pop(0)
                 self.sendLine(item)
@@ -1073,6 +1075,8 @@ class Bot(irc.IRCClient):
     def noticeLoop(self, wut=None):
         self.n_protect = 0
         while self.n_protect < 5:
+            user = ""
+            message= ""
             try:
                 item = self.noticequeue.pop(0).split(":", 1)
                 user = item[0]
@@ -1093,11 +1097,11 @@ class Bot(irc.IRCClient):
         reactor.callLater(2.5, self.noticeLoop, ())
 
     def who(self, channel):
-        "List the users in 'channel', usage: client.who('#testroom')"
+        """List the users in 'channel', usage: client.who('#testroom')"""
         self.sendLine('WHO %s' % channel)
 
     def irc_RPL_WHOREPLY(self, *nargs):
-        "Receive WHO reply from server"
+        """Receive WHO reply from server"""
         # ('apocalypse.esper.net', ['McPlusPlus_Testing', '#minecraft', 'die', 'inafire.com', 'apocalypse.esper.net', 'xales|gone', 'G*', '0 xales'])
 
         our_server = nargs[0]
@@ -1115,16 +1119,8 @@ class Bot(irc.IRCClient):
         if not channel in self.chanlist.keys():
             self.chanlist[channel] = {}
 
-        done = {}
-        done["ident"] = ident
-        done["host"] = host
-        done["server"] = server
-        done["realname"] = gecos.split(" ")[1]
-        done["op"] = False
-        done["voice"] = False
-        done["oper"] = False
-        done["away"] = False
-        done["last_time"] = float(time.time() - 0.25)
+        done = {"ident": ident, "host": host, "server": server, "realname": gecos.split(" ")[1], "op": False,
+                "voice": False, "oper": False, "away": False, "last_time": float(time.time() - 0.25)}
         for char in status:
             if char is "@":
                 done["op"] = True
@@ -1137,7 +1133,7 @@ class Bot(irc.IRCClient):
         self.chanlist[channel][nick] = done
 
     def irc_RPL_ENDOFWHO(self, *nargs):
-        "Called when WHO output is complete"
+        """Called when WHO output is complete"""
         # ('eldridge.esper.net', ['McPlusPlus_Testing', '#mc++', 'End of /WHO list.'])
         server = nargs[0]
         data = nargs[1]
@@ -1147,7 +1143,7 @@ class Bot(irc.IRCClient):
         print("%s users on %s" % (len(self.chanlist[channel]), channel))
 
     def irc_unknown(self, prefix, command, params):
-        "Print all unhandled replies, for debugging."
+        """Print all unhandled replies, for debugging."""
         # if command == "RPL_NAMREPLY":
         # ['McPlusPlus_Testing', '@', '#hollow_testing', 'McPlusPlus_Testing @DerpServ @g']
         # print ("Users on %s: %s" % (params[2], params[3]))
@@ -1250,8 +1246,8 @@ class BotFactory(protocol.ClientFactory):
 
     def clientConnectionLost(self, connector, reason):
         # We died. Onoes!
-        self.prnt("Lost connection: %s" % (reason))
+        self.prnt("Lost connection: %s" % reason)
 
     def clientConnectionFailed(self, connector, reason):
         # Couldn't connect. Daww!
-        self.prnt("Could not connect: %s" % (reason))
+        self.prnt("Could not connect: %s" % reason)

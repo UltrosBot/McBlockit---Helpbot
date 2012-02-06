@@ -97,7 +97,7 @@ def extract_file(filename):
 
     else:
         if sys.platform == "win32":
-            fh = ZipFile(rpath, "r")
+            fh = ZipFile(rpath)
             fh.extractall(path)
         else:
             os.system("unzip "+ rpath +" -d " + path)
