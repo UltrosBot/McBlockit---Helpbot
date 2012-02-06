@@ -21,7 +21,7 @@ class plugin(object):
         if random.randint(1, self.chambersLeft) == 1:
             #BANG
             if self.irc.is_op(channel, self.irc.nickname):
-                self.sendLine("KICK %s %s :Bang!" % (channel, user))
+                self.irc.send_raw("KICK %s %s :Bang!" % (channel, user))
             else:
                 self.irc.sendmsg(channel, "BANG")
             self.irc.sendmsg(channel, self.irc.ctcp + "ACTION reloads the gun" + self.irc.ctcp)
@@ -30,6 +30,7 @@ class plugin(object):
         else:
             #click
             self.irc.sendmsg(channel, '*click* You\'re safe for now. There are %s chambers left. You have a %.2f chance of dying.' % (self.chambersLeft, 100.0/self.chambersLeft))
+            self.chambersLeft -= 1
 
     hooks = {}
 
