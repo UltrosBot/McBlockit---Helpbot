@@ -18,7 +18,7 @@ class FAQ(object):
         self.evalObj = evalFunctions(bot)
 
         settings = ConfigParser()
-        settings.read("faq.ini")
+        settings.read("config/faq.ini")
 
         self.config["type"] = settings.get("other", "type")
         location = settings.get("other", "location")
@@ -195,8 +195,8 @@ class FAQ(object):
         fh.flush()
         fh.close()
 
-    def listentries_html(self, f_path="./", f_name="topics", colours=["#99CCFF", "#99FF99", "#FF9999"], css_switch=True,
-                         cols=3):
+    def listentries_html(self, f_path="./", f_name="topics", colours=None, css_switch=True, cols=3):
+        if not colours: colours = ["#99CCFF", "#99FF99", "#FF9999"]
         buffer = []
         for root, dirs, files in os.walk(self.path):
             for filename in fnmatch.filter(files, "*.txt"):

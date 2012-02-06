@@ -5,7 +5,7 @@ from colorama import Fore, Back, Style, init
 init()
 
 def colstrip(message, times=-1):
-    if (not message.strip(" ").strip("\n") == ""):
+    if not message.strip(" ").strip("\n") == "":
         done = string.replace(message, "0", "")
         done = string.replace(done, "10", "")
         done = string.replace(done, "11", "")
@@ -28,7 +28,7 @@ def colstrip(message, times=-1):
 
 
 def colprint(message):
-    if (not message.strip(" ").strip("\n") == ""):
+    if not message.strip(" ").strip("\n") == "":
         message = " " + message
         done = string.replace(message, "0", Fore.WHITE + Style.BRIGHT)
         done = string.replace(done, "10", Fore.CYAN + Back.RESET + Style.DIM)

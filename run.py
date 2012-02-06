@@ -3,10 +3,9 @@ from system.utils import *
 import sys
 
 sys.path.append("./depends")
-sys.path.append("./depends/colorama")
 
 settings = ConfigParser()
-settings.read("settings.ini")
+settings.read("config/settings.ini")
 factory = BotFactory()
 reactor.connectTCP(settings.get("server", "server"), settings.getint("server", "port"), factory, 120)
 del settings
