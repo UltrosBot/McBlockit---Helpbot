@@ -29,8 +29,8 @@ class plugin(object):
             self.irc.sendmsg(channel, 'There are %s new chambers. You have a %.2f chance of dying.' % (self.chambersLeft, 100.0/self.chambersLeft))
         else:
             #click
-            self.irc.sendmsg(channel, '*click* You\'re safe for now. There are %s chambers left. You have a %.2f chance of dying.' % (self.chambersLeft, 100.0/self.chambersLeft))
             self.chambersLeft -= 1
+            self.irc.sendmsg(channel, '*click* You\'re safe for now. There are %s chambers left. You have a %.2f chance of dying.' % (self.chambersLeft, 100.0/self.chambersLeft))
 
     hooks = {}
 
