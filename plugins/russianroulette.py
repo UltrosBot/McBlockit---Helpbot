@@ -1,3 +1,5 @@
+import random
+
 class plugin(object):
 
     """
