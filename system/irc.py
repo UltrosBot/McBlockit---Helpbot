@@ -963,6 +963,7 @@ class Bot(irc.IRCClient):
     def nickChanged(self, nick):
         # Some evil muu changed MY nick!
         self.prnt("***Nick changed to %s***" % nick)
+        self.factory.nickname = nick
         # Flush the logfile
         self.flush()
 
@@ -1233,7 +1234,7 @@ class BotFactory(protocol.ClientFactory):
     def __init__(self):
         # Initialize!
         settings = ConfigParser()
-        settings.read("settings.ini")
+        settings.read("config/settings.ini")
         self.nickname = settings.get("info", "nickname")
         del settings
 
