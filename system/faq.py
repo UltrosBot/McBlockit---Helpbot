@@ -18,7 +18,7 @@ class FAQ(object):
         self.evalObj = evalFunctions(bot)
 
         settings = ConfigParser()
-        settings.read("faq.ini")
+        settings.read("config/faq.ini")
 
         self.config["type"] = settings.get("other", "type")
         location = settings.get("other", "location")

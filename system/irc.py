@@ -100,7 +100,7 @@ class Bot(irc.IRCClient):
             self.prnt("Reading in settings from settings.ini...")
             oldchans = self.joinchans
             settings = ConfigParser()
-            settings.read("settings.ini")
+            settings.read("config/settings.ini")
             channels = settings.items("channels")
             perform = open("perform.txt", "r").readlines()
             for element in perform:
