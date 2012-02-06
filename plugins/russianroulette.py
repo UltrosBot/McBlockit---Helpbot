@@ -24,13 +24,13 @@ class plugin(object):
                 self.irc.send_raw("KICK %s %s :Bang!" % (channel, user))
             else:
                 self.irc.sendmsg(channel, "BANG")
-            self.irc.sendmsg(channel, self.irc.ctcp + "ACTION reloads the gun" + self.irc.ctcp)
+            self.irc.send_raw(channel +" :" + self.irc.ctcp + "ACTION reloads the gun" + self.irc.ctcp)
             self.chambersLeft = 6
-            self.irc.sendmsg(channel, 'There are %s new chambers. You have a %.2f chance of dying.' % (self.chambersLeft, 100.0/self.chambersLeft))
+            self.irc.send_raw(channel +" :" + 'There are %s new chambers. You have a %s%% chance of dying.' % (self.chambersLeft, int(100.0/self.chambersLeft)))
         else:
             #click
             self.chambersLeft -= 1
-            self.irc.sendmsg(channel, '*click* You\'re safe for now. There are %s chambers left. You have a %.2f chance of dying.' % (self.chambersLeft, 100.0/self.chambersLeft))
+            self.irc.sendmsg(channel, '*click* You\'re safe for now. There are %s chambers left. You have a %s%% chance of dying.' % (self.chambersLeft, int(100.0/self.chambersLeft)))
 
     hooks = {}
 
