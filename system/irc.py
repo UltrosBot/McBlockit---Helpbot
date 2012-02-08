@@ -122,6 +122,7 @@ class Bot(irc.IRCClient):
             self.data_dir = settings.get("info", "data_folder")
             self.api_key = settings.get("mcbans", "api_key")
             self.r_emotes = settings.getboolean("other", "emotes")
+            self.use_antispam = settings.getboolean("other", "antispam")
         except Exception:
             return [False, sys.exc_info()[0]]
         else:
@@ -359,22 +360,23 @@ class Bot(irc.IRCClient):
         elif user in self.authorized.keys():
             authorized = True
             authtype = 2
-        msg_time = float(time.time())
-        if not authorized and channel.startswith("#"):
-            if msg_time - self.chanlist[channel][user]["last_time"] < 0.25:
-                # User is a dirty spammer!
-                if self.is_op(channel, self.nickname):
-                    if not user in self.kicked:
-                        self.sendLine("KICK %s %s :%s is a dirty spammer!" % (channel, user, user))
-                        self.prnt("Kicked %s from %s for spamming." % (user, channel))
-                        self.kicked.append(user)
-                        self.chanlist[channel][user]["last_time"] = msg_time
-                    else:
-                        self.sendLine(
-                            "MODE %s +bbb *!%s@* %s!*@* *!*@%s" % (
-                            channel, userhost.split("@")[0].split("!")[1], user, userhost.split("@")[1]))
-                        self.sendLine("KICK %s %s :%s is a dirty spammer!" % (channel, user, user))
-                        self.prnt("Banned %s from %s for spamming." % (user, channel))
+        if self.use_antispam:
+            msg_time = float(time.time())
+            if not authorized and channel.startswith("#"):
+                if msg_time - self.chanlist[channel][user]["last_time"] < 0.25:
+                    # User is a dirty spammer!
+                    if self.is_op(channel, self.nickname):
+                        if not user in self.kicked:
+                            self.sendLine("KICK %s %s :%s is a dirty spammer!" % (channel, user, user))
+                            self.prnt("Kicked %s from %s for spamming." % (user, channel))
+                            self.kicked.append(user)
+                            self.chanlist[channel][user]["last_time"] = msg_time
+                        else:
+                            self.sendLine(
+                                "MODE %s +bbb *!%s@* %s!*@* *!*@%s" % (
+                                channel, userhost.split("@")[0].split("!")[1], user, userhost.split("@")[1]))
+                            self.sendLine("KICK %s %s :%s is a dirty spammer!" % (channel, user, user))
+                            self.prnt("Banned %s from %s for spamming." % (user, channel))
         if channel.startswith("#"):
             self.chanlist[channel][user]["last_time"] = float(time.time())
         if msg.startswith("http://") or msg.startswith("https://"):
