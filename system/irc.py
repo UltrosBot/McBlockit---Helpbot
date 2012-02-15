@@ -932,8 +932,8 @@ class Bot(irc.IRCClient):
             # Flush the logfile
         self.flush()
 
-        self.runHook("ctcpQuery", {"user": name, "host": user.split("!", 1)[1], "target": me, "type": messages[0],
-                                   "message": messages[1]})
+        self.runHook("ctcpQuery", {"user": name, "host": user.split("!", 1)[1], "target": me, "type": messages[0][0],
+                                   "message": messages[0][1]})
 
         # [gdude2002|away!colesgaret@86-41-192-29-dynamic.b-ras1.lmk.limerick.eircom.net:NotchBot [('CLIENTINFO', None)]]
 
@@ -998,13 +998,10 @@ class Bot(irc.IRCClient):
 
     def userKicked(self, kickee, channel, kicker, message):
         # Mwahahaha, someone got kicked!
-        kickee_host = kickee.split("!", 1)[1]
-        kicker_host = kicker.split("!", 1)[1]
         kickee = kickee.split("!", 1)[0]
         kicker = kicker.split("!", 1)[0]
 
-        self.runHook("userKicked", {"kickee": kickee, "kickee_host": kickee_host, "kicker": kicker,
-                                    "kicker_host": kicker_host, "channel": channel, "message": message})
+        self.runHook("userKicked", {"kickee": kickee, "kicker_host": kicker_host, "channel": channel, "message": message})
 
         self.prnt("***%s was kicked from %s by %s [%s]***" % (kickee, channel, kicker, message))
         # Flush the logfile

@@ -33,7 +33,7 @@ class plugin(object):
             "shoot": "Shoot someone.\n" +
                      ("Usage: %sshoot <user>[:channel]\n" % self.irc.control_char) +
                      "NOTE: If opped and you are a voice or higher, this will kick the user.",
-            "stats": "Get stats about people and channels using this plugin.\n" +
+            "rstats": "Get stats about people and channels using this plugin.\n" +
                      "Usage: " + self.irc.control_char + "rstats <user/channel> <username/channelname> [stat]\n" +
                      "Valid stats: all, shots, deaths, players (Channel only), chambers (Channel only), games (User only)\n" +
                      "NOTE: If no stat is included, all stats will be returned."
