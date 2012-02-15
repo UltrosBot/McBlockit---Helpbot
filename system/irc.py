@@ -131,11 +131,11 @@ class Bot(irc.IRCClient):
 
     def runHook(self, hook, data=None):
         """Used to run hooks for plugins"""
-        print hook, data
+        # print hook, data
         finaldata = []
         if hook in self.hooks.keys():
             for element in self.hooks[hook]:
-                print element
+        #         print element
                 if data:
                     value = element[1](data)
                 else:
