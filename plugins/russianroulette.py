@@ -200,7 +200,6 @@ class plugin(object):
 
     def play(self, user, channel, arguments):
         chambers_left = self.channels[channel]["chambers"]
-        self.channels[channel]["shots"] += 1
 
         if user not in self.users.keys():
             games = 0
