@@ -1001,7 +1001,7 @@ class Bot(irc.IRCClient):
         kickee = kickee.split("!", 1)[0]
         kicker = kicker.split("!", 1)[0]
 
-        self.runHook("userKicked", {"kickee": kickee, "kicker_host": kicker_host, "channel": channel, "message": message})
+        self.runHook("userKicked", {"kickee": kickee, "kicker": kicker, "channel": channel, "message": message})
 
         self.prnt("***%s was kicked from %s by %s [%s]***" % (kickee, channel, kicker, message))
         # Flush the logfile
