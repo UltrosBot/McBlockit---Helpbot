@@ -34,7 +34,7 @@ class plugin(object):
                      ("Usage: %sshoot <user>[:channel]\n" % self.irc.control_char) +
                      "NOTE: If opped and you are a voice or higher, this will kick the user.",
             "stats": "Get stats about people and channels using this plugin.\n" +
-                     "Usage: %srstats <user/channel> <username/channelname> [stat]\n" +
+                     "Usage: " + self.irc.control_char + "rstats <user/channel> <username/channelname> [stat]\n" +
                      "Valid stats: all, shots, deaths, players (Channel only), chambers (Channel only), games (User only)\n" +
                      "NOTE: If no stat is included, all stats will be returned."
         }
@@ -178,6 +178,8 @@ class plugin(object):
                             self.irc.sendnotice(user, "Games %s has played in: %s" % (about, self.users[about]["games"]))
                         else:
                             self.irc.sendnotice(user, "There is no information for %s" % about)
+        else:
+            self.irc.sendnotice(user, "Usage: %srstats <user/channel> <username/channelname> [stat]" % self.irc.control_char)
 
 
 

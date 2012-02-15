@@ -395,15 +395,17 @@ class Bot(irc.IRCClient):
                 if len(arguments) < 2:
                     send(user, "Syntax: %shelp <topic>" % self.control_char)
                     send(user, "Available topics: about, login, logout, lookup")
-                    done = ""
-                    for element in self.plugins.keys():
-                        try:
-                            done += " ".join(self.plugins[element].help.keys()) + " "
-                        except:
-                            self.prnt("Plugin %s has no help object!" % element.name)
-                    send(user, done)
                     if authorized:
                         send(user, "Admin topics: quit")
+                    done = []
+                    for element in self.plugins.keys():
+                        try:
+                            for element in self.plugins[element].help.keys():
+                                done.append(element)
+                        except:
+                            self.prnt("Plugin %s has no help object!" % element.name)
+
+                    send(user, ", ".join(sorted(done)))
                 else:
                     if arguments[1] == "about":
                         send(user, "I'm the #MCBans IRC helper bot.")
