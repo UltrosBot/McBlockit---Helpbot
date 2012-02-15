@@ -25,7 +25,7 @@ class plugin(object):
                 k_user, k_chan = k_user.split(":")[0], k_user.split(":")[1]
             k_reason = user
             if len(arguments) > 2:
-                k_reason = arguments[2]
+                k_reason = arguments[2:]
             if user in self.irc.authorized.keys() or self.irc.is_voice(k_chan, user) or self.irc.is_op(k_chan, user):
                 if self.irc.is_op(k_chan, self.irc.nickname):
                     if k_user in self.irc.chanlist[channel].keys():
@@ -48,7 +48,7 @@ class plugin(object):
                 k_user, k_chan = k_user.split(":")[0], k_user.split(":")[1]
             k_reason = user
             if len(arguments) > 2:
-                k_reason = arguments[2]
+                k_reason = arguments[2:]
             if user in self.irc.authorized.keys() or self.irc.is_voice(k_chan, user) or self.irc.is_op(k_chan, user):
                 if self.irc.is_op(k_chan, self.irc.nickname):
                     if k_user in self.irc.chanlist[channel].keys():
