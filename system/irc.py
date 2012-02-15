@@ -1,4 +1,4 @@
-import os, random, time, math
+import os, random, time, math, traceback
 import thread, socket, htmlentitydefs
 import mechanize
 import dns.resolver as resolver
@@ -124,7 +124,7 @@ class Bot(irc.IRCClient):
             self.r_emotes = settings.getboolean("other", "emotes")
             self.use_antispam = settings.getboolean("other", "antispam")
         except Exception:
-            return [False, sys.exc_info()[0]]
+            return [False, traceback.format_exc()]
         else:
             self.prnt("Done!")
             return [True, ""]
@@ -136,7 +136,7 @@ class Bot(irc.IRCClient):
         if hook in self.hooks.keys():
             for element in self.hooks[hook]:
                 print element
-                if data is not None:
+                if data:
                     value = element[1](data)
                 else:
                     value = element[1]()
@@ -167,7 +167,7 @@ class Bot(irc.IRCClient):
                     __import__("plugins.%s" % element) # If not, import it
                 except Exception: # Got an error!
                     self.prnt("Unable to load plugin from %s.py!" % element)
-                    self.prnt("Error: %s" % sys.exc_info()[0])
+                    self.prnt("Error: %s" % traceback.format_exc())
                     i += 1
                     continue
                 else:
@@ -179,7 +179,7 @@ class Bot(irc.IRCClient):
                             mod.gotIRC()
                     except Exception:
                         self.prnt("Unable to load server plugin from %s" % (element + ".py"))
-                        self.prnt("Error: %s" % sys.exc_info()[0])
+                        self.prnt("Error: %s" % traceback.format_exc())
                         i += 1
                         continue
             else: # We already imported it
@@ -190,7 +190,7 @@ class Bot(irc.IRCClient):
                     __import__("plugins.%s" % element) # import it again
                 except Exception: # Got an error!
                     self.prnt("Unable to load plugin from %s.py!" % element)
-                    self.prnt("Error: %s" % sys.exc_info()[0])
+                    self.prnt("Error: %s" % traceback.format_exc())
                     i += 1
                     continue
                 else:
@@ -199,7 +199,7 @@ class Bot(irc.IRCClient):
                         name = mod.name # get the name
                     except Exception:
                         self.prnt("Unable to load plugin from %s" % (element + ".py"))
-                        self.prnt("Error: %s" % sys.exc_info()[0])
+                        self.prnt("Error: %s" % traceback.format_exc())
                         i += 1
                         continue
                 reloaded = True # Remember that we reloaded it
@@ -250,6 +250,7 @@ class Bot(irc.IRCClient):
 
     def connectionLost(self, reason):
         # We lost connection. GTFO tiem.
+        self.runHook("connectionLost", {"reason": reason})
         self.prnt("***Shutting down!***")
         self.flush()
 
@@ -270,6 +271,7 @@ class Bot(irc.IRCClient):
         for element in self.joinchans:
             reactor.callLater(5.0, self.join, ("#%s" % element[0]))
         self.flush() # Flush the log
+        self.runHook("signedOn")
 
     def joined(self, channel):
         # We joined a channel
@@ -282,6 +284,7 @@ class Bot(irc.IRCClient):
         if self.r_emotes:
             reactor.callLater(5, thread.start_new_thread, self.randmsg, (channel,))
         self.flush()
+        self.runHook("channelJoined", {"channel": channel})
 
     def sThread(self, channel):
         thread.start_new_thread(self.randmsg, tuple(channel))
@@ -341,14 +344,17 @@ class Bot(irc.IRCClient):
     def privmsg(self, user, channel, msg):
         if channel in self.norandom:
             self.norandom.remove(channel)
-            # We got a message.
+        # We got a message.
         # Define the userhost
         userhost = user
+        user = user.split("!", 1)[0]
+
+        self.runHook("privmsg", {"user": user, "host": userhost, "channel": channel, "message": msg})
+
         # Get the username
         send = self.sendnotice
         if channel == self.nickname:
             send = self.sendmsg
-        user = user.split("!", 1)[0]
         authorized = False
         authtype = 0
         if self.is_op(channel, user) and user in self.authorized.keys():
@@ -651,9 +657,9 @@ class Bot(irc.IRCClient):
                                     send(user, "That doesn't appear to be a Minecraft server. [Latency: %smsec]" % msec)
                         except Exception:
                             if authorized:
-                                self.sendmsg(channel, "Error: %s " % sys.exc_info()[0])
+                                self.sendmsg(channel, "Error: %s " % traceback.format_exc())
                             else:
-                                send(user, "Error: %s " % sys.exc_info()[0])
+                                send(user, "Error: %s " % traceback.format_exc())
             elif command == "stfu":
                 if authorized:
                     if not channel in self.stfuchans:
@@ -676,7 +682,7 @@ class Bot(irc.IRCClient):
                 #try:
                     self.commands[command.lower()](user, channel, arguments)
                 #except Exception:
-                #    send(user, "Error: " + str(sys.exc_info()[0]))
+                #    send(user, "Error: " + str(traceback.format_exc()))
         elif msg.startswith("??") or msg.startswith("?!"):
             cinfo = {"user": user, "hostmask": userhost.split("!", 1)[1], "origin": channel, "message": msg,
                      "target": channel}
@@ -881,7 +887,7 @@ class Bot(irc.IRCClient):
                     self.sendmsg(target, "\"%s\" at %s" % (br.title(), domain))
                 except Exception:
                     # self.sendmsg(target, "Error: %s" % e)
-                    self.prnt("Error: %s" % sys.exc_info()[0])
+                    self.prnt("Error: %s" % traceback.format_exc())
 
     def squit(self, reason=""):
         if not reason == "":
@@ -890,16 +896,13 @@ class Bot(irc.IRCClient):
             quitmsg = self.quotes[random.randint(0, len(self.quotes) - 1)].strip("\r")
             self.sendLine("QUIT :%s" % quitmsg)
         self.prnt("***QUITTING!***")
-        data = open("quitted", "w")
-        data.write("1")
-        data.flush()
-        data.close()
 
     def left(self, channel):
         # We left a channel.
         self.prnt("***Left %s***" % channel)
         # Flush the logfile
         self.flush()
+        self.runHook("channelLeft", channel)
 
     def ctcpQuery(self, user, me, messages):
         name = user.split("!", 1)[0]
@@ -927,12 +930,17 @@ class Bot(irc.IRCClient):
             # Flush the logfile
         self.flush()
 
+        self.runHook("ctcpQuery", {"user": name, "host": user.split("!", 1)[1], "target": me, "type": messages[0],
+                                   "message": messages[1]})
+
         # [gdude2002|away!colesgaret@86-41-192-29-dynamic.b-ras1.lmk.limerick.eircom.net:NotchBot [('CLIENTINFO', None)]]
 
     def modeChanged(self, user, channel, set, modes, args):
         # Mode change.
         userhost = user
         user = user.split("!", 1)[0]
+        self.runHook("modechanged", {"user": user, "host": userhost, "channel": channel, "set": set, "modes": modes,
+                                     "args": args})
         try:
             if set:
                 self.prnt("***%s sets mode %s +%s %s***" % (user, channel, modes, " ".join(args)))
@@ -957,12 +965,14 @@ class Bot(irc.IRCClient):
         self.flush()
 
     def kickedFrom(self, channel, kicker, message):
+        self.runHook("kickedBot", {"channel": channel, "kicker": kicker, "message": message})
         # Onoes, we got kicked!
         self.prnt("***Kicked from %s by %s: %s***" % (channel, kicker, message))
         # Flush the logfile
         self.flush()
 
     def nickChanged(self, nick):
+        self.runHook("nickedBot", {"oldnick": self.nickname, "newnick": nick})
         # Some evil muu changed MY nick!
         self.prnt("***Nick changed to %s***" % nick)
         self.factory.nickname = nick
@@ -970,6 +980,7 @@ class Bot(irc.IRCClient):
         self.flush()
 
     def userJoined(self, user, channel):
+        self.runHook("userJoined", {"user": user, "channel": channel})
         # Ohai, welcome to mah channel!
         self.prnt("***%s joined %s***" % (user, channel))
         self.who(channel)
@@ -977,6 +988,7 @@ class Bot(irc.IRCClient):
         self.flush()
 
     def userLeft(self, user, channel):
+        self.runHook("userParted", {"user": user, "channel": channel})
         # Onoes, bai!
         self.prnt("***%s left %s***" % ((user.split("!")[0]), channel))
         # Flush the logfile
@@ -984,25 +996,24 @@ class Bot(irc.IRCClient):
 
     def userKicked(self, kickee, channel, kicker, message):
         # Mwahahaha, someone got kicked!
+        kickee_host = kickee.split("!", 1)[1]
+        kicker_host = kicker.split("!", 1)[1]
         kickee = kickee.split("!", 1)[0]
         kicker = kicker.split("!", 1)[0]
-        self.prnt("***%s was kicked from %s by %s [%s]***" % (kickee, channel, kicker, message))
-        # Flush the logfile
-        self.flush()
 
-    def action(self, user, channel, data):
-        # Someone did /me.
-        userhost = user
-        user = user.split("!", 1)[0]
-        self.prnt("* %s:%s %s" % (user, channel, data))
+        self.runHook("userKicked", {"kickee": kickee, "kickee_host": kickee_host, "kicker": kicker,
+                                    "kicker_host": kicker_host, "channel": channel, "message": message})
+
+        self.prnt("***%s was kicked from %s by %s [%s]***" % (kickee, channel, kicker, message))
         # Flush the logfile
         self.flush()
 
     def irc_QUIT(self, user, params):
         # Someone quit.
-        userhost = user
+        userhost = user.split('!')[1]
         user = user.split('!')[0]
         quitMessage = params[0]
+        self.runHook("userQuit", {"user": user, "host": userhost, "message": quitMessage})
         self.prnt("***%s has left irc: %s***" % (user, quitMessage))
         # Flush the logfile
         self.flush()
@@ -1011,6 +1022,7 @@ class Bot(irc.IRCClient):
         # Topic was changed. Also called on a channel join.
         userhost = user
         user = user.split("!")[0]
+        self.runHook("topicChanged", {"user": user, "host": userhost, "topic": newTopic, "channel": channel})
         self.prnt("***%s set topic %s to \"%s%s15\"***" % (user, channel, newTopic, self.col))
         # Flush the logfile
         self.flush()
@@ -1019,6 +1031,7 @@ class Bot(irc.IRCClient):
         # Someone changed their nick.
         oldnick = prefix.split("!", 1)[0]
         newnick = params[0]
+        self.runHook("userNicked", {"oldnick": oldnick, "nick": newnick})
         self.prnt("***%s is now known as %s***" % (oldnick, newnick))
         if oldnick in self.authorized.keys():
             self.sendnotice(newnick,
@@ -1049,7 +1062,7 @@ class Bot(irc.IRCClient):
                 break
             except Exception:
                 try:
-                    print("Failed to send message! Error: %s" % sys.exc_info()[0])
+                    print("Failed to send message! Error: %s" % traceback.format_exc())
                     print(user + " -> " + message)
                 except:
                     pass
@@ -1068,7 +1081,7 @@ class Bot(irc.IRCClient):
                 break
             except Exception:
                 try:
-                    print("Failed to send raw data to server! Error: %s" % sys.exc_info()[0])
+                    print("Failed to send raw data to server! Error: %s" % traceback.format_exc())
                     print(item)
                 except:
                     pass
@@ -1092,7 +1105,7 @@ class Bot(irc.IRCClient):
                 break
             except Exception:
                 try:
-                    print("Failed to send notice! Error: %s" % sys.exc_info()[0])
+                    print("Failed to send notice! Error: %s" % traceback.format_exc())
                     print(user + " -> " + message)
                 except:
                     pass
