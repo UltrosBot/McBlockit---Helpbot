@@ -193,7 +193,7 @@ class plugin(object):
                 target_user = target.split(":", 1)[0]
                 target_channel = target.split(":", 1)[1]
             self.irc.send_raw("PRIVMSG " + target_channel + " :" + self.irc.ctcp + "ACTION shoots " + target_user + self.irc.ctcp)
-            if (self.irc.is_voice(target_channel, user) or self.irc.is_op(target_channel, user)) and self.irc.is_op(channel, self.irc.nickname):
+            if (self.irc.is_voice(target_channel, user) or self.irc.is_op(target_channel, user) or user in self.authorized.keys()) and self.irc.is_op(channel, self.irc.nickname):
                 self.irc.send_raw("KICK %s %s :Bang!" % (target_channel, target_user))
             else:
                 self.irc.send_raw("PRIVMSG %s :Bang!" % target_channel)
@@ -218,6 +218,7 @@ class plugin(object):
 
         self.users[user]["shots"] += 1
         self.channels[channel]["shots"] += 1
+        random.seed()
 
         if random.randint(1, chambers_left) == 1:
             #BANG

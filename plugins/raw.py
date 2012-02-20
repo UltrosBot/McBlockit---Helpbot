@@ -17,7 +17,7 @@ class plugin(object):
 
     def send_raw(self, user, channel, arguments):
         if user in self.irc.authorized.keys():
-            if arguments[1:]:
+            if len(arguments) > 1:
                 self.irc.send_raw(" ".join(arguments[1:]))
                 self.irc.sendnotice(user, "Done!")
             else:
@@ -27,4 +27,4 @@ class plugin(object):
 
     hooks = {}
 
-    name = "Send raw plugin"
+    name = "Send raw"

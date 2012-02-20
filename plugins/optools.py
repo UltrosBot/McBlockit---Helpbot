@@ -66,4 +66,4 @@ class plugin(object):
 
     hooks = {}
 
-    name = "Op tools plugin"
+    name = "Op tools"

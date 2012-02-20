@@ -23,4 +23,4 @@ class plugin(object):
 
     hooks = {}
 
-    name = "Test plugin"
+    name = "Test"

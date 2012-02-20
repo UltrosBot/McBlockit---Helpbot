@@ -33,4 +33,4 @@ class plugin(object):
 
     hooks = {}
 
-    name = "MCBans alt account lookup plugin"
+    name = "MCBans alt account lookup"
