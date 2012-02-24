@@ -201,6 +201,7 @@ class Bot(irc.IRCClient):
                         self.prnt("Unable to load plugin from %s" % (element + ".py"))
                         self.prnt("Error: %s" % traceback.format_exc())
                         i += 1
+                        del sys.modules["plugins.%s" % filename]
                         continue
                 reloaded = True # Remember that we reloaded it
             mod.filename = element
@@ -211,14 +212,102 @@ class Bot(irc.IRCClient):
                 self.prnt("Reloaded plugin: %s" % name)
             i += 1
         for plugin in self.plugins.values(): # For every plugin,
-            for element, fname in plugin.hooks.items(): # For every hook in the plugin,
-                if element not in self.hooks.keys():
-                    self.hooks[element] = [] # Make a note of the hook in the hooks dict
-                self.hooks[element].append([plugin, getattr(plugin, fname)])
-            for element, data in plugin.commands.items():
-                if element in self.commands.keys():
-                    self.prnt("Command %s is already registered. Overriding." % element)
-                self.commands[element] = getattr(plugin, data)
+            if hasattr(plugin, "hooks"):
+                for element, fname in plugin.hooks.items(): # For every hook in the plugin,
+                    if element not in self.hooks.keys():
+                        self.hooks[element] = [] # Make a note of the hook in the hooks dict
+                    self.hooks[element].append([plugin, getattr(plugin, fname)])
+            if hasattr(plugin, "commands"):
+                for element, data in plugin.commands.items():
+                    if element in self.commands.keys():
+                        self.prnt("Command %s is already registered. Overriding." % element)
+                    self.commands[element] = getattr(plugin, data)
+            if hasattr(plugin, "finishedLoading"):
+                plugin.finishedLoading()
+
+    def isPluginLoaded(self, name):
+        return name in self.plugins.keys()
+
+    def loadPlugin(self, filename):
+        for element in self.plugins.keys():
+            if filename == self.plugins[element].filename:
+                return False
+        try:
+            __import__("plugins.%s" % filename)
+        except Exception: # Got an error!
+            self.prnt("Unable to load plugin from %s.py!" % filename)
+            self.prnt("Error: %s" % traceback.format_exc())
+            return False
+        else:
+            try:
+                mod = sys.modules["plugins.%s" % filename].plugin(self)
+                name = mod.name # What's the name?
+                mod.irc = self
+                if hasattr(mod, "gotIRC"):
+                    mod.gotIRC()
+            except Exception:
+                self.prnt("Unable to load server plugin from %s" % (filename + ".py"))
+                self.prnt("Error: %s" % traceback.format_exc())
+                del sys.modules["plugins.%s" % filename]
+                return False
+            mod.filename = filename
+            self.plugins[name] = mod # Put it in the plugins list
+            self.prnt("Loaded plugin: %s" % name)
+
+            if hasattr(mod, "hooks"):
+                for element, fname in mod.hooks.items(): # For every hook in the plugin,
+                    if element not in self.hooks.keys():
+                        self.hooks[element] = [] # Make a note of the hook in the hooks dict
+                    self.hooks[element].append([mod, getattr(mod, fname)])
+            if hasattr(mod, "commands"):
+                for element, data in mod.commands.items():
+                    if element in self.commands.keys():
+                        self.prnt("Command %s is already registered. Overriding." % element)
+                    self.commands[element] = getattr(mod, data)
+
+            return True
+
+    def unloadPlugin(self, name):
+        if self.isPluginLoaded(name):
+            mod = self.plugins[name]
+            if hasattr(mod, "hooks"):
+                for element, fname in mod.hooks.items(): # For every hook in the plugin,
+                    if element in self.hooks.keys():
+                        self.hooks[element].remove([mod, getattr(mod, fname)])
+            if hasattr(mod, "commands"):
+                for element, data in mod.commands.items():
+                    if element in self.commands.keys():
+                        del self.commands[element]
+            if hasattr(self.plugins[name], "pluginUnloaded"):
+                self.plugins[name].pluginUnloaded()
+            filename = self.plugins[name].filename
+
+            name = mod.name
+
+            del mod
+            del self.plugins[name].filename
+            del self.plugins[name]
+            del sys.modules["plugins.%s" % filename] # Unimport it by deleting it
+
+            self.hooks = {}
+            for plugin in self.plugins.values(): # For every plugin,
+                if hasattr(plugin, "hooks"):
+                    for element, fname in plugin.hooks.items(): # For every hook in the plugin,
+                        if element not in self.hooks.keys():
+                            self.hooks[element] = [] # Make a note of the hook in the hooks dict
+                        self.hooks[element].append([plugin, getattr(plugin, fname)])
+                if hasattr(plugin, "commands"):
+                    for element, data in plugin.commands.items():
+                        if element in self.commands.keys():
+                            self.prnt("Command %s is already registered. Overriding." % element)
+                        self.commands[element] = getattr(plugin, data)
+
+            self.prnt("Unloaded plugin: %s" % name)
+
+
+            return True
+        return False
+
 
 
     def __init__(self):
@@ -333,9 +422,12 @@ class Bot(irc.IRCClient):
                             "Mreewww.."
                 ]
                 self.norandom.append(channel)
+                random.seed()
                 msg = messages[random.randint(0, len(messages) - 1)]
+                random.seed()
                 msg = msg.replace("^ruser^",
                     self.chanlist[channel].keys()[random.randint(0, len(self.chanlist[channel].keys()) - 1)])
+                random.seed()
                 msg = msg.replace("^robject^", self.emoteobjects[random.randint(0, len(self.emoteobjects) - 1)])
                 self.sendmsg(channel, msg)
             reactor.callLater(3600, thread.start_new_thread, self.randmsg, (channel,))
@@ -531,7 +623,7 @@ class Bot(irc.IRCClient):
                                         for element in data["global"]:
                                             server = element.split(" .:. ")[0].encode("ascii", "ignore")
                                             reason = element.split(" .:. ")[1].encode("ascii", "ignore")
-                                            send(channel, "%s: %s" % (server, reason.decode('string_escape')))
+                                            send(user, "%s: %s" % (server, reason.decode('string_escape')))
                                     else:
                                         send(user, "No global bans.")
                             elif type == "minimal":
@@ -895,6 +987,7 @@ class Bot(irc.IRCClient):
         if not reason == "":
             self.sendLine("QUIT :" + reason)
         else:
+            random.seed()
             quitmsg = self.quotes[random.randint(0, len(self.quotes) - 1)].strip("\r")
             self.sendLine("QUIT :%s" % quitmsg)
         self.prnt("***QUITTING!***")

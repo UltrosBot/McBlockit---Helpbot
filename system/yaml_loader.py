@@ -73,3 +73,6 @@ class yaml_loader(object):
     def keys(self):
         return self.data.keys()
 
+    def isTrue(self):
+        return bool(self.data)
+

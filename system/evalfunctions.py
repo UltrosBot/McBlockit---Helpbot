@@ -35,11 +35,12 @@ class evalFunctions(object):
             value = str(eval(command))
         except Exception as e:
             value = str(e)
-        except SystemExit as e:
+        except SystemExit:
             value = "ERROR: Tried to call a SystemExit!"
         return value
 
     def randint(self, lo, hi):
+        random.seed()
         return random.randint(lo, hi)
 
     def md5(self, data):
