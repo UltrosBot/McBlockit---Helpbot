@@ -460,8 +460,8 @@ class Bot(irc.IRCClient):
             authtype = 2
         if self.use_antispam:
             msg_time = float(time.time())
-            difference = msg_time - self.chanlist[channel][user]["last_time"]
             if not (authorized or self.is_voice(user, channel)) and channel.startswith("#"):
+                difference = msg_time - self.chanlist[channel][user]["last_time"]
                 if difference < 0.15:
                     # User is a dirty spammer!
                     if self.is_op(channel, self.nickname):
