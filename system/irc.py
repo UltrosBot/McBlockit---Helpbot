@@ -461,7 +461,8 @@ class Bot(irc.IRCClient):
         if self.use_antispam:
             msg_time = float(time.time())
             if not authorized and channel.startswith("#"):
-                if msg_time - self.chanlist[channel][user]["last_time"] < 0.35:
+                print user + ": " + msg_time
+                if msg_time - self.chanlist[channel][user]["last_time"] < 0.15:
                     # User is a dirty spammer!
                     if self.is_op(channel, self.nickname):
                         if not user in self.kicked:
@@ -474,7 +475,7 @@ class Bot(irc.IRCClient):
                                     channel, userhost.split("@")[0].split("!")[1], user, userhost.split("@")[1]))
                             self.sendLine("KICK %s %s :%s is a dirty spammer!" % (channel, user, user))
                             self.prnt("Banned %s from %s for spamming." % (user, channel))
-                elif msg_time - self.chanlist[channel][user]["last_time"] < 5 and not self.is_voice(user, channel):
+                elif msg_time - self.chanlist[channel][user]["last_time"] < 5.00 and not self.is_voice(user, channel):
                     if self.is_op(channel, self.nickname):
                         if msg.startswith("#") and len(msg.split(" ")) == 1:
                             # Random channel
