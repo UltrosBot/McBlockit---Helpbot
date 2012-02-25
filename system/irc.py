@@ -489,8 +489,6 @@ class Bot(irc.IRCClient):
                             self.prnt("Kicked %s from %s for randomly typing a channel on its own." % (user, channel))
                             self.kicked.append(user)
                             return
-                self.chanlist[channel][user]["last_time"] = msg_time
-
 
         if channel.startswith("#"):
             self.chanlist[channel][user]["last_time"] = float(time.time())
