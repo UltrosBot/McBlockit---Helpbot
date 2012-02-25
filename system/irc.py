@@ -461,20 +461,30 @@ class Bot(irc.IRCClient):
         if self.use_antispam:
             msg_time = float(time.time())
             if not authorized and channel.startswith("#"):
-                if msg_time - self.chanlist[channel][user]["last_time"] < 0.25:
+                if msg_time - self.chanlist[channel][user]["last_time"] < 0.35:
                     # User is a dirty spammer!
                     if self.is_op(channel, self.nickname):
                         if not user in self.kicked:
                             self.sendLine("KICK %s %s :%s is a dirty spammer!" % (channel, user, user))
                             self.prnt("Kicked %s from %s for spamming." % (user, channel))
                             self.kicked.append(user)
-                            self.chanlist[channel][user]["last_time"] = msg_time
                         else:
                             self.sendLine(
                                 "MODE %s +bbb *!%s@* %s!*@* *!*@%s" % (
-                                channel, userhost.split("@")[0].split("!")[1], user, userhost.split("@")[1]))
+                                    channel, userhost.split("@")[0].split("!")[1], user, userhost.split("@")[1]))
                             self.sendLine("KICK %s %s :%s is a dirty spammer!" % (channel, user, user))
                             self.prnt("Banned %s from %s for spamming." % (user, channel))
+                elif msg_time - self.chanlist[channel][user]["last_time"] < 5 and not self.is_voice(user, channel):
+                    if self.is_op(channel, self.nickname):
+                        if msg.startswith("#") and len(msg.split(" ")) == 1:
+                            # Random channel
+                            self.sendLine("KICK %s %s :Don't do that! ( Did you mean: \"/join %s\"? )" % (channel, user, msg))
+                            self.prnt("Kicked %s from %s for randomly typing a channel on its own." % (user, channel))
+                            self.kicked.append(user)
+                else:
+                    self.chanlist[channel][user]["last_time"] = msg_time
+
+
         if channel.startswith("#"):
             self.chanlist[channel][user]["last_time"] = float(time.time())
         if msg.startswith("http://") or msg.startswith("https://"):
