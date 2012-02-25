@@ -460,30 +460,36 @@ class Bot(irc.IRCClient):
             authtype = 2
         if self.use_antispam:
             msg_time = float(time.time())
-            if not authorized and channel.startswith("#"):
-                print "%s: %s" % (user, msg_time)
-                if msg_time - self.chanlist[channel][user]["last_time"] < 0.15:
+            difference = msg_time - self.chanlist[channel][user]["last_time"]
+            self.prnt( "%s: %s" % ( user, difference ) )
+            if not (authorized or self.is_voice(user, channel)) and channel.startswith("#"):
+                if difference < 0.15:
                     # User is a dirty spammer!
                     if self.is_op(channel, self.nickname):
                         if not user in self.kicked:
                             self.sendLine("KICK %s %s :%s is a dirty spammer!" % (channel, user, user))
                             self.prnt("Kicked %s from %s for spamming." % (user, channel))
                             self.kicked.append(user)
+                            return
+
                         else:
                             self.sendLine(
                                 "MODE %s +bbb *!%s@* %s!*@* *!*@%s" % (
                                     channel, userhost.split("@")[0].split("!")[1], user, userhost.split("@")[1]))
                             self.sendLine("KICK %s %s :%s is a dirty spammer!" % (channel, user, user))
                             self.prnt("Banned %s from %s for spamming." % (user, channel))
-                elif msg_time - self.chanlist[channel][user]["last_time"] < 5.00 and not self.is_voice(user, channel):
+                            return
+
+                if difference > 5.00:
+                    self.prnt( "%s (%s)" % (len(msg.split(" ")), msg.split(" ")) )
                     if self.is_op(channel, self.nickname):
                         if msg.startswith("#") and len(msg.split(" ")) == 1:
                             # Random channel
                             self.sendLine("KICK %s %s :Don't do that! ( Did you mean: \"/join %s\"? )" % (channel, user, msg))
                             self.prnt("Kicked %s from %s for randomly typing a channel on its own." % (user, channel))
                             self.kicked.append(user)
-                else:
-                    self.chanlist[channel][user]["last_time"] = msg_time
+                            return
+                self.chanlist[channel][user]["last_time"] = msg_time
 
 
         if channel.startswith("#"):
