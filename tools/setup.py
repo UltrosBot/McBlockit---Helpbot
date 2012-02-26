@@ -8,14 +8,57 @@ import tarfile
 downloaded = {}
 extracted = {}
 
-downloads = { "yaml": [ "http://pyyaml.org/download/pyyaml/PyYAML-3.10.zip", "356KB"],
-              "dnspython": ["http://www.dnspython.org/kits/1.9.4/dnspython-1.9.4.zip", "206KB"],
-              "colorama": ["http://pypi.python.org/packages/source/c/colorama/colorama-0.2.4.zip", "21KB"],
-              "mechanize": ["http://pypi.python.org/packages/source/m/mechanize/mechanize-0.2.5.zip", "435KB"],
-               "twilio": ["https://github.com/twilio/twilio-python/zipball/master", "152KB"],
-              "zope.Interface": ["http://pypi.python.org/packages/source/z/zope.interface/zope.interface-3.8.0.tar.gz", "109KB"],
-              "twisted": ["http://twistedmatrix.com/Releases/Twisted/11.1/Twisted-11.1.0.tar.bz2", "2.7MB"]
+downloads = { 
+
 }
+
+try:
+    import colorama
+except ImportError:
+    downloads["colorama"] = ["http://pypi.python.org/packages/source/c/colorama/colorama-0.2.4.zip", "21KB"]
+else:
+    del colorama
+    print "Module colorama already installed, not downloading"
+
+try:
+    import dns.resolver as resolver
+except ImportError:
+    downloads["dnspython"] = ["http://www.dnspython.org/kits/1.9.4/dnspython-1.9.4.zip", "206KB"]
+else:
+    del resolver
+    print "Module dnspython already installed, not downloading."
+    
+try:
+    import mechanize
+except ImportError:
+    downloads["mechanize"] = ["http://pypi.python.org/packages/source/m/mechanize/mechanize-0.2.5.zip", "435KB"]
+else:
+    del mechanize
+    print "Module mechanize already installed, not downloading"
+    
+try:
+    import twisted
+except ImportError:
+    downloads["twisted"] = ["http://twistedmatrix.com/Releases/Twisted/11.1/Twisted-11.1.0.tar.bz2", "2.7MB"]
+else:
+    del twisted
+    print "Module twisted already installed, not downloading"
+    
+try:
+    import yaml
+except ImportError:
+    downloads["yaml"] = ["http://pyyaml.org/download/pyyaml/PyYAML-3.10.zip", "356KB"]
+else:
+    del yaml
+    print "Module yaml already installed, not downloading"
+    
+try:
+    from zope import interface
+except ImportError:
+    downloads["zope.Interface"] = ["http://pypi.python.org/packages/source/z/zope.interface/zope.interface-3.8.0.tar.gz", "109KB"]
+else:
+    del interface
+    print "Module zope.Interface already installed, not downloading"
 
 python_command = "python"
 if len(sys.argv) > 1:
@@ -40,6 +83,10 @@ print "C:\python26\python setup.py C:\python26\python"
 print ""
 print "This also allows you to install the packages for a different version of python."
 print ""
+
+if len(downloads) < 1:
+    print "You already have all the required modules installed."
+    exit()
 
 print "The following packages will be installed:"
 print ""
