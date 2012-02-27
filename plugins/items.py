@@ -3,7 +3,7 @@ from system.yaml_loader import *
 
 class plugin(object):
     """
-    Play russian roulette, the safe way!
+    Items item - Remind you of anything?
     """
 
     commands = {
@@ -23,8 +23,13 @@ class plugin(object):
         self.irc = irc
         self.items_handler = yaml_loader(True, "items")
         self.items = self.items_handler.load("items")
+        self.bans_handler = yaml_loader(True, "bans")
+        self.bans = self.bans_handler.load("bans")
         if not self.items:
             self.items = {}
+
+        if not self.bans:
+            self.bans = {"items": []}
 
         self.channels = {}
         self.users = {}
@@ -33,7 +38,7 @@ class plugin(object):
             "put": "Add an item to the bot's inventory.\nUsage: %sput <item>" % self.irc.control_char,
             "give": "Add an item to the bot's inventory (Alias of put).\nUsage: %sgive <item>" % self.irc.control_char,
             "get": "Get a random item from the bot's inventory.\nUsage: %sget" % self.irc.control_char,
-            "remove": "Remove an item from the bot's inventory.\nUsage: %sremove <item>\nNOTE: Needs op or higher" % self.irc.control_char
+            "remove": "Remove an item from the bot's inventory. Also bans the item.\nUsage: %sremove <item>\nNOTE: Needs op or higher" % self.irc.control_char
             ,
             "inventory": "Get a list of items in the bot's inventory.\nUsage: %sinventory <item>\nNOTE: Needs op or higher" % self.irc.control_char
             ,
@@ -41,17 +46,24 @@ class plugin(object):
 
     def load(self, data=None):
         self.items = self.items_handler.load("items")
+        self.bans = self.bans_handler.load("bans")
 
         if not self.items:
             self.items = {}
 
+        if not self.bans:
+            self.bans = {"items": []}
+
     def save(self, data=None):
         self.items_handler.save_data("items", self.items)
+        self.bans_handler.save_data("bans", self.bans)
 
     def put(self, user, channel, arguments):
         if len(arguments) > 1:
             item = " ".join(arguments[1:]).lower()
-            if item not in self.items.keys():
+            if item in self.bans["items"]:
+                self.irc.send_raw("PRIVMSG " + channel + " :\1ACTION is not allowed to take the '" + item + "'.\1")
+            elif item not in self.items.keys():
                 self.items[item] = {"name": item, "owner": user}
                 self.irc.send_raw(
                     "PRIVMSG " + channel + " :\1ACTION takes " + user + "'s " + item + " and puts it in her bag.\1")
@@ -85,6 +97,7 @@ class plugin(object):
                 item = " ".join(arguments[1:]).lower()
                 if item in self.items.keys():
                     del self.items[item]
+                    self.bans["items"].append(item)
                     self.save()
                     self.irc.sendnotice(user, "Item %s removed." % item)
                 else:
