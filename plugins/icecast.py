@@ -34,10 +34,10 @@ class plugin(object):
 
     def finishedLoading(self):
         if not self.settings:
-            self.irc.prnt("Please edit plugins/data/icecast/settings.yml and fill in the details!")
+            self.irc.prnt("|! Please edit plugins/data/icecast/settings.yml and fill in the details!")
             self.irc.unloadPlugin("icecast")
         elif self.settings["xml_url"] == '':
-            self.irc.prnt("Please edit plugins/data/icecast/settings.yml and fill in the details!")
+            self.irc.prnt("|! Please edit plugins/data/icecast/settings.yml and fill in the details!")
             self.irc.unloadPlugin("icecast")
         else:
             self.has_config = True
@@ -46,7 +46,14 @@ class plugin(object):
             self.password = self.settings["admin_password"]
 
             self.nowPlaying = self.settings["now_playing"]
+            self.npMessage = self.settings["npmessage"]
+
             self.statusMessages = self.settings["status_messages"]
+
+            self.periodicMessages = self.settings["periodic_messages"]
+            self.periodicInterval = self.settings["periodic_interval"]
+            self.periodicString = self.settings["periodic_string"]
+
             self.messageChannels = self.settings["channels"]
 
     def load(self, data=None):
@@ -112,3 +119,8 @@ class plugin(object):
 
                 source_data["mount"] = mount
                 stream_data[mount] = source_data
+
+            return_data["server"] = serverwide_data
+            return_data["mounts"] = stream_data
+
+        return return_data
