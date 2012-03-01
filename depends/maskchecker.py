@@ -36,7 +36,7 @@ def checkbanmask(banmask, hostmask):
     
     elif "*" in hostmask:
         raise Exception("Hostmask must not contain '*'")
-    elif banmask = "*!*@*":
+    elif banmask == "*!*@*":
         return False
     
     a = {}
