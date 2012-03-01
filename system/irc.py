@@ -1097,8 +1097,9 @@ class Bot(irc.IRCClient):
                     elif element == "b":
                         if args[i] == "*!*@*":
                             if self.is_op(channel, self.nickname):
-                                self.send_raw("KICK %s %s: Do not set ambiguous bans!" % (user, channel))
-                                self.send_raw("MODE %s +b-b *!*@%s *!*@*" % (channel, userhost.split("@")[1]) )
+                                self.send_raw("KICK %s %s :Do not set ambiguous bans!" % (user, channel))
+                                self.send_raw("MODE %s -b *!*@*" % channel )
+                                self.send_raw("MODE %s +b *!*@%s" % (channel, userhost.split("@")[1]) )
                         else:
                             self.checkban(channel, args[i], user)
                         #if args[i].lower() == self.nickname.lower():
@@ -1370,8 +1371,9 @@ class Bot(irc.IRCClient):
 
                 for element in stuff:
                     if stuff == "*!*@*":
-                        self.send_raw("KICK %s %s: Do not set ambiguous bans!" % (user, self.banlist[channel][element]["owner"]))
-                        self.send_raw("MODE %s +b-b *!*@%s *!*@*" % (channel, self.banlist[channel][element]["ownerhost"].split("@")[1]) )
+                        self.send_raw("KICK %s %s :Do not set ambiguous bans!" % (user, self.banlist[channel][element]["owner"]))
+                        self.send_raw("MODE %s -b *!*@*" % channel)
+                        self.send_raw("MODE %s +b *!*@%s" % (channel, self.banlist[channel][element]["ownerhost"].split("@")[1]) )
                     else:
                         self.checkban(channel, element, self.banlist[channel][element]["owner"])
 
