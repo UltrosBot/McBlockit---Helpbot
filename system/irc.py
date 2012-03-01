@@ -1095,7 +1095,12 @@ class Bot(irc.IRCClient):
                     elif element == "v":
                         self.set_voice(channel, args[i], True)
                     elif element == "b":
-                        self.checkban(channel, args[i], user)
+                        if args[i] == "*!*@*":
+                            if self.is_op(channel, self.nickname):
+                                self.send_raw("KICK %s %s: Do not set ambiguous bans!" % (user, channel))
+                                self.send_raw("MODE %s +b-b *!*@%s *!*@*" % (channel, userhost.split("@")[1]) )
+                        else:
+                            self.checkban(channel, args[i], user)
                         #if args[i].lower() == self.nickname.lower():
                     #    for element in self.chanlist[channel].keys():
                     #        self.dnslookup(channel, element)
