@@ -1334,21 +1334,22 @@ class Bot(irc.IRCClient):
 
             if channel not in self.banlist.keys():
                 done = {"done": False, "total": 1}
-                banmask = {"owner": owner.split("!")[0], "time": time, "mask": mask, "channel": channel}
+                banmask = {"owner": owner.split("!")[0], "ownerhost": owner, "time": time, "mask": mask, "channel": channel}
                 done[mask] = banmask
-
                 self.banlist[channel] = done
+
             else:
                 if not self.banlist[channel]["done"]:
-                    banmask = {"owner": owner.split("!")[0], "time": time, "mask": mask, "channel": channel}
+                    banmask = {"owner": owner.split("!")[0], "ownerhost": owner, "time": time, "mask": mask, "channel": channel}
                     self.banlist[channel][mask] = banmask
                     self.banlist[channel]["total"] += 1
+
                 else:
                     done = {"done": False, "total": 1}
-                    banmask = {"owner": owner.split("!")[0], "time": time, "mask": mask, "channel": channel}
+                    banmask = {"owner": owner.split("!")[0], "ownerhost": owner, "time": time, "mask": mask, "channel": channel}
                     done[mask] = banmask
-
                     self.banlist[channel] = done
+
         elif command == "RPL_ENDOFBANLIST":
             me = params[0]
             channel = params[1]
@@ -1368,7 +1369,11 @@ class Bot(irc.IRCClient):
                 stuff.remove("total")
 
                 for element in stuff:
-                    self.checkban(channel, element, self.banlist[channel][element]["owner"])
+                    if stuff == "*!*@*":
+                        self.send_raw("KICK %s %s: Do not set ambiguous bans!" % (user, self.banlist[channel][element]["owner"]))
+                        self.send_raw("MODE %s +b-b *!*@%s *!*@*" % (channel, self.banlist[channel][element]["ownerhost"].split("@")[1]) )
+                    else:
+                        self.checkban(channel, element, self.banlist[channel][element]["owner"])
 
 
         # elif command != "RPL_NAMREPLY" and command != "RPL_ENDOFNAMES":
