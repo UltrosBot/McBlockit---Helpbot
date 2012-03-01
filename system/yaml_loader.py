@@ -3,7 +3,6 @@ import yaml, sys, os
 from system.constants import *
 
 class yaml_loader(object):
-
     def __init__(self, plugin=False, pluginName=None):
         self.plugin = plugin
         if self.plugin:

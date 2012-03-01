@@ -36,7 +36,7 @@ class Bot(irc.IRCClient):
     lookedup = []
 
     chanlist = {}
-    banlist  = {}
+    banlist = {}
 
     firstjoin = 1
 
@@ -138,7 +138,7 @@ class Bot(irc.IRCClient):
         finaldata = []
         if hook in self.hooks.keys():
             for element in self.hooks[hook]:
-        #         print element
+            #         print element
                 if data:
                     value = element[1](data)
                 else:
@@ -307,10 +307,8 @@ class Bot(irc.IRCClient):
 
             self.prnt("|= Unloaded plugin: %s" % name)
 
-
             return True
         return False
-
 
 
     def __init__(self):
@@ -416,7 +414,8 @@ class Bot(irc.IRCClient):
                             self.ctcp + "ACTION curls up in ^ruser^'s lap" + self.ctcp,
                             self.ctcp + "ACTION stares at ^ruser^" + self.ctcp,
                             self.ctcp + "ACTION jumps onto the ^robject^" + self.ctcp + "\no3o",
-                            self.ctcp + "ACTION rubs around ^ruser^'s leg" + self.ctcp + "\n" + self.ctcp + "ACTION purrs" + self.ctcp,
+                            self.ctcp + "ACTION rubs around ^ruser^'s leg" + self.ctcp + "\n" + self.ctcp + "ACTION purrs" + self.ctcp
+                    ,
                             "Mewl! o3o",
                             "Meow",
                             ":3",
@@ -440,7 +439,7 @@ class Bot(irc.IRCClient):
     def privmsg(self, user, channel, msg):
         if channel in self.norandom:
             self.norandom.remove(channel)
-        # We got a message.
+            # We got a message.
         # Define the userhost
         userhost = user
         user = user.split("!", 1)[0]
@@ -488,8 +487,10 @@ class Bot(irc.IRCClient):
                     if self.is_op(channel, self.nickname):
                         if msg.startswith("#") and len(msg.split(" ")) == 1:
                             # Random channel
-                            self.sendLine("KICK %s %s :Don't do that! ( Did you mean: \"/join %s\"? )" % (channel, user, msg))
-                            self.prnt("|! Kicked %s from %s for randomly typing a channel on its own." % (user, channel))
+                            self.sendLine(
+                                "KICK %s %s :Don't do that! ( Did you mean: \"/join %s\"? )" % (channel, user, msg))
+                            self.prnt(
+                                "|! Kicked %s from %s for randomly typing a channel on its own." % (user, channel))
                             self.kicked.append(user)
                             return
 
@@ -1099,12 +1100,12 @@ class Bot(irc.IRCClient):
                         if args[i] == "*!*@*":
                             if self.is_op(channel, self.nickname):
                                 self.send_raw("KICK %s %s :Do not set such ambiguous bans!" % (channel, user))
-                                self.send_raw("MODE %s -b *!*@*" % channel )
-                                self.send_raw("MODE %s +b *!*@%s" % (channel, userhost.split("@")[1]) )
+                                self.send_raw("MODE %s -b *!*@*" % channel)
+                                self.send_raw("MODE %s +b *!*@%s" % (channel, userhost.split("@")[1]))
                         else:
                             self.checkban(channel, args[i], user)
-                        #if args[i].lower() == self.nickname.lower():
-                    #    for element in self.chanlist[channel].keys():
+                            #if args[i].lower() == self.nickname.lower():
+                        #    for element in self.chanlist[channel].keys():
                     #        self.dnslookup(channel, element)
                     i += 1
             else:
@@ -1221,7 +1222,7 @@ class Bot(irc.IRCClient):
             except Exception:
                 try:
                     print("|! Failed to send message! Error: %s" % traceback.format_exc())
-                    print("|! "+ user + " -> " + message)
+                    print("|! " + user + " -> " + message)
                 except:
                     pass
             self.m_protect += 1
@@ -1250,7 +1251,7 @@ class Bot(irc.IRCClient):
         self.n_protect = 0
         while self.n_protect < 5:
             user = ""
-            message= ""
+            message = ""
             try:
                 item = self.noticequeue.pop(0).split(":", 1)
                 user = item[0]
@@ -1317,7 +1318,23 @@ class Bot(irc.IRCClient):
         my_nick = data[0]
         channel = data[1]
         message = data[2]
-        print("|= %s users on %s" % (len(self.chanlist[channel]), channel))
+
+        ops = 0
+        voices = 0
+        opers = 0
+        aways = 0
+
+        for element in self.chanlist[channel]:
+            if element["voice"]:
+                voices += 1
+            if element["op"]:
+                ops += 1
+            if element["oper"]:
+                opers += 1
+            if element["away"]:
+                aways += 1
+        print("|= %s users on %s (%s voices, %s ops, %s opers, %s away)" % (
+        len(self.chanlist[channel]), channel, voices, ops, opers, aways))
 
     def irc_unknown(self, prefix, command, params):
         """Print all unhandled replies, for debugging."""
@@ -1336,19 +1353,22 @@ class Bot(irc.IRCClient):
 
             if channel not in self.banlist.keys():
                 done = {"done": False, "total": 1}
-                banmask = {"owner": owner.split("!")[0], "ownerhost": owner, "time": time, "mask": mask, "channel": channel}
+                banmask = {"owner": owner.split("!")[0], "ownerhost": owner, "time": time, "mask": mask,
+                           "channel": channel}
                 done[mask] = banmask
                 self.banlist[channel] = done
 
             else:
                 if not self.banlist[channel]["done"]:
-                    banmask = {"owner": owner.split("!")[0], "ownerhost": owner, "time": time, "mask": mask, "channel": channel}
+                    banmask = {"owner": owner.split("!")[0], "ownerhost": owner, "time": time, "mask": mask,
+                               "channel": channel}
                     self.banlist[channel][mask] = banmask
                     self.banlist[channel]["total"] += 1
 
                 else:
                     done = {"done": False, "total": 1}
-                    banmask = {"owner": owner.split("!")[0], "ownerhost": owner, "time": time, "mask": mask, "channel": channel}
+                    banmask = {"owner": owner.split("!")[0], "ownerhost": owner, "time": time, "mask": mask,
+                               "channel": channel}
                     done[mask] = banmask
                     self.banlist[channel] = done
 
@@ -1372,17 +1392,19 @@ class Bot(irc.IRCClient):
 
                 for element in stuff:
                     if stuff == "*!*@*":
-                        self.send_raw("KICK %s %s :Do not set such ambiguous bans!" % (self.banlist[channel][element]["owner"], user))
+                        self.send_raw("KICK %s %s :Do not set such ambiguous bans!" % (
+                        self.banlist[channel][element]["owner"], user))
                         self.send_raw("MODE %s -b *!*@*" % channel)
-                        self.send_raw("MODE %s +b *!*@%s" % (channel, self.banlist[channel][element]["ownerhost"].split("@")[1]) )
+                        self.send_raw(
+                            "MODE %s +b *!*@%s" % (channel, self.banlist[channel][element]["ownerhost"].split("@")[1]))
                     else:
                         self.checkban(channel, element, self.banlist[channel][element]["owner"])
 
 
-        # elif command != "RPL_NAMREPLY" and command != "RPL_ENDOFNAMES":
-        #     self.prnt("Prefix: %s" % prefix)
-        #     self.prnt("Command: %s" % command)
-        #     self.prnt("Params: %s" % params)
+                        # elif command != "RPL_NAMREPLY" and command != "RPL_ENDOFNAMES":
+                        #     self.prnt("Prefix: %s" % prefix)
+                        #     self.prnt("Command: %s" % command)
+                        #     self.prnt("Params: %s" % params)
 
 
     #-#################################-#
@@ -1438,6 +1460,7 @@ class Bot(irc.IRCClient):
         return re.sub(r"&#?[A-Za-z0-9]+?;", self.replace_entities, data)
 
         # Don't use this directy, use sendnotice
+
     def sendntc(self, user, message):
         self.prnt("|> -%s- %s" % (user, message))
         self.notice(user, message)
