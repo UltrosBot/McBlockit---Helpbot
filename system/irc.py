@@ -426,8 +426,11 @@ class Bot(irc.IRCClient):
                 random.seed()
                 msg = messages[random.randint(0, len(messages) - 1)]
                 random.seed()
-                msg = msg.replace("^ruser^",
-                    self.chanlist[channel].keys()[random.randint(0, len(self.chanlist[channel].keys()) - 1)])
+                if channel in self.chanlist.keys():
+                    msg = msg.replace("^ruser^",
+                        self.chanlist[channel].keys()[random.randint(0, len(self.chanlist[channel].keys()) - 1)])
+                else:
+                    msg = msg.replace("^ruser^", "someone")
                 random.seed()
                 msg = msg.replace("^robject^", self.emoteobjects[random.randint(0, len(self.emoteobjects) - 1)])
                 self.sendmsg(channel, msg)
