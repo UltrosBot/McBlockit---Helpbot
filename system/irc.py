@@ -1324,7 +1324,7 @@ class Bot(irc.IRCClient):
         opers = 0
         aways = 0
 
-        for element in self.chanlist[channel]:
+        for element in self.chanlist[channel].values():
             if element["voice"]:
                 voices += 1
             if element["op"]:
@@ -1399,12 +1399,6 @@ class Bot(irc.IRCClient):
                             "MODE %s +b *!*@%s" % (channel, self.banlist[channel][element]["ownerhost"].split("@")[1]))
                     else:
                         self.checkban(channel, element, self.banlist[channel][element]["owner"])
-
-
-                        # elif command != "RPL_NAMREPLY" and command != "RPL_ENDOFNAMES":
-                        #     self.prnt("Prefix: %s" % prefix)
-                        #     self.prnt("Command: %s" % command)
-                        #     self.prnt("Params: %s" % params)
 
 
     #-#################################-#
