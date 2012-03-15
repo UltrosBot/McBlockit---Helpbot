@@ -520,9 +520,9 @@ class Bot(irc.IRCClient):
                     send(user, ", ".join(sorted(done)))
                 else:
                     if arguments[1] == "about":
-                        send(user, "I'm the MCBans IRC helper bot.")
+                        send(user, "I'm the MCBlock.it IRC helper bot.")
                         send(user, "Created by gdude2002, helped by rakiru.")
-                        send(user, "I was designed for #mcbans on irc.freenode.net")
+                        send(user, "I was designed for #mcblockit on irc.freenode.net")
                     elif arguments[1] == "auth":
                         send(user,
                             "Auth is managed with %slogin and %slogout." % (self.control_char, self.control_char))
@@ -914,7 +914,7 @@ class Bot(irc.IRCClient):
                                 if data[1] is ERR_NO_SUCH_ENTRY:
                                     send(user, "Entry does not exist.")
                                 else:
-                                    send(user, "Please report this to the MCBans staff.")
+                                    send(user, "Please report this to the MCBlock.it staff.")
                         else:
                             send(user,
                                 "Please provide a help topic and some data to append. For example: ??+ help This is what you do..")
@@ -932,7 +932,7 @@ class Bot(irc.IRCClient):
                                 if data[1] is ERR_NO_SUCH_ENTRY:
                                     send(user, "Entry does not exist.")
                                 else:
-                                    send(user, "Please report this to the MCBans staff.")
+                                    send(user, "Please report this to the MCBlock.it staff.")
                         else:
                             send(user,
                                 "Please provide a help topic and some data to use. For example: ??~ help This is what you do..")
@@ -950,7 +950,7 @@ class Bot(irc.IRCClient):
                                 if data[1] is ERR_NO_SUCH_ENTRY:
                                     send(user, "Entry does not exist.")
                                 else:
-                                    send(user, "Please report this to the MCBans staff.")
+                                    send(user, "Please report this to the MCBlock.it staff.")
                         else:
                             send(user, "Please provide a help topic to remove. For example: ??- help")
                     else:
@@ -1047,9 +1047,9 @@ class Bot(irc.IRCClient):
                     message = message.replace("^me^", me)
                     self.sendmsg(me, message)
         elif messages[0][0].lower() == "version":
-            self.ctcpMakeReply(name, [(messages[0][0], "A Python bot written for #mcbans. See .help about")])
+            self.ctcpMakeReply(name, [(messages[0][0], "A Python bot written for #mcblockit. See .help about")])
             self.prnt("|< %s [CTCP VERSION]" % user)
-            self.prnt("|> %s [CTCP VERSION REPLY] A Python bot written for #mcbans. See .help about" % user)
+            self.prnt("|> %s [CTCP VERSION REPLY] A Python bot written for #mcblockit. See .help about" % user)
         elif messages[0][0].lower() == "finger":
             self.ctcpMakeReply(name, [(messages[0][0], "No. Just, no.")])
             self.prnt("|< %s [CTCP FINGER]" % user)
