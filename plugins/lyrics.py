@@ -52,6 +52,7 @@ class plugin(object):
             self.singing = True
             #If no argument was provided, randomly select a song
             print len(self.lyrics)
+            random.seed()
             if songID == '': songID = random.randint(1, len(self.lyrics))
             
             #Get the lyrics
