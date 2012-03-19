@@ -515,7 +515,7 @@ class Bot(irc.IRCClient):
                             for element in self.plugins[element].help.keys():
                                 done.append(element)
                         except:
-                            self.prnt("|! Plugin %s has no help object!" % element.name)
+                            self.prnt("|! Plugin %s has no help object!" % element)
 
                     send(user, ", ".join(sorted(done)))
                 else:

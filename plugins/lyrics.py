@@ -17,9 +17,14 @@ class plugin(object):
     hooks = {
         "userJoined": "userJoined"
     }
+
     
     def __init__(self, irc):
         self.irc = irc
+        self.help = {
+            "sing": "Sing a song!\nUsage: %ssing" % self.irc.control_char,
+            "reloadlyrics": "Reload the lyrics file.\nUsage: %ssing\nNote: You need to be logged in to do this." % self.irc.control_char
+        }
         self.loadconfigs()
         self.singing = False
     
