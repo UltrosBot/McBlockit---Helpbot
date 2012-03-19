@@ -43,31 +43,47 @@ class plugin(object):
             self.sing(data["channel"], data["user"])
         
     def singCommand(self, user, channel, arguments):
-        self.sing(channel, user)
+        id = None
+        if len(arguments) > 1:
+            id = arguments[1]
+            try:
+                id = int(id)
+            except:
+                id = None
+        self.sing(channel, user, id)
     
-    def sing(self, channel, user, songID=''):
-        #Check if I'm not singing already
-        #And if I'm in a channel where I can sing
-        if (not self.singing) and (channel in self.settings["channels"]):
+    def sing(self, channel, user, songID=None):
+        if not self.lyrics:
+            self.irc.sendnotice(user, "I don't know any songs.")
+        elif self.singing:
+            self.irc.sendnotice(user, "I am already singing.")
+        elif channel not in self.settings["channels"]:
+            self.irc.sendnotice(user, "I cannot sing in this channel.")
+        else:
             self.singing = True
-            #If no argument was provided, randomly select a song
-            print len(self.lyrics)
-            random.seed()
-            if songID == '': songID = random.randint(1, len(self.lyrics))
-            
-            #Get the lyrics
-            self.song = self.lyrics[songID]["song"].split("\n")
-            self.song.insert(0,"A song just for you, " + user + " <3 (" + self.lyrics[songID]["link"] + ")")
-            
-            #Get the delay, and channel
-            self.songdelay = self.lyrics[songID]["delay"]
-            self.songchan = channel
-            
-            #Initialize the variable
-            self.line = 0
-            
-            #Start singing
-            self.singLines(channel)
+            try:
+                #If no argument was provided, randomly select a song
+                if not songID:
+                    random.seed()
+                    songID = random.randint(1, len(self.lyrics))
+
+                #Get the lyrics
+                self.song = self.lyrics[songID]["song"].split("\n")
+                self.song.insert(0,"A song just for you, " + user + " <3 (" + self.lyrics[songID]["link"] + ")")
+
+                #Get the delay, and channel
+                self.songdelay = self.lyrics[songID]["delay"]
+                self.songchan = channel
+
+                #Initialize the variable
+                self.line = 0
+
+                #Start singing
+                self.singLines(channel)
+            except Exception as e:
+                self.irc.send_raw("NOTICE " + user + " :Error: " + str(e))
+                self.singing = False
+
     
     def singLines(self, channel):
         if self.line < len(self.song):
