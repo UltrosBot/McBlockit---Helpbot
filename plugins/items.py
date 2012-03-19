@@ -23,7 +23,7 @@ class plugin(object):
         self.irc = irc
         self.items_handler = yaml_loader(True, "items")
         self.items = self.items_handler.load("items")
-        self.bans_handler = yaml_loader(True, "bans")
+        self.bans_handler = yaml_loader(True, "items")
         self.bans = self.bans_handler.load("bans")
         if not self.items:
             self.items = {}
