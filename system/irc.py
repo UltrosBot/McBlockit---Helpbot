@@ -222,7 +222,6 @@ class Bot(irc.IRCClient):
                         self.hooks[element] = [] # Make a note of the hook in the hooks dict
                     self.hooks[element].append([plugin, getattr(plugin, fname)])
             if hasattr(plugin, "commands"):
-                print "|! Getting commands for plugin: %s" % plugin.name
                 for element, data in plugin.commands.items():
                     if element in self.commands.keys():
                         self.prnt("|! Command %s is already registered. Overriding." % element)
@@ -1329,14 +1328,14 @@ class Bot(irc.IRCClient):
         It will also return "authorized" if the user is logged in or "none" if they don't have a rank.
         """
         # H - not away, G - away, * - IRCop, ~ - owner, & - admin, @ - op, % - halfop, + - voice
-        if user in self.chanlist[channel].keys():
+        if user in self.authorized.keys():
+            return "authorized"
+
+        elif channel in self.chanlist.keys() and user in self.chanlist[channel].keys():
+
             status = self.chanlist[channel][user]["status"]
 
-            print "|! %s in %s has status: %s" % (user, channel, status)
-
-            if user in self.authorized.keys():
-                return "authorized"
-            elif "*" in status:
+            if "*" in status:
                 return "oper"
             elif "~" in status:
                 return "owner"
