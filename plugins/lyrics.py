@@ -1,6 +1,9 @@
+# coding=utf-8
 import random
 from system.yaml_loader import *
 from twisted.internet import reactor
+
+from system.decorators import *
 
 class plugin(object):
     """
@@ -27,21 +30,20 @@ class plugin(object):
         }
         self.loadconfigs()
         self.singing = False
-    
+
+    @config("rank", "authorized")
     def loadconfigs(self, user=False, *args):
-        if (not user) or (user in self.irc.authorized.keys()):
-            self.settings_handler = yaml_loader(True, "lyrics")
-            self.settings = self.settings_handler.load("settings")
-            self.lyrics = self.settings_handler.load("lyrics")
-            if user: self.irc.send_raw("NOTICE " + user + " :" + 'Lyrics reloaded!')
-        else:
-            if user: self.irc.send_raw("NOTICE " + user + " :" + "You're not autorized to use this command")
-    
+        self.settings_handler = yaml_loader(True, "lyrics")
+        self.settings = self.settings_handler.load("settings")
+        self.lyrics = self.settings_handler.load("lyrics")
+        if user: self.irc.send_raw("NOTICE " + user + " :" + 'Lyrics reloaded!')
+
     def userJoined(self, data):
         #Do I feel like singing? :L
         if random.randint(1, self.settings["possibility"]) == 1:
-            self.sing(data["channel"], data["user"])
-        
+            self.sing(data["channel"])
+
+    @config("rank", "voice")
     def singCommand(self, user, channel, arguments):
         id = None
         if len(arguments) > 1:
@@ -52,13 +54,16 @@ class plugin(object):
                 id = None
         self.sing(channel, user, id)
     
-    def sing(self, channel, user, songID=None):
+    def sing(self, channel, user=None, songID=None):
         if not self.lyrics:
-            self.irc.sendnotice(user, "I don't know any songs.")
+            if user:
+                self.irc.sendnotice(user, "I don't know any songs.")
         elif self.singing:
-            self.irc.sendnotice(user, "I am already singing.")
+            if user:
+                self.irc.sendnotice(user, "I am already singing.")
         elif channel not in self.settings["channels"]:
-            self.irc.sendnotice(user, "I cannot sing in this channel.")
+            if user:
+                self.irc.sendnotice(user, "I cannot sing in this channel.")
         else:
             self.singing = True
             try:
@@ -69,7 +74,8 @@ class plugin(object):
 
                 #Get the lyrics
                 self.song = self.lyrics[songID]["song"].split("\n")
-                self.song.insert(0,"A song just for you, " + user + " <3 (" + self.lyrics[songID]["link"] + ")")
+                if user:
+                    self.song.insert(0,"A song just for you, " + user + " <3 (" + self.lyrics[songID]["link"] + ")")
 
                 #Get the delay, and channel
                 self.songdelay = self.lyrics[songID]["delay"]
@@ -81,7 +87,10 @@ class plugin(object):
                 #Start singing
                 self.singLines(channel)
             except Exception as e:
-                self.irc.send_raw("NOTICE " + user + " :Error: " + str(e))
+                if user:
+                    self.irc.notice(user, "Error: %s" % e)
+                else:
+                    self.irc.sendmsg(channel, "Error: %s" % e)
                 self.singing = False
 
     

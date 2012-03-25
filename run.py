@@ -1,3 +1,4 @@
+# coding=utf-8
 from system.irc import *
 from system.utils import *
 import sys

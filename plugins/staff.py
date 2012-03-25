@@ -1,5 +1,8 @@
+# coding=utf-8
 import re, string
 import urllib, urllib2
+
+from system.decorators import *
 
 class plugin(object):
 
@@ -10,7 +13,7 @@ class plugin(object):
     """
 
     commands = {
-        "staff": "staff"
+        "mcbansstaff": "staff"
     }
 
     def __init__(self, irc):
@@ -21,8 +24,7 @@ class plugin(object):
 
     def getStaff(self):
         url = 'http://www.mcbans.com/staff'
-        data = {}
-        data ["getStaff"] = None
+        data = {"getStaff": None}
 
         data = urllib.urlencode(data)
         req = urllib2.Request(url, data)
@@ -41,9 +43,7 @@ class plugin(object):
 
     def getUserInfo(self, user, rank):
         url = 'http://www.mcbans.com/staff'
-        data = {}
-        data ["getInfoOn"] = user
-        data ["staffRank"] = rank
+        data = {"getInfoOn": user, "staffRank": rank}
 
         data = urllib.urlencode(data)
         req = urllib2.Request(url, data)

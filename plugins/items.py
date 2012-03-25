@@ -1,5 +1,8 @@
+# coding=utf-8
 import random
 from system.yaml_loader import *
+
+from system.decorators import *
 
 class plugin(object):
     """
@@ -17,7 +20,7 @@ class plugin(object):
     hooks = {
         "connectionLost": "save",
         "signedOn": "load",
-        }
+    }
 
     def __init__(self, irc):
         self.irc = irc
@@ -91,42 +94,38 @@ class plugin(object):
             self.irc.send_raw(
                 "PRIVMSG " + channel + " :\1ACTION has no items in her bag!\1")
 
+    @config("rank", "op")
     def remove(self, user, channel, arguments):
-        if self.irc.is_op(channel, user) or user in self.authorized.keys():
-            if len(arguments) > 1:
-                item = " ".join(arguments[1:]).lower()
-                if item in self.items.keys():
-                    del self.items[item]
-                    self.bans["items"].append(item)
-                    self.save()
-                    self.irc.sendnotice(user, "Item %s removed." % item)
-                else:
-                    self.irc.sendnotice(user, "Item %s does not exist." % item)
+        if len(arguments) > 1:
+            item = " ".join(arguments[1:]).lower()
+            if item in self.items.keys():
+                del self.items[item]
+                self.bans["items"].append(item)
+                self.save()
+                self.irc.sendnotice(user, "Item %s removed." % item)
             else:
-                self.irc.sendnotice(user, "Usage: %sremove <item>" % self.irc.control_char)
+                self.irc.sendnotice(user, "Item %s does not exist." % item)
         else:
-            self.irc.sendnotice(user, "You do not have access to this command.")
+            self.irc.sendnotice(user, "Usage: %sremove <item>" % self.irc.control_char)
 
+    @config("rank", "op")
     def inventory(self, user, channel, arguments):
-        if self.irc.is_op(channel, user) or user in self.authorized.keys():
-            if self.items.keys():
-                items = self.items
-                itemlist = sorted(self.items.keys())
+        if self.items.keys():
+            items = self.items
+            itemlist = sorted(self.items.keys())
 
-                while itemlist:
-                    done = []
-                    for i in range(0, 5):
-                        if itemlist:
-                            item = itemlist.pop(0)
-                            stuff = items[item]["name"] + "|" + items[item]["owner"]
-                            done.append(stuff)
-                        else:
-                            break
-                    self.irc.sendnotice(user, ", ".join(done))
-                    del done
-            else:
-                self.irc.sendnotice(user, "There are no items in the inventory.")
+            while itemlist:
+                done = []
+                for i in range(0, 5):
+                    if itemlist:
+                        item = itemlist.pop(0)
+                        stuff = items[item]["name"] + "|" + items[item]["owner"]
+                        done.append(stuff)
+                    else:
+                        break
+                self.irc.sendnotice(user, ", ".join(done))
+                del done
         else:
-            self.irc.sendnotice(user, "You do not have access to this command.")
+            self.irc.sendnotice(user, "There are no items in the inventory.")
 
     name = "Items"

@@ -1,3 +1,4 @@
+# coding=utf-8
 import os, string
 import fnmatch
 

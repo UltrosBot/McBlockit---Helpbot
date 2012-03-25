@@ -1,5 +1,8 @@
+# coding=utf-8
 import random
 from system.yaml_loader import *
+
+from system.decorators import *
 
 class plugin(object):
     """
@@ -180,9 +183,6 @@ class plugin(object):
                             self.irc.sendnotice(user, "There is no information for %s" % about)
         else:
             self.irc.sendnotice(user, "Usage: %srstats <user/channel> <username/channelname> [stat]" % self.irc.control_char)
-
-
-
 
     def shoot(self, user, channel, arguments):
         if len(arguments) > 1:

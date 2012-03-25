@@ -1,3 +1,4 @@
+# coding=utf-8
 import os, random, time, math, traceback
 import thread, socket, htmlentitydefs
 import mechanize
@@ -221,10 +222,14 @@ class Bot(irc.IRCClient):
                         self.hooks[element] = [] # Make a note of the hook in the hooks dict
                     self.hooks[element].append([plugin, getattr(plugin, fname)])
             if hasattr(plugin, "commands"):
+                print "|! Getting commands for plugin: %s" % plugin.name
                 for element, data in plugin.commands.items():
                     if element in self.commands.keys():
                         self.prnt("|! Command %s is already registered. Overriding." % element)
-                    self.commands[element] = getattr(plugin, data)
+                    if hasattr(plugin, data):
+                        self.commands[element] = getattr(plugin, data)
+                    else:
+                        print "|! Plugins '%s' has no function for command '%s'" % (plugin.name, data)
             if hasattr(plugin, "finishedLoading"):
                 plugin.finishedLoading()
 
@@ -376,36 +381,6 @@ class Bot(irc.IRCClient):
             reactor.callLater(5, thread.start_new_thread, self.randmsg, (channel,))
         self.flush()
         self.runHook("channelJoined", {"channel": channel})
-
-    def is_op(self, channel, user):
-        if channel in self.chanlist.keys():
-            if user in self.chanlist[channel].keys():
-                return self.chanlist[channel][user]["op"]
-            return False
-        return False
-
-    def is_voice(self, channel, user):
-        if channel in self.chanlist.keys():
-            if user in self.chanlist[channel].keys():
-                return self.chanlist[channel][user]["voice"]
-            return False
-        return False
-
-    def set_op(self, channel, user, data):
-        if isinstance(data, bool):
-            if channel in self.chanlist.keys():
-                if user in self.chanlist[channel].keys():
-                    self.chanlist[channel][user]["op"] = data
-        else:
-            raise ValueError("'data' must be either True or False")
-
-    def set_voice(self, channel, user, data):
-        if isinstance(data, bool):
-            if channel in self.chanlist.keys():
-                if user in self.chanlist[channel].keys():
-                    self.chanlist[channel][user]["voice"] = data
-        else:
-            raise ValueError("'data' must be either True or False")
 
     def randmsg(self, channel):
         if self.r_emotes:
@@ -597,124 +572,7 @@ class Bot(irc.IRCClient):
                         self.squit(" ".join(arguments[1:]))
                 else:
                     send(user, "You do not have access to this command.")
-            elif command == "lookup":
-                if len(arguments) > 1:
-                    data = self.mcb.lookup(arguments[1], user)
-                    try:
-                        error = data["error"]
-                        if authorized:
-                            self.sendmsg(channel, "Error: %s" % data["error"])
-                        else:
-                            send(user, "Error: %s" % data["error"])
-                    except:
-                        if len(arguments) > 2:
-                            type = arguments[2]
-                            if type == "local":
-                                if authorized:
-                                    self.sendmsg(channel, "Listing local bans for %s..." % arguments[1])
-                                    if len(data["local"]) > 0:
-                                        for element in data["local"]:
-                                            server = element.split(" .:. ")[0].encode("ascii", "ignore")
-                                            reason = element.split(" .:. ")[1].encode("ascii", "ignore")
-                                            self.sendmsg(channel, "%s: %s" % (server, reason.decode('string_escape')))
-                                    else:
-                                        self.sendmsg(channel, "No local bans.")
-                                else:
-                                    send(user, "Listing local bans for %s..." % arguments[1])
-                                    if len(data["local"]) > 0:
-                                        for element in data["local"]:
-                                            server = element.split(" .:. ")[0].encode("ascii", "ignore")
-                                            reason = element.split(" .:. ")[1].encode("ascii", "ignore")
-                                            send(user, "%s: %s" % (server, reason.decode('string_escape')))
-                                    else:
-                                        send(user, "No local bans.")
-                            elif type == "global":
-                                if authorized:
-                                    self.sendmsg(channel, "Listing global bans for %s..." % arguments[1])
-                                    if len(data["global"]) > 0:
-                                        for element in data["global"]:
-                                            server = element.split(" .:. ")[0].encode("ascii", "ignore")
-                                            reason = element.split(" .:. ")[1].encode("ascii", "ignore")
-                                            self.sendmsg(channel, "%s: %s" % (server, reason.decode('string_escape')))
-                                    else:
-                                        self.sendmsg(channel, "No global bans.")
-                                else:
-                                    send(user, "Listing global bans for %s..." % arguments[1])
-                                    if len(data["global"]) > 0:
-                                        for element in data["global"]:
-                                            server = element.split(" .:. ")[0].encode("ascii", "ignore")
-                                            reason = element.split(" .:. ")[1].encode("ascii", "ignore")
-                                            send(user, "%s: %s" % (server, reason.decode('string_escape')))
-                                    else:
-                                        send(user, "No global bans.")
-                            elif type == "minimal":
-                                if authorized:
-                                    self.sendmsg(channel,
-                                        "Reputation for %s: %.2f/10" % (arguments[1], data["reputation"]))
-                                    self.sendmsg(channel, "Total bans: %s" % data["total"])
-                                else:
-                                    send(user, "Reputation for %s: %.2f/10" % (arguments[1], data["reputation"]))
-                                    send(user, "Total bans: %s" % data["total"])
-                            elif type == "all":
-                                if authorized:
-                                    self.sendmsg(channel, "Listing everything for %s..." % arguments[1])
-                                    self.sendmsg(channel,
-                                        "Reputation for %s: %.2f/10" % (arguments[1], data["reputation"]))
-                                    self.sendmsg(channel, "Total bans: %s" % data["total"])
-                                    self.sendmsg(channel, "Listing local bans for %s..." % arguments[1])
-                                    if len(data["local"]) > 0:
-                                        for element in data["local"]:
-                                            server = element.split(" .:. ")[0].encode("ascii", "ignore")
-                                            reason = element.split(" .:. ")[1].encode("ascii", "ignore")
-                                            self.sendmsg(channel, "%s: %s" % (server, reason.decode('string_escape')))
-                                    else:
-                                        self.sendmsg(channel, "No local bans.")
-                                    self.sendmsg(channel, "Listing global bans for %s..." % arguments[1])
-                                    if len(data["global"]) > 0:
-                                        for element in data["global"]:
-                                            server = element.split(" .:. ")[0].encode("ascii", "ignore")
-                                            reason = element.split(" .:. ")[1].encode("ascii", "ignore")
-                                            self.sendmsg(channel, "%s: %s" % (server, reason.decode('string_escape')))
-                                    else:
-                                        self.sendmsg(channel, "No global bans.")
-                                else:
-                                    send(user, "Listing everything for %s..." % arguments[1])
-                                    send(user, "Listing everything for %s..." % arguments[1])
-                                    send(user, "Reputation for %s: %.2f/10" % (arguments[1], data["reputation"]))
-                                    send(user, "Total bans: %s" % data["total"])
-                                    send(user, "Listing local bans for %s..." % arguments[1])
-                                    if len(data["local"]) > 0:
-                                        for element in data["local"]:
-                                            server = element.split(" .:. ")[0].encode("ascii", "ignore")
-                                            reason = element.split(" .:. ")[1].encode("ascii", "ignore")
-                                            send(user, "%s: %s" % (server, reason.decode('string_escape')))
-                                    else:
-                                        send(user, "No local bans.")
-                                    send(user, "Listing global bans for %s..." % arguments[1])
-                                    if len(data["global"]) > 0:
-                                        for element in data["global"]:
-                                            server = element.split(" .:. ")[0].encode("ascii", "ignore")
-                                            reason = element.split(" .:. ")[1].encode("ascii", "ignore")
-                                            send(user, "%s: %s" % (server, reason.decode('string_escape')))
-                                    else:
-                                        send(user, "No global bans.")
-                            else:
-                                if authorized:
-                                    self.sendmsg(channel,
-                                        "Reputation for %s: %.2f/10" % (arguments[1], data["reputation"]))
-                                    self.sendmsg(channel, "Total bans: %s" % data["total"])
-                                else:
-                                    send(user, "Reputation for %s: %.2f/10" % (arguments[1], data["reputation"]))
-                                    send(user, "Total bans: %s" % data["total"])
-                        else:
-                            if authorized:
-                                self.sendmsg(channel, "Reputation for %s: %.2f/10" % (arguments[1], data["reputation"]))
-                                self.sendmsg(channel, "Total bans: %s" % data["total"])
-                            else:
-                                send(user, "Reputation for %s: %.2f/10" % (arguments[1], data["reputation"]))
-                                send(user, "Total bans: %s" % data["total"])
-                else:
-                    send(user, "Syntax: %slookup <user> [type]" % self.control_char)
+
             elif command == "ping":
                 derp = 0
                 if len(arguments) > 1:
@@ -801,9 +659,11 @@ class Bot(irc.IRCClient):
                     send(user, "You do not have access to this command.")
             elif command.lower() in self.commands.keys():
                 try:
-                    self.commands[command.lower()](user, channel, arguments)
+                    self.runcommand(command.lower(), user, channel, arguments)
                 except Exception as e:
                     send(user, "Error: %s" % e)
+            else:
+                print "|! DEBUG: No such command"
         elif msg.startswith("??") or msg.startswith("?!"):
             cinfo = {"user": user, "hostmask": userhost.split("!", 1)[1], "origin": channel, "message": msg,
                      "target": channel}
@@ -963,8 +823,41 @@ class Bot(irc.IRCClient):
         else:
             self.prnt("|< %s %s" % (channel, msg))
 
+    ranknums = {"none": 0, "voice": 15, "halfop": 30, "op": 45, "admin": 60, "owner": 85, "oper": 100,
+                "authorized": 200}
+
+    def runcommand(self, command, user, channel, arguments):
+        if command in self.commands.keys():
+            command_func = self.commands[command]
+            if hasattr(command_func, "config"):
+                if "rank" in command_func.config.keys():
+                    user_rank = self.getRank(channel, user)
+                    needed_rank = command_func.config["rank"]
+                    if isinstance(needed_rank, int):
+                        if needed_rank > self.ranknums[user_rank]:
+                            self.sendnotice(user, "You do not have access to that command")
+                        else:
+                            command_func(user, channel, arguments)
+                    else:
+                        if needed_rank in self.ranknums.keys():
+                            if self.ranknums[needed_rank] > self.ranknums[user_rank]:
+                                self.sendnotice(user, "You do not have access to that command")
+                            else:
+                                command_func(user, channel, arguments)
+                        else:
+                            print "|! Rank %s is not a valid rank!" % needed_rank
+                            command_func(user, channel, arguments)
+            else:
+                command_func(user, channel, arguments)
+        else:
+            print "|! Command %s does not exist" % command
+            self.sendnotice(user, "Command %s does not exist!" % command)
+
     def dnslookup(self, channel, user):
-        """Looks up users on several DNS blacklists and kicks them if the bot is op"""
+        """
+        Looks up users on several DNS blacklists and kicks them if the bot is op
+        This is currently not implemented because it'll lag heavily
+        """
         if self.is_op(channel, self.nickname):
             ip = socket.gethostbyname(self.chanlist[channel][user]["host"])
             if not ip in self.lookedup:
@@ -1094,8 +987,23 @@ class Bot(irc.IRCClient):
 
                                 for element in stuff:
                                     self.checkban(channel, element, self.banlist[channel][element]["owner"])
-                    elif element == "v":
-                        self.set_voice(channel, args[i], True)
+                    if element in "qaohv":
+                        arg = args[i]
+                        if "!" not in arg or "@" not in arg:
+                            if arg in self.chanlist[channel].keys():
+                                mchar = ""
+                                if element == "q":
+                                    mchar = "~"
+                                elif element == "a":
+                                    mchar = "&"
+                                elif element == "o":
+                                    mchar = "@"
+                                elif element == "h":
+                                    mchar = "%"
+                                elif element == "v":
+                                    mchar = "+"
+                                if not mchar in self.chanlist[channel][arg]["status"]:
+                                    self.chanlist[channel][arg]["status"] += mchar
                     elif element == "b":
                         if args[i] == "*!*@*":
                             if self.is_op(channel, self.nickname):
@@ -1112,10 +1020,23 @@ class Bot(irc.IRCClient):
                 self.prnt("|= %s sets mode %s -%s %s" % (user, channel, modes, " ".join(args)))
                 i = 0
                 for element in modes:
-                    if element == "o":
-                        self.set_op(channel, args[i], False)
-                    elif element == "v":
-                        self.set_voice(channel, args[i], False)
+                    if element in "qaohv":
+                        arg = args[i]
+                        if "!" not in arg or "@" not in arg:
+                            if arg in self.chanlist[channel].keys():
+                                mchar = ""
+                                if element == "q":
+                                    mchar = "~"
+                                elif element == "a":
+                                    mchar = "&"
+                                elif element == "o":
+                                    mchar = "@"
+                                elif element == "h":
+                                    mchar = "%"
+                                elif element == "v":
+                                    mchar = "+"
+                                if mchar in self.chanlist[channel][arg]["status"]:
+                                    self.chanlist[channel][arg]["status"] = self.chanlist[channel][arg]["status"].replace(mchar, "")
                     i += 1
         except:
             pass
@@ -1288,7 +1209,7 @@ class Bot(irc.IRCClient):
         host = data[3]
         server = data[4]
         nick = data[5]
-        status = data[6] # H - not away, G - away, * - IRCop, @ - op, + - voice
+        status = data[6] # H - not away, G - away, * - IRCop, ~ - owner, & - admin, @ - op, % - halfop, + - voice
         gecos = data[7] # Hops, realname
 
         hostmask = nick + "!" + ident + "@" + host
@@ -1296,18 +1217,10 @@ class Bot(irc.IRCClient):
         if not channel in self.chanlist.keys():
             self.chanlist[channel] = {}
 
-        done = {"ident": ident, "host": host, "server": server, "realname": gecos.split(" ")[1], "op": False,
-                "voice": False, "oper": False, "away": False, "last_time": float(time.time() - 0.25),
+        done = {"ident": ident, "host": host, "server": server, "realname": gecos.split(" ")[1],
+                "status": status, "oper": False, "away": False, "last_time": float(time.time() - 0.25),
                 "hostmask": hostmask}
-        for char in status:
-            if char is "@":
-                done["op"] = True
-            if char is "+":
-                done["voice"] = True
-            if char is "*":
-                done["oper"] = True
-            if char is "G":
-                done["away"] = True
+
         self.chanlist[channel][nick] = done
 
     def irc_RPL_ENDOFWHO(self, *nargs):
@@ -1325,13 +1238,14 @@ class Bot(irc.IRCClient):
         aways = 0
 
         for element in self.chanlist[channel].values():
-            if element["voice"]:
+            status = element["status"]
+            if "+" in status:
                 voices += 1
-            if element["op"]:
+            if "@" in status:
                 ops += 1
-            if element["oper"]:
+            if "*" in status:
                 opers += 1
-            if element["away"]:
+            if "G" in status:
                 aways += 1
         print("|= %s users on %s (%s voices, %s ops, %s opers, %s away)" % (
         len(self.chanlist[channel]), channel, voices, ops, opers, aways))
@@ -1393,7 +1307,7 @@ class Bot(irc.IRCClient):
                 for element in stuff:
                     if stuff == "*!*@*":
                         self.send_raw("KICK %s %s :Do not set such ambiguous bans!" % (
-                        self.banlist[channel][element]["owner"], user))
+                        channel, self.banlist[channel][element]["owner"]))
                         self.send_raw("MODE %s -b *!*@*" % channel)
                         self.send_raw(
                             "MODE %s +b *!*@%s" % (channel, self.banlist[channel][element]["ownerhost"].split("@")[1]))
@@ -1401,11 +1315,45 @@ class Bot(irc.IRCClient):
                         self.checkban(channel, element, self.banlist[channel][element]["owner"])
 
 
+
+
     #-#################################-#
-    #                                   |
+    #                                   #
     #       UTILITY   #   FUNCTIONS     #
-    #                                   |
+    #                                   #
     #-#################################-#
+
+    def getRank(self, channel, user):
+        """
+        This function is for getting the highest rank of a user on any particular channel.
+        It will also return "authorized" if the user is logged in or "none" if they don't have a rank.
+        """
+        # H - not away, G - away, * - IRCop, ~ - owner, & - admin, @ - op, % - halfop, + - voice
+
+        status = self.chanlist[channel][user]["status"]
+
+        print "|! %s in %s has status: %s" % (user, channel, status)
+
+        if user in self.authorized.keys():
+            return "authorized"
+        elif "*" in status:
+            return "oper"
+        elif "~" in status:
+            return "owner"
+        elif "&" in status:
+            return "admin"
+        elif "@" in status:
+            return "op"
+        elif "+" in status:
+            return "voice"
+        else:
+            return "none"
+
+    def is_op(self, channel, user):
+        return self.getRank(channel, user) in ["op", "admin", "owner", "oper", "authorized"]
+
+    def is_voice(self, channel, user):
+        return self.getRank(channel, user) in ["voice", "op", "admin", "owner", "oper", "authorized"]
 
     def cmsg(self, message):
         # Send a message to all joined channels

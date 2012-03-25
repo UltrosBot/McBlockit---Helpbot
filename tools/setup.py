@@ -1,3 +1,4 @@
+# coding=utf-8
 import os, sys
 import urllib2
 from time import sleep

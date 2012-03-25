@@ -1,3 +1,4 @@
+# coding=utf-8
 from math import *
 import urllib, urllib2, re, hashlib, random, time
 

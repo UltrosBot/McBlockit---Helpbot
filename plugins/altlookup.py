@@ -1,3 +1,7 @@
+# coding=utf-8
+
+from system.decorators import *
+
 class plugin(object):
 
     """
@@ -15,6 +19,7 @@ class plugin(object):
             "alts": "Gets a list of alts for a user\nUsage: %salts <data>\nNOTE: Requires you to be op in the channel of use" % self.irc.control_char
         }
 
+    @config("rank", "op")
     def lookup_alts(self, user, channel, arguments):
         if self.irc.is_op(channel, user):
             if arguments[1:]:

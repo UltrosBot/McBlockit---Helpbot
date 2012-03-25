@@ -1,9 +1,12 @@
+# coding=utf-8
 import urllib, urllib2
 
 from system.yaml_loader import *
 
 from twisted.internet import reactor
 from xml.etree import ElementTree
+
+from system.decorators import *
 
 class plugin(object):
     """

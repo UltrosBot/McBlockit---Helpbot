@@ -1,3 +1,4 @@
+# coding=utf-8
 def checkpart(banmask, hostmask, i=0):
     banmask = banmask.replace("**", "*")
     

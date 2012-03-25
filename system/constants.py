@@ -1,3 +1,4 @@
+# coding=utf-8
 # Constants for the FAQ knowledgebase thing
 
 ERR_NO_SUCH_ENTRY = 0

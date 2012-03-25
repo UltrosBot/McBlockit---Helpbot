@@ -1,3 +1,4 @@
+# coding=utf-8
 import string, sys
 
 from colorama import Fore, Back, Style, init
