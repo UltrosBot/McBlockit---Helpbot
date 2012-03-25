@@ -1329,23 +1329,25 @@ class Bot(irc.IRCClient):
         It will also return "authorized" if the user is logged in or "none" if they don't have a rank.
         """
         # H - not away, G - away, * - IRCop, ~ - owner, & - admin, @ - op, % - halfop, + - voice
+        if user in self.chanlist[channel].keys():
+            status = self.chanlist[channel][user]["status"]
 
-        status = self.chanlist[channel][user]["status"]
+            print "|! %s in %s has status: %s" % (user, channel, status)
 
-        print "|! %s in %s has status: %s" % (user, channel, status)
-
-        if user in self.authorized.keys():
-            return "authorized"
-        elif "*" in status:
-            return "oper"
-        elif "~" in status:
-            return "owner"
-        elif "&" in status:
-            return "admin"
-        elif "@" in status:
-            return "op"
-        elif "+" in status:
-            return "voice"
+            if user in self.authorized.keys():
+                return "authorized"
+            elif "*" in status:
+                return "oper"
+            elif "~" in status:
+                return "owner"
+            elif "&" in status:
+                return "admin"
+            elif "@" in status:
+                return "op"
+            elif "+" in status:
+                return "voice"
+            else:
+                return "none"
         else:
             return "none"
 
