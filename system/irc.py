@@ -1131,10 +1131,9 @@ class Bot(irc.IRCClient):
                 # Flush the logfile
         self.flush()
 
-    @run_async
     def messageLoop(self, wut=None):
         self.m_protect = 0
-        while True:
+        while self.m_protect < 5:
             user = ""
             message = ""
             try:
@@ -1146,7 +1145,7 @@ class Bot(irc.IRCClient):
                 else:
                     self.sendmessage(user, message)
             except IndexError:
-                pass
+                break
             except Exception:
                 try:
                     print("|! Failed to send message! Error: %s" % traceback.format_exc())
@@ -1154,22 +1153,18 @@ class Bot(irc.IRCClient):
                 except:
                     pass
             self.m_protect += 1
-            if self.m_protect == 5:
-                self.m_protect = 0
-                time.sleep(2.5)
-#        reactor.callLater(2.5, self.messageLoop, ())
+        reactor.callLater(2.5, self.messageLoop, ())
 
-    @run_async
     def rawLoop(self, wut=None):
         self.r_protect = 0
-        while True:
+        while self.r_protect < 5:
             item = ""
             try:
                 item = self.rawqueue.pop(0)
                 self.sendLine(item)
                 print("|> server: %s" % item)
             except IndexError:
-                pass
+                break
             except Exception:
                 try:
                     print("|! Failed to send raw data to server! Error: %s" % traceback.format_exc())
@@ -1177,15 +1172,11 @@ class Bot(irc.IRCClient):
                 except:
                     pass
             self.r_protect += 1
-            if self.r_protect == 5:
-                self.r_protect = 0
-                time.sleep(2.5)
-#        reactor.callLater(2.5, self.rawLoop, ())
+        reactor.callLater(2.5, self.rawLoop, ())
 
-    @run_async
     def noticeLoop(self, wut=None):
         self.n_protect = 0
-        while True:
+        while self.n_protect < 5:
             user = ""
             message = ""
             try:
@@ -1197,7 +1188,7 @@ class Bot(irc.IRCClient):
                 else:
                     self.sendntc(user, message)
             except IndexError:
-                pass
+                break
             except Exception:
                 try:
                     print("|! Failed to send notice! Error: %s" % traceback.format_exc())
@@ -1205,10 +1196,7 @@ class Bot(irc.IRCClient):
                 except:
                     pass
             self.n_protect += 1
-            if self.n_protect == 5:
-                self.n_protect = 0
-                time.sleep(2.5)
-#        reactor.callLater(2.5, self.noticeLoop, ())
+        reactor.callLater(2.5, self.noticeLoop, ())
 
     def who(self, channel):
         """List the users in 'channel', usage: client.who('#testroom')"""
