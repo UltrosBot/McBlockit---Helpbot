@@ -21,6 +21,15 @@ class plugin(object):
         "channelJoined": "newChannel"
     }
 
+    shoot_guns = [
+        ["shoots {$USER}", "Bang!"],
+        ["torches {$USER}", "HMMM MMH MMMPH!"],
+        ["fills {$USER} with bulletholes", "RAT-A-TAT-TAT!"],
+        ["throws a monitor at {$USER}", "HAAAAAAX!"],
+        ["touches {$USER} in the back with a knife. Hard.", "That bot is a spah!"],
+        ["releases the hounds on {$USER}", "Excellent..."]
+    ]
+
     def __init__(self, irc):
         self.irc = irc
         self.guns_handler = yaml_loader(True, "rroulette")
@@ -192,11 +201,14 @@ class plugin(object):
             if ":" in target:
                 target_user = target.split(":", 1)[0]
                 target_channel = target.split(":", 1)[1]
-            self.irc.send_raw("PRIVMSG " + target_channel + " :" + self.irc.ctcp + "ACTION shoots " + target_user + self.irc.ctcp)
+            curgun = random.choice(self.shoot_guns)
+            mstring = "" + curgun[0].replace("{$USER}", target)
+            kstring = curgun[1]
+            self.irc.send_raw("PRIVMSG " + target_channel + " :" + self.irc.ctcp + "ACTION " + mstring + self.irc.ctcp)
             if (self.irc.is_voice(target_channel, user) or self.irc.is_op(target_channel, user) or user in self.authorized.keys()) and self.irc.is_op(channel, self.irc.nickname):
-                self.irc.send_raw("KICK %s %s :Bang!" % (target_channel, target_user))
+                self.irc.send_raw("KICK %s %s :%s" % (target_channel, target_user, kstring))
             else:
-                self.irc.send_raw("PRIVMSG %s :Bang!" % target_channel)
+                self.irc.send_raw("PRIVMSG %s :%s" % (target_channel, kstring))
 
     def play(self, user, channel, arguments):
         chambers_left = self.channels[channel]["chambers"]

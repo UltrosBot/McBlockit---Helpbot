@@ -1,6 +1,6 @@
 # coding=utf-8
 from math import *
-import urllib, urllib2, re, hashlib, random, time
+import urllib, urllib2, re, hashlib, random, time, json
 
 class evalFunctions(object):
     def __init__(self, bot):
@@ -30,6 +30,8 @@ class evalFunctions(object):
         part = self.part
         kick = self.kick
         mode = self.mode
+        toJson = self.toJson
+        fromJson = self.fromJson
 
         del self
         try:
@@ -43,6 +45,12 @@ class evalFunctions(object):
     def randint(self, lo, hi):
         random.seed()
         return random.randint(lo, hi)
+
+    def toJson(self, obj):
+        json.dumps(obj)
+
+    def fromJson(self, obj):
+        json.loads(obj)
 
     def md5(self, data):
         return hashlib.md5(data).hexdigest()
@@ -66,7 +74,7 @@ class evalFunctions(object):
 
     def wtest(self, message):
         info = message.info()
-        typec = info["Content-Type"]
+        typec = info["Content-Type"].lower()
         self.bot.prnt(message.geturl())
         if ";" in typec:
             typec = typec.split(";")[0]
@@ -76,7 +84,7 @@ class evalFunctions(object):
             length = 0
         if message.geturl().startswith("file:/"):
             return [False, "Local file access is not allowed."]
-        if not (typec == "text/html" or typec == "text/plain"):
+        if not (typec == "text/html" or typec == "text/plain" or typec == "text/json"):
             return [False, "Content-Type " + typec + " is not allowed."]
         elif length > (1024 * 5):
             return [False, "Content is greater than 5KB in size."]
