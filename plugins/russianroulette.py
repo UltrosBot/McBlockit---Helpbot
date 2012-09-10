@@ -27,7 +27,9 @@ class plugin(object):
         ["fills {$USER} with bulletholes", "RAT-A-TAT-TAT!"],
         ["throws a monitor at {$USER}", "HAAAAAAX!"],
         ["touches {$USER} in the back with a knife. Hard.", "That bot is a spah!"],
-        ["releases the hounds on {$USER}", "Excellent..."]
+        ["releases the hounds on {$USER}", "Excellent..."],
+        ["points a magic wand at {$USER}", "EXPELLIARMOUS!"],
+        ["Eeee...", "...nope."]
     ]
 
     def __init__(self, irc):
