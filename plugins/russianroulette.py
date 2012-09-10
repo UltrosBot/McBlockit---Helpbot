@@ -29,7 +29,30 @@ class plugin(object):
         ["touches {$USER} in the back with a knife. Hard.", "That bot is a spah!"],
         ["releases the hounds on {$USER}", "Excellent..."],
         ["points a magic wand at {$USER}", "EXPELLIARMOUS!"],
-        ["Eeee...", "...nope."]
+        ["Eeee...", "...nope."],
+        ["throws a stick of dynamite at {$USER}", "BOOOM!"],
+        ["throws Sascha at {$USER}", "NOBODY TOUCHES MY GUN!"],
+        ["throws a bowling ball at {$USER}", "Hey! Cousin! Want to go bowling?"],
+        ["sets {$USER} as the bomb", "All your kicks are belong to us"],
+        ["fires the lazor at {$USER}", "BLAAAAAAAAAAAAAAAAARGGHHH!"],
+        ["fires the trolling ray at {$USER}", "TROLOLOLOLOL"],
+        ["rickrolls {$USER}", "NEVER GONNA GIVE YOU UP, NEVER GONNA LET YOU DOWN"],
+        ["places a \"kick me\" sign next to {$USER}", "The sign told me to!"],
+        ["hears whispering..", "The voices told me to!"],
+        ["stares at {$USER}", "I don't like your face."],
+        ["...", "Do I even need a reason?"],
+        ["saps {$USER}'s sentry", "Sentry down!"],
+        ["hits {$USER} in the head with a baseball", "Bonk!"],
+        ["ponies {$USER}", "Friendship is magic!"],
+        ["tags {$USER} as NSFW", "No NSFW content allowed here!"],
+        ["gives {$USER} a bad rating on Metacritic", "Your game is bad and you should FEEL bad"],
+        ["dances", "Do the safety dance, dammit!"],
+        ["stares into {$USER}'s soul", "You have a dirty, DIRTY soul."],
+        ["becomes a zombie and eats {$USER}", "Braaaaaaaaainnnnsssss..."],
+        ["runs over {$USER}", "HEY, WATCH WHERE YOU'RE GOING!"],
+        ["{$NICK} {$NICK} {$NICK}", "{$NICK}"],
+        ["{$USER} {$USER}", "{$USER}"],
+        ["catches {$USER} in a pokeball", "Gotta catch 'em all!"]
     ]
 
     def __init__(self, irc):
@@ -204,7 +227,7 @@ class plugin(object):
                 target_user = target.split(":", 1)[0]
                 target_channel = target.split(":", 1)[1]
             curgun = random.choice(self.shoot_guns)
-            mstring = "" + curgun[0].replace("{$USER}", target)
+            mstring = "" + curgun[0].replace("{$USER}", target).replace("{$NICK}", self.irc.nickname)
             kstring = curgun[1]
             self.irc.send_raw("PRIVMSG " + target_channel + " :" + self.irc.ctcp + "ACTION " + mstring + self.irc.ctcp)
             if (self.irc.is_voice(target_channel, user) or self.irc.is_op(target_channel, user) or user in self.authorized.keys()) and self.irc.is_op(channel, self.irc.nickname):

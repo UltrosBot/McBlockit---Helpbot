@@ -890,6 +890,7 @@ class Bot(irc.IRCClient):
                 self.lookedup.append(ip)
 
     def pagetitle(self, target, url):
+        url = url.lower()
         if not target in self.stfuchans:
             if not url.split(".")[-1] in self.notParse:
                 isHTTPS = 0
