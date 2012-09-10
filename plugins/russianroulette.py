@@ -43,7 +43,7 @@ class plugin(object):
         ["...", "Do I even need a reason?"],
         ["saps {$USER}'s sentry", "Sentry down!"],
         ["hits {$USER} in the head with a baseball", "Bonk!"],
-        ["ponies {$USER}", "Friendship is magic!"],
+        ["ponies {$USER}", "Kicking is magic!"],
         ["tags {$USER} as NSFW", "No NSFW content allowed here!"],
         ["gives {$USER} a bad rating on Metacritic", "Your game is bad and you should FEEL bad"],
         ["dances", "Do the safety dance, dammit!"],
@@ -52,7 +52,9 @@ class plugin(object):
         ["runs over {$USER}", "HEY, WATCH WHERE YOU'RE GOING!"],
         ["{$NICK} {$NICK} {$NICK}", "{$NICK}"],
         ["{$USER} {$USER}", "{$USER}"],
-        ["catches {$USER} in a pokeball", "Gotta catch 'em all!"]
+        ["catches {$USER} in a pokeball", "Gotta catch 'em all!"],
+        ["headshots {$USER}", "Thanks for standin' still, wanker!"],
+        ["shoots {$USER}", "Dying is easy.. Here, let me show you."]
     ]
 
     def __init__(self, irc):

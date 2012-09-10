@@ -890,16 +890,15 @@ class Bot(irc.IRCClient):
                 self.lookedup.append(ip)
 
     def pagetitle(self, target, url):
-        url = url.lower()
         if not target in self.stfuchans:
             if not url.split(".")[-1] in self.notParse:
                 isHTTPS = 0
                 domain = ""
                 try:
-                    if url.startswith("http://"):
+                    if url.lower().startswith("http://"):
                         domain = url.split("http://")[1].split("/")[0]
                         isHTTPS = 0
-                    elif url.startswith("https://"):
+                    elif url.lower().startswith("https://"):
                         domain = url.split("https://")[1].split("/")[0]
                         isHTTPS = 1
                     br = mechanize.Browser()
