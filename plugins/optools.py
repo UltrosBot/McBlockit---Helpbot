@@ -20,7 +20,7 @@ class plugin(object):
             "ban": "Kickban a user from a channel\nUsage: %sban <user>[:channel] [reason]\nIf channel is omitted, the current channel is used." % self.irc.control_char
         }
 
-    @config("rank", "voice")
+    @config("rank", "op")
     def kick(self, user, channel, arguments):
         if len(arguments) > 1:
             k_user = arguments[1]
@@ -41,7 +41,7 @@ class plugin(object):
         else:
             self.irc.sendnotice(user, self.help["kick"])
 
-    @config("rank", "voice")
+    @config("rank", "op")
     def ban(self, user, channel, arguments):
         if len(arguments) > 1:
             k_user = arguments[1]

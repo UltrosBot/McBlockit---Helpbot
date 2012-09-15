@@ -233,9 +233,9 @@ class plugin(object):
                 return
             curgun = random.choice(self.shoot_guns)
             mstring = "" + curgun[0].replace("{$USER}", target).replace("{$NICK}", self.irc.nickname)
-            kstring = curgun[1]
+            kstring = curgun[1].replace("{$USER}", target).replace("{$NICK}", self.irc.nickname)
             self.irc.send_raw("PRIVMSG " + target_channel + " :" + self.irc.ctcp + "ACTION " + mstring + self.irc.ctcp)
-            if (self.irc.is_voice(target_channel, user) or self.irc.is_op(target_channel, user) or user in self.authorized.keys()) and self.irc.is_op(channel, self.irc.nickname):
+            if (self.irc.is_op(target_channel, user) or user in self.authorized.keys()) and self.irc.is_op(channel, self.irc.nickname):
                 self.irc.send_raw("KICK %s %s :%s" % (target_channel, target_user, kstring))
             else:
                 self.irc.send_raw("PRIVMSG %s :%s" % (target_channel, kstring))

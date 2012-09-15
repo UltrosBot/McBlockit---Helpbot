@@ -1350,6 +1350,8 @@ class Bot(irc.IRCClient):
                 return "admin"
             elif "@" in status:
                 return "op"
+            elif "%" in status:
+                return "halfop"
             elif "+" in status:
                 return "voice"
             else:
@@ -1361,7 +1363,7 @@ class Bot(irc.IRCClient):
         return self.getRank(channel, user) in ["op", "admin", "owner", "oper", "authorized"]
 
     def is_voice(self, channel, user):
-        return self.getRank(channel, user) in ["voice", "op", "admin", "owner", "oper", "authorized"]
+        return self.getRank(channel, user) in ["voice", "halfop", "op", "admin", "owner", "oper", "authorized"]
 
     def cmsg(self, message):
         # Send a message to all joined channels
