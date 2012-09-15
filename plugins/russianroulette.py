@@ -228,6 +228,9 @@ class plugin(object):
             if ":" in target:
                 target_user = target.split(":", 1)[0]
                 target_channel = target.split(":", 1)[1]
+            if target_user.lower() == self.irc.nickname.lower():
+                self.irc.send_raw("PRIVMSG " + target_channel + " :" + self.irc.ctcp + "ACTION shouts \"BANG!\" then plays dead" + self.irc.ctcp)
+                return
             curgun = random.choice(self.shoot_guns)
             mstring = "" + curgun[0].replace("{$USER}", target).replace("{$NICK}", self.irc.nickname)
             kstring = curgun[1]
