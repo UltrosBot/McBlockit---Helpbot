@@ -4,8 +4,8 @@ from system.decorators import *
 class plugin(object):
 
     """
-    This plugin is used to send raw
-    messages to the server from the bot.
+    This plugin contains kick and
+    ban commands for op+ users.
     """
 
     commands = {
