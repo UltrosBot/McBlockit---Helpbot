@@ -16,8 +16,6 @@ class plugin(object):
     commands = {
         "test": "test"
     }
-
-
     
     def test(self, user, channel, arguments):
         self.irc.sendnotice(user, "Success!")
