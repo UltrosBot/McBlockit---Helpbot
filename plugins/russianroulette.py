@@ -54,7 +54,9 @@ class plugin(object):
         ["{$USER} {$USER}", "{$USER}"],
         ["catches {$USER} in a pokeball", "Gotta catch 'em all!"],
         ["headshots {$USER}", "Thanks for standin' still, wanker!"],
-        ["shoots {$USER}", "Dying is easy.. Here, let me show you."]
+        ["shoots {$USER}", "Dying is easy.. Here, let me show you."],
+        ["smacks {$USER} with a frying pan", "Demopan?"],
+        ["terminates {$USER}", "Get to de choppa!"]
     ]
 
     def __init__(self, irc):

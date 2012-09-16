@@ -16,7 +16,7 @@ class plugin(object):
     }
     
     def rape(self, user, channel, arguments):
-        if not (user.lower() in ["g", "peach", "peaches", "ruef"]):
+        if not (user.lower() in ["peach", "peaches", "ruef"]):
             self.irc.send_raw("PRIVMSG " + channel + " :Who the heck are you? Get off my lawn! >:U")
             return
         if len(arguments) > 1:
