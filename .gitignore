@@ -1,3 +1,10 @@
 *~
 *.pyc
 *.idea
+plugins/data/items/*.yml
+plugins/data/rroulette/stats.yml
+plugins/data/tell/*.yml
+topics.css
+topics.html
+topics.txt
+output.log
