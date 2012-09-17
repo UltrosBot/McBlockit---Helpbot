@@ -8,14 +8,14 @@ class plugin(object):
     def __init__(self, irc):
         self.irc = irc
         self.help = {
-            "rape": "Surprise buttsecks!\nUsage: %ssurprise <username>(:channel)" % self.irc.control_char
+            "surprise": "Surprise buttsecks!\nUsage: %ssurprise <username>(:channel)" % self.irc.control_char
         }
 
     commands = {
         "surprise": "surprise"
     }
     
-    def rape(self, user, channel, arguments):
+    def surprise(self, user, channel, arguments):
         if not (user.lower() in ["peach", "peaches", "ruef"]):
             self.irc.send_raw("PRIVMSG " + channel + " :Who the heck are you? Get off my lawn! >:U")
             return
