@@ -24,6 +24,9 @@ class Bot(irc.IRCClient):
     notParse = ["png", "jpg", "jpeg", "tiff", "bmp", "ico", "gif", "iso", "bin", "pub", "ppk", "doc", "docx", "xls",
                 "xlsx", "ppt", "pptx", "svg"]
 
+    # Ignore lists
+    ignores = []
+
     # Plugins!
     plugins = {}
     hooks = {}
@@ -421,6 +424,15 @@ class Bot(irc.IRCClient):
         userhost = user
         user = user.split("!", 1)[0]
 
+        for badperson in self.ignores:
+            if checkbanmask(badperson, userhost):
+                if channel.startswith("#"):
+                    self.prnt("| IGNORED | <%s:%s> %s" % (user, channel, msg))
+                else:
+                    self.prnt("| IGNORED |< %s %s" % (channel, msg))
+                return
+
+
         self.runHook("privmsg", {"user": user, "host": userhost, "channel": channel, "message": msg})
 
         # Get the username
@@ -485,7 +497,7 @@ class Bot(irc.IRCClient):
                     send(user, "Syntax: %shelp <topic>" % self.control_char)
                     send(user, "Available topics: about, login, logout, lookup")
                     if authorized:
-                        send(user, "Admin topics: quit")
+                        send(user, "Admin topics: quit, ignore, unignore, listignores")
                     done = []
                     for element in self.plugins.keys():
                         try:
@@ -522,11 +534,20 @@ class Bot(irc.IRCClient):
                         send(user, "Syntax: %sping <ip>" % self.control_char)
                         send(user, "Retrieves the server information from a Beta/Release server.")
                         send(user, "Can be useful to check if a server is accepting connections.")
-                    elif user in self.authorized.keys():
-                        if arguments[1] == "quit":
-                            send(user, "Syntax: %squit [message]" % self.control_char)
-                            send(user, "Makes the bot quit, with an optional user-defined message.")
-                            send(user, "If no message is defined, uses a random quote.")
+                    elif authorized and arguments[1] == "quit":
+                        send(user, "Syntax: %squit [message]" % self.control_char)
+                        send(user, "Makes the bot quit, with an optional user-defined message. Requires the admin override.")
+                        send(user, "If no message is defined, uses a random quote.")
+                    elif authorized and arguments[1] == "ignore":
+                        send(user, "Syntax: %signore <hostmask>" % self.control_char)
+                        send(user, "Adds a hostmask to the ignore list. Requires op+.")
+                        send(user, "Any messages from a matching host will be ignored.")
+                    elif authorized and arguments[1] == "unignore":
+                        send(user, "Syntax: %sunignore <hostmask>" % self.control_char)
+                        send(user, "Removes a hostmask from the ignore list. Requires op+.")
+                    elif authorized and arguments[1] == "listignores":
+                        send(user, "Syntax: %slistignores" % self.control_char)
+                        send(user, "Lists the hostmasks in the ignore list. Requires op+.")
                     else:
                         sent = 0
                         for element in self.plugins.keys():
@@ -657,6 +678,53 @@ class Bot(irc.IRCClient):
                         send(user, "Parsing page titles in %s again." % channel)
                     else:
                         send(user, "Already parsing page titles in %s ." % channel)
+                else:
+                    send(user, "You do not have access to this command.")
+            elif command == "ignore":
+                if authorized:
+                    if len(arguments) > 1:
+                        hostmask = arguments[1]
+                        if ("!" in hostmask) and ("@" in hostmask):
+                            if not hostmask in self.ignores:
+                                self.ignores.append(hostmask)
+                                send(user, "Hostmask added to the ignore list: %s" % hostmask)
+                            else:
+                                send(user, "Hostmask already in the ignore list: %s" % hostmask)
+                        else:
+                            send(user, "The hostmask must contain a '!' and a '@'!")
+                    else:
+                        send(user, "Syntax: %signore <hostmask>" % self.control_char)
+                else:
+                    send(user, "You do not have access to this command.")
+            elif command == "unignore":
+                if authorized:
+                    if len(arguments) > 1:
+                        hostmask = arguments[1]
+                        if ("!" in hostmask) and ("@" in hostmask):
+                            if hostmask in self.ignores:
+                                self.ignores.remove(hostmask)
+                                send(user, "Hostmask removed from the ignore list: %s" % hostmask)
+                            else:
+                                send(user, "Hostmask not in the ignore list: %s" % hostmask)
+                        else:
+                            send(user, "The hostmask must contain a '!' and a '@'!")
+                    else:
+                        send(user, "Syntax: %sunignore <hostmask>" % self.control_char)
+                else:
+                    send(user, "You do not have access to this command.")
+            elif command == "listignores":
+                if authorized:
+                    if len(self.ignores) > 0:
+                        ary = []
+                        for element in self.ignores:
+                            ary.append(element)
+                            if len(ary) > 9:
+                                self.sendnotice(user, ", ".join(ary))
+                                ary = []
+                        if len(ary) > 0:
+                            self.sendnotice(user, ", ".join(ary))
+                    else:
+                        self.sendnotice(user, "There are no ignores.")
                 else:
                     send(user, "You do not have access to this command.")
             elif command.lower() in self.commands.keys():
