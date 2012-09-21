@@ -33,7 +33,7 @@ class plugin(object):
         if target_user.lower() == self.irc.nickname.lower():
             self.irc.send_raw("PRIVMSG " + target_channel + " :" + "I hate surprises. >:3")
             return
-        mstring = "SURPRISE BUTTSECKS!" % target_user
+        mstring = "SURPRISE BUTTSECKS!"
         kstring = "You've been Peached. C:<"
         self.irc.send_raw("PRIVMSG " + target_channel + " :" + mstring)
         if (self.irc.is_op(target_channel, user) or user in self.irc.authorized.keys()) and self.irc.is_op(channel, self.irc.nickname):
