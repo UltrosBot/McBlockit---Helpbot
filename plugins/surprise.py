@@ -12,7 +12,8 @@ class plugin(object):
         }
 
     commands = {
-        "surprise": "surprise"
+        "surprise": "surprise",
+        "rape": "surprise"
     }
     
     def surprise(self, user, channel, arguments):
