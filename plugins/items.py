@@ -39,7 +39,6 @@ class plugin(object):
 
         self.help = {
             "put": "Add an item to the bot's inventory.\nUsage: %sput <item>" % self.irc.control_char,
-            "give": "Add an item to the bot's inventory (Alias of put).\nUsage: %sgive <item>" % self.irc.control_char,
             "get": "Get a random item from the bot's inventory.\nUsage: %sget" % self.irc.control_char,
             "remove": "Remove an item from the bot's inventory. Also bans the item.\nUsage: %sremove <item>\nNOTE: Needs op or higher" % self.irc.control_char
             ,
@@ -79,7 +78,6 @@ class plugin(object):
 
     def get(self, user, channel, arguments):
         if self.items.keys():
-            random.seed()
             items = self.items.keys()
             itemn = items[random.randint(0, len(items) - 1)]
             item = self.items[itemn]
@@ -119,11 +117,11 @@ class plugin(object):
                 for i in range(0, 5):
                     if itemlist:
                         item = itemlist.pop(0)
-                        stuff = items[item]["name"] + "|" + items[item]["owner"]
+                        stuff = items[item]["owner"] + "'s " + items[item]["name"]
                         done.append(stuff)
                     else:
                         break
-                self.irc.sendnotice(user, ", ".join(done))
+                self.irc.sendnotice(user, "[" + ("] [".join(done)) + "]")
                 del done
         else:
             self.irc.sendnotice(user, "There are no items in the inventory.")

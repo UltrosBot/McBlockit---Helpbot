@@ -1,5 +1,5 @@
 # coding=utf-8
-import os, random, time, math, traceback
+import os, random, time, math, traceback, sys
 import thread, socket, htmlentitydefs
 import mechanize
 import dns.resolver as resolver
@@ -731,6 +731,7 @@ class Bot(irc.IRCClient):
                 try:
                     self.runcommand(command.lower(), user, channel, arguments)
                 except Exception as e:
+                    traceback.print_exc(e)
                     send(user, "Error: %s" % e)
             else:
                 print "|! DEBUG: No such command"

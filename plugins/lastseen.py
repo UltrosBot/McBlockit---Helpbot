@@ -9,19 +9,19 @@ class plugin(object):
 
     hooks = {}
 
-    name = "Test"
+    name = "Lastseen"
 
     commands = {
-        "test": "test"
+        "lastseen": "lastseen"
     }
 
     def __init__(self, irc):
         self.irc = irc
         self.help = {
-            "test": "You must be really bored, eh?\nUsage: %stest" % self.irc.control_char
+            "lastseen": "Check when the bot last saw activity from a user\nUsage: %slastseen <username>" % self.irc.control_char
         }
     
-    def test(self, user, channel, arguments):
+    def lastseen(self, user, channel, arguments):
         self.irc.sendnotice(user, "Test.")
 
 
