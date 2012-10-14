@@ -40,7 +40,7 @@ faq:
   # How many colours are in your custom CSS file
   colours: 3
   # The colours to use in the generated CSS
-  generated_colors:
+  generated_colours:
     - "#99CCFF"
     - "#99FF99"
     - "#FF9999"
