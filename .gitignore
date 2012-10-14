@@ -8,3 +8,5 @@ topics.css
 topics.html
 topics.txt
 output.log
+config/settings.yml
+config/*.ini
