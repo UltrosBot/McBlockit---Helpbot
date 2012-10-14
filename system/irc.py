@@ -4,7 +4,6 @@ import thread, socket, htmlentitydefs
 import mechanize
 import dns.resolver as resolver
 
-from ConfigParser import RawConfigParser as ConfigParser
 from twisted.internet import reactor, protocol
 from twisted.internet.protocol import Factory
 from twisted.words.protocols import irc
@@ -1511,8 +1510,8 @@ class BotFactory(protocol.ClientFactory):
 
     def __init__(self):
         # Initialize!
-        settings = ConfigParser()
-        settings.read("config/settings.ini")
+        settings = yaml_loader()
+        settings.load("config/settings.yml")
         self.nickname = settings["bot"]["nickname"]
         del settings
 

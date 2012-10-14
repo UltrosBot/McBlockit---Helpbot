@@ -2,8 +2,6 @@
 import os, string
 import fnmatch
 
-from ConfigParser import RawConfigParser as ConfigParser
-
 from evalfunctions import evalFunctions
 from system.constants import *
 from system.yaml_loader import *
