@@ -110,9 +110,7 @@ class Bot(irc.IRCClient):
             self.prnt("|= Reading in settings from settings.yml...")
 
             self.settings.load("config/settings.yml")
-
-            print self.settings.data
-
+            
             bot = self.settings["bot"]
             channels = self.settings["channels"]
             other = self.settings["other"]
@@ -136,6 +134,7 @@ class Bot(irc.IRCClient):
             self.control_char = bot["control_character"]
             self.data_dir = bot["data_folder"]
             self.r_emotes = other["emotes"]
+            print self.r_emotes
             self.use_antispam = other["antispam"]
             self.autokick = other["autokick"]
         except Exception:
@@ -369,7 +368,7 @@ class Bot(irc.IRCClient):
         # Log that we signed on.
         self.prnt("|= Signed on as %s." % self.nickname)
         # Log in with NickServ.
-        self.sendmsg("NickServ", "IDENTIFY %s" % self.password)
+        self.sendmsg("NickServ", "IDENTIFY %s" % self.settings["bot"]["nickserv_password"])
         #Start the three loops for sending messages and notices and raw lines
         self.messageLoop()
         self.noticeLoop()
