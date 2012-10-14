@@ -18,9 +18,11 @@ class yaml_loader(object):
                 os.mkdir("plugins/data/%s" % self.pluginName)
             if not os.path.exists("plugins/data/%s/%s.yml" % (self.pluginName, filename)):
                 open("plugins/data/%s/%s.yml" % (self.pluginName, filename), "w").close()
-            self.data = yaml.load(file("plugins/data/%s/%s.yml" % (self.pluginName, filename)))
+            self.data = yaml.load(file("plugins/data/%s/%s.yml" % (self.pluginName, filename), "r"))
         else:
-            self.data = yaml.load(file(filename))
+            if not os.path.exists(filename):
+                open(filename, "w").close()
+            self.data = yaml.load(file(filename, "r"))
         return self.data
 
     def save(self, filename):
@@ -62,16 +64,19 @@ class yaml_loader(object):
         return item in self.data
 
     def __iter__(self):
-        return self.iterkeys()
+        return self.data.__iter__()
 
     def __len__(self):
-        return len(self.data)
+        return self.data.__len__()
 
     def iterkeys(self):
         return self.data.iterkeys()
 
     def keys(self):
         return self.data.keys()
+
+    def items(self):
+        return self.data.items()
 
     def isTrue(self):
         return bool(self.data)

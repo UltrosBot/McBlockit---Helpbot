@@ -9,14 +9,15 @@ from twisted.internet import reactor, protocol
 from twisted.internet.protocol import Factory
 from twisted.words.protocols import irc
 from colours import *
+from system.yaml_loader import yaml_loader
 
 from utils import *
 
 from system.constants import *
 from system.decorators import run_async
+from system.yaml_loader import *
 from system import faq
 
-from depends import mcbans_api as mcbans
 from depends.maskchecker import *
 
 class Bot(irc.IRCClient):
@@ -26,6 +27,9 @@ class Bot(irc.IRCClient):
 
     # Ignore lists
     ignores = []
+
+    # Settings
+    settings = yaml_loader()
 
     # Plugins!
     plugins = {}
@@ -104,11 +108,17 @@ class Bot(irc.IRCClient):
 
     def parseSettings(self):
         try:
-            self.prnt("|= Reading in settings from settings.ini...")
+            self.prnt("|= Reading in settings from settings.yml...")
+
+            self.settings.load("config/settings.yml")
+
+            print self.settings.data
+
+            bot = self.settings["bot"]
+            channels = self.settings["channels"]
+            other = self.settings["other"]
+
             oldchans = self.joinchans
-            settings = ConfigParser()
-            settings.read("config/settings.ini")
-            channels = settings.items("channels")
             perform = open("perform.txt", "r").readlines()
             for element in perform:
                 self.send_raw(element.strip("\n").strip("\r"))
@@ -117,20 +127,18 @@ class Bot(irc.IRCClient):
             for element in channels:
                 self.joinchans.append(element)
                 if not element in oldchans and not self.firstjoin == 1:
-                    self.send_raw("JOIN #%s" % element[0])
+                    self.send_raw("JOIN %s" % element)
             for element in oldchans:
                 if element not in self.joinchans and not self.firstjoin == 1:
-                    self.send_raw("PART #%s Configuration changed" % element[0])
-            self.password = settings.get("info", "password")
+                    self.send_raw("PART %s Configuration changed" % element[0])
             if not self.firstjoin == 1:
-                self.sendmsg("nickserv", "IDENTIFY %s" % self.password)
-            self.loginpass = settings.get("info", "loginpass")
-            self.control_char = settings.get("info", "control_character")
-            self.data_dir = settings.get("info", "data_folder")
-            self.api_key = settings.get("mcbans", "api_key")
-            self.r_emotes = settings.getboolean("other", "emotes")
-            self.use_antispam = settings.getboolean("other", "antispam")
-            self.autokick = settings.getboolean("other", "autokick")
+                self.sendmsg("nickserv", "IDENTIFY %s" % self.settings["nickserv_password"])
+            self.loginpass = bot["admin_password"]
+            self.control_char = bot["control_character"]
+            self.data_dir = bot["data_folder"]
+            self.r_emotes = other["emotes"]
+            self.use_antispam = other["antispam"]
+            self.autokick = other["autokick"]
         except Exception:
             return [False, traceback.format_exc()]
         else:
@@ -343,7 +351,6 @@ class Bot(irc.IRCClient):
         self.loadPlugins()
         self.faq = faq.FAQ(self.data_dir, self)
         self.faq.listentries()
-        self.mcb = mcbans.McBans(self.api_key)
 
     def flush(self):
         self.logfile.flush()
@@ -369,7 +376,7 @@ class Bot(irc.IRCClient):
         self.noticeLoop()
         self.rawLoop()
         for element in self.joinchans:
-            reactor.callLater(5.0, self.join, ("#%s" % element[0]))
+            reactor.callLater(5.0, self.join, ("%s" % element))
         self.flush() # Flush the log
         self.runHook("signedOn")
 
@@ -495,7 +502,7 @@ class Bot(irc.IRCClient):
             if command == "help":
                 if len(arguments) < 2:
                     send(user, "Syntax: %shelp <topic>" % self.control_char)
-                    send(user, "Available topics: about, login, logout, lookup")
+                    send(user, "Available topics: about, login, logout")
                     if authorized:
                         send(user, "Admin topics: quit, ignore, unignore, listignores")
                     done = []
@@ -525,11 +532,6 @@ class Bot(irc.IRCClient):
                         send(user, "Syntax: %slogout" % self.control_char)
                         send(user, "Logs you out of the bot, provided you were already logged in.")
                         send(user, "See %shelp auth for more information." % self.control_char)
-                    elif arguments[1] == "lookup":
-                        send(user, "Syntax: %slookup <user> [type]" % self.control_char)
-                        send(user, "Used to make a lookup on the MCBans site, using the v2 API.")
-                        send(user,
-                            "Type is optional, but it can be local, global, minimal or all. If it is missing, it is presumed to be minimal.")
                     elif arguments[1] == "ping":
                         send(user, "Syntax: %sping <ip>" % self.control_char)
                         send(user, "Retrieves the server information from a Beta/Release server.")
@@ -1511,7 +1513,7 @@ class BotFactory(protocol.ClientFactory):
         # Initialize!
         settings = ConfigParser()
         settings.read("config/settings.ini")
-        self.nickname = settings.get("info", "nickname")
+        self.nickname = settings["bot"]["nickname"]
         del settings
 
     def prnt(self, msg):

@@ -1,14 +1,16 @@
 # coding=utf-8
 from system.irc import *
-from system.utils import *
+from system.yaml_loader import *
 import sys
 
 sys.path.append("./depends")
 
-settings = ConfigParser()
-settings.read("config/settings.ini")
+settings = yaml_loader().load("config/settings.yml")
 factory = BotFactory()
-reactor.connectTCP(settings.get("server", "server"), settings.getint("server", "port"), factory, 120)
+reactor.connectTCP(
+    settings["connection"]["host"],
+    settings["connection"]["port"],
+    factory, 120)
 del settings
 colprint("|= Starting up..")
 reactor.run()

@@ -6,6 +6,7 @@ from ConfigParser import RawConfigParser as ConfigParser
 
 from evalfunctions import evalFunctions
 from system.constants import *
+from system.yaml_loader import *
 
 
 class FAQ(object):
@@ -18,20 +19,20 @@ class FAQ(object):
         self.bot = bot
         self.evalObj = evalFunctions(bot)
 
-        settings = ConfigParser()
-        settings.read("config/faq.ini")
+        settings = yaml_loader()
+        settings = settings.load("config/settings.yml")["faq"]
 
-        self.config["type"] = settings.get("other", "type")
-        location = settings.get("other", "location")
+        self.config["type"] = settings["type"]
+        location = settings["location"]
         if location[-1] == "/" or location[-1] == "\\":
             self.config["location"] = location
         else:
             self.config["location"] = location + "/"
-        self.config["name"] = settings.get("other", "name")
-        self.config["num_colours"] = settings.getint("other", "colours")
-        self.config["css"] = settings.get("other", "css")
+        self.config["name"] = settings["name"]
+        self.config["num_colours"] = int(settings["colours"])
+        self.config["css"] = settings["css"]
 
-        self.config["colours"] = settings.items("colours")
+        self.config["colours"] = settings["generated_colours"]
 
     def get(self, entry, cinfo):
         entry += ".txt"
@@ -257,8 +258,8 @@ td, th
 
             for element in colours:
                 css_class = "COLOUR-" + str(i)
-                css += "." + css_class + "\n{\n    background-color: " + element[0].replace("-",
-                    "#") + ";\n    text-align: left;\n}\n"
+                css += "." + css_class + "\n{\n    background-color: " + element +\
+                       ";\n    text-align: left;\n}\n"
                 i += 1
 
         i = 0
