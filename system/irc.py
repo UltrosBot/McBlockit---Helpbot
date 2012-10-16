@@ -110,7 +110,7 @@ class Bot(irc.IRCClient):
             self.prnt("|= Reading in settings from settings.yml...")
 
             self.settings.load("config/settings.yml")
-            
+
             bot = self.settings["bot"]
             channels = self.settings["channels"]
             other = self.settings["other"]
@@ -381,6 +381,8 @@ class Bot(irc.IRCClient):
     def joined(self, channel):
         # We joined a channel
         self.prnt("|+ Joined %s" % channel)
+        if not channel in self.chanlist.keys():
+            self.chanlist[channel] = {}
         self.channels.append(channel)
         if self.firstjoin == 1:
             self.firstjoin = 0
@@ -1290,12 +1292,12 @@ class Bot(irc.IRCClient):
 
         hostmask = nick + "!" + ident + "@" + host
 
-        if not channel in self.chanlist.keys():
-            self.chanlist[channel] = {}
-
         done = {"ident": ident, "host": host, "server": server, "realname": gecos.split(" ")[1],
                 "status": status, "oper": False, "away": False, "last_time": float(time.time() - 0.25),
                 "hostmask": hostmask}
+
+        if not channel in self.chanlist.keys():
+            self.chanlist[channel] = {}
 
         self.chanlist[channel][nick] = done
 
@@ -1327,11 +1329,13 @@ class Bot(irc.IRCClient):
         len(self.chanlist[channel]), channel, voices, ops, opers, aways))
 
     def irc_unknown(self, prefix, command, params):
-        """Print all unhandled replies, for debugging."""
+        """Handle packets that aren't handled by the library."""
 
         # Prefix: asimov.freenode.net
         # Command: RPL_BANLIST
         # Params: ['MCBans_Testing', '#mcbans-test', 'a!*@*', 'gdude2002!g@unaffiliated/gdude2002', '1330592882']
+
+        self.runHook("unknownMessage", {"prefix": prefix, "command": command, "params": params})
 
         if command == "RPL_BANLIST":
             me = params[0]
