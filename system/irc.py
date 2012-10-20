@@ -81,6 +81,10 @@ class Bot(irc.IRCClient):
         self.logfile.write("%s\n" % (colstrip(msg)))
         self.flush()
 
+    def receivedMOTD(self, motd):
+        for line in motd:
+            print "| " + line
+
     def parseObjects(self):
         try:
             self.prnt("|= Reading in objects from objects.txt...")
@@ -388,7 +392,7 @@ class Bot(irc.IRCClient):
         if self.firstjoin == 1:
             self.firstjoin = 0
             # Flush the logfile
-        self.send_raw("MODE %s b" % channel)
+        self.who(channel)
         if self.r_emotes:
             reactor.callLater(5, thread.start_new_thread, self.randmsg, (channel,))
         self.flush()
@@ -1040,14 +1044,13 @@ class Bot(irc.IRCClient):
                                    "message": messages[0][1]})
 
     def checkban(self, channel, banmask, owner):
-        if self.autokick:
-            if self.is_op(channel, self.nickname):
-                for element in self.chanlist[channel].keys():
-                    hostmask = self.chanlist[channel][element]["hostmask"]
-                    user = element
-                    if not self.is_op(channel, user) or self.is_voice(channel, user):
-                        if checkbanmask(banmask, hostmask):
-                            self.send_raw("KICK %s %s :Matched ban mask %s by %s" % (channel, user, banmask, owner))
+        if self.autokick and self.is_op(channel, self.nickname):
+            for element in self.chanlist[channel].keys():
+                hostmask = self.chanlist[channel][element]["hostmask"]
+                user = element
+                if not self.is_op(channel, user) or self.is_voice(channel, user):
+                    if checkbanmask(banmask, hostmask):
+                        self.send_raw("KICK %s %s :Matched ban mask %s by %s" % (channel, user, banmask, owner))
 
 
     def modeChanged(self, user, channel, set, modes, args):
@@ -1079,13 +1082,13 @@ class Bot(irc.IRCClient):
                                 if not mchar in self.chanlist[channel][arg]["status"]:
                                     self.chanlist[channel][arg]["status"] += mchar
                     elif element == "b":
-                        if args[i] == "*!*@*":
-                            if self.is_op(channel, self.nickname):
+                        if self.is_op(channel, self.nickname):
+                            if args[i] == "*!*@*":
                                 self.send_raw("KICK %s %s :Do not set such ambiguous bans!" % (channel, user))
                                 self.send_raw("MODE %s -b *!*@*" % channel)
                                 self.send_raw("MODE %s +b *!*@%s" % (channel, userhost.split("@")[1]))
-                        else:
-                            self.checkban(channel, args[i], user)
+                            else:
+                                self.checkban(channel, args[i], user)
                             #if args[i].lower() == self.nickname.lower():
                         #    for element in self.chanlist[channel].keys():
                     #        self.dnslookup(channel, element)
@@ -1134,7 +1137,7 @@ class Bot(irc.IRCClient):
 
     def userJoined(self, user, channel):
         self.runHook("userJoined", {"user": user, "channel": channel})
-        self.who(user)
+        self.who(channel)
         self.dnslookup(channel, user)
         # Ohai, welcome to mah channel!
         self.prnt("|+ %s joined %s" % (user, channel))
@@ -1267,6 +1270,35 @@ class Bot(irc.IRCClient):
             self.n_protect += 1
         reactor.callLater(2.5, self.noticeLoop, ())
 
+    def irc_RPL_WHOREPLY(self, *nargs):
+        """Receive WHO reply from server"""
+        # ('apocalypse.esper.net', ['McPlusPlus_Testing', '#minecraft', 'die', 'inafire.com', 'apocalypse.esper.net', 'xales|gone', 'G*', '0 xales'])
+
+        data = nargs[1]
+
+        channel = data[1]
+        ident = data[2] # Starts with a ~ if there's no identd present
+        host = data[3]
+        server = data[4]
+        nick = data[5]
+        gecos = data[7] # Hops, realname
+
+        hostmask = nick + "!" + ident + "@" + host
+
+        self.chanlist[channel][nick]["ident"] = ident
+        self.chanlist[channel][nick]["host"] = host
+        self.chanlist[channel][nick]["hostmask"] = hostmask
+        self.chanlist[channel][nick]["realname"] = gecos.split(" ")[1]
+        self.chanlist[channel][nick]["server"] = server
+
+    def irc_RPL_ENDOFWHO(self, *nargs):
+        """Called when WHO output is complete"""
+        # ('eldridge.esper.net', ['McPlusPlus_Testing', '#mc++', 'End of /WHO list.'])
+        data = nargs[1]
+        channel = data[1]
+
+        self.send_raw("MODE %s b" % channel)
+
     def irc_unknown(self, prefix, command, params):
         """Handle packets that aren't handled by the library."""
 
@@ -1305,8 +1337,6 @@ class Bot(irc.IRCClient):
             else:
                 self.banlist[channel] = {"done": True, "total": 0}
 
-            self.prnt("|= Got %s bans for %s." % (self.banlist[channel]["total"], channel))
-
             if self.is_op(channel, self.nickname):
                 stuff = self.banlist[channel].keys()
                 stuff.remove("done")
@@ -1315,12 +1345,14 @@ class Bot(irc.IRCClient):
                 for element in stuff:
                     if stuff == "*!*@*":
                         self.send_raw("KICK %s %s :Do not set such ambiguous bans!" % (
-                        channel, self.banlist[channel][element]["owner"]))
+                            channel, self.banlist[channel][element]["owner"]))
                         self.send_raw("MODE %s -b *!*@*" % channel)
                         self.send_raw(
                             "MODE %s +b *!*@%s" % (channel, self.banlist[channel][element]["ownerhost"].split("@")[1]))
                     else:
                         self.checkban(channel, element, self.banlist[channel][element]["owner"])
+
+            self.prnt("|= Got %s bans for %s." % (self.banlist[channel]["total"], channel))
 
         elif command == "RPL_NAMREPLY":
             me, status, channel, names = params
@@ -1342,7 +1374,6 @@ class Bot(irc.IRCClient):
                          'status': rank,
                          'last_time': float( time.time() - 0.25 ) }
                 self.chanlist[channel][element] = done
-                self.who(element)
 
             print "|= Names for %s: %s" % (channel, names)
             if status == "@":
@@ -1372,14 +1403,12 @@ class Bot(irc.IRCClient):
             print("|= %s users on %s (%s voices, %s ops, %s opers, %s away)" % (
             len(self.chanlist[channel]), channel, voices, ops, opers, aways))
 
-        elif command == "RPL_WHOREPLY":
-            me, channel, ident, host, server, nick, flags, real = params
-            for chan in self.chanlist.keys():
-                if nick in self.chanlist[chan].keys():
-                    self.chanlist[chan][nick]["host"] = host
-                    self.dnslookup(chan, nick)
-#        else:
-#            print "[%s] (%s) %s" % (prefix, command, params)
+        elif str(command) == "972":
+            print "|! Unable to kick user: " + params[2]
+        elif str(command) in ["265", "266"]:
+            print "| " + params[1]
+        else:
+            print "[%s] (%s) %s" % (prefix, command, params)
 
         self.runHook("unknownMessage", {"prefix": prefix, "command": command, "params": params})
 
