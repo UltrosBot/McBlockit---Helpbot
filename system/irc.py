@@ -137,6 +137,7 @@ class Bot(irc.IRCClient):
             print self.r_emotes
             self.use_antispam = other["antispam"]
             self.autokick = other["autokick"]
+            self.use_dnsbl = other["use_dnsbl"]
         except Exception:
             return [False, traceback.format_exc()]
         else:
@@ -899,6 +900,10 @@ class Bot(irc.IRCClient):
     ranknums = {"none": 0, "voice": 15, "halfop": 30, "op": 45, "admin": 60, "owner": 85, "oper": 100,
                 "authorized": 200}
 
+    def who(self, target):
+        """Send a WHO request to the server."""
+        self.send_raw('WHO %s' % target)
+
     def runcommand(self, command, user, channel, arguments):
         if command in self.commands.keys():
             command_func = self.commands[command]
@@ -934,14 +939,14 @@ class Bot(irc.IRCClient):
 
         THIS IS NOW BEING TESTED - PLEASE DO NOT ENABLE IT YET
         """
-        if self.is_op(channel, self.nickname):
+        if self.use_dnsbl and self.is_op(channel, self.nickname):
             ip = socket.gethostbyname(self.chanlist[channel][user]["host"])
             if not ip in self.lookedup:
                 r_ip = ip.split(".")
                 r_ip.reverse()
                 r_ip = ".".join(r_ip)
-                blacklists = ["dnsbl.swiftbl.org", "dnsbl.ahbl.org", "ircbl.ahbl.org", "rbl.efnet.org",
-                              "dnsbl.dronebl.org", "dnsbl.mcblacklist.com"]
+                blacklists = ["dnsbl.ahbl.org", "ircbl.ahbl.org", "rbl.efnet.org", "dnsbl.dronebl.org",
+                              "dnsbl.mcblacklist.com"]
                 for bl in blacklists:
                     self.prnt("|= Checking user %s on blacklist %s..." % (user, bl))
                     try:
@@ -949,6 +954,8 @@ class Bot(irc.IRCClient):
                     except resolver.NXDOMAIN:
                         self.prnt("|= User %s is clean." % user)
                         pass
+                    except Exception as e:
+                        self.prnt("|! Error looking up user %s: %s" % (user, e))
                     else:
                         self.prnt("|! User %s is blacklisted!" % user)
                         try:
@@ -1127,6 +1134,8 @@ class Bot(irc.IRCClient):
 
     def userJoined(self, user, channel):
         self.runHook("userJoined", {"user": user, "channel": channel})
+        self.who(user)
+        self.dnslookup(channel, user)
         # Ohai, welcome to mah channel!
         self.prnt("|+ %s joined %s" % (user, channel))
         # Flush the logfile
@@ -1333,6 +1342,7 @@ class Bot(irc.IRCClient):
                          'status': rank,
                          'last_time': float( time.time() - 0.25 ) }
                 self.chanlist[channel][element] = done
+                self.who(element)
 
             print "|= Names for %s: %s" % (channel, names)
             if status == "@":
@@ -1362,7 +1372,18 @@ class Bot(irc.IRCClient):
             print("|= %s users on %s (%s voices, %s ops, %s opers, %s away)" % (
             len(self.chanlist[channel]), channel, voices, ops, opers, aways))
 
+        elif command == "RPL_WHOREPLY":
+            me, channel, ident, host, server, nick, flags, real = params
+            for chan in self.chanlist.keys():
+                if nick in self.chanlist[chan].keys():
+                    self.chanlist[chan][nick]["host"] = host
+                    self.dnslookup(chan, nick)
+#        else:
+#            print "[%s] (%s) %s" % (prefix, command, params)
+
         self.runHook("unknownMessage", {"prefix": prefix, "command": command, "params": params})
+
+
 
 
 

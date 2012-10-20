@@ -53,3 +53,5 @@ other:
   autokick: false
   # Switch for random cat emoting
   emotes: false
+  # Switch for DNSBL lookups
+  use_dnsbl: false
