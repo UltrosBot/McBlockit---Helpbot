@@ -387,7 +387,6 @@ class Bot(irc.IRCClient):
         if self.firstjoin == 1:
             self.firstjoin = 0
             # Flush the logfile
-        self.who(channel)
         self.send_raw("MODE %s b" % channel)
         if self.r_emotes:
             reactor.callLater(5, thread.start_new_thread, self.randmsg, (channel,))
@@ -1055,17 +1054,7 @@ class Bot(irc.IRCClient):
                 self.prnt("|= %s sets mode %s +%s %s" % (user, channel, modes, " ".join(args)))
                 i = 0
                 for element in modes:
-                    if element == "o":
-                        self.set_op(channel, args[i], True)
-                        if args[i].lower() == self.nickname.lower():
-                            if channel in self.banlist.keys():
-                                stuff = self.banlist[channel].keys()
-                                stuff.remove("done")
-                                stuff.remove("total")
-
-                                for element in stuff:
-                                    self.checkban(channel, element, self.banlist[channel][element]["owner"])
-                    if element in "qaohv":
+                    if element in ["q", "a", "o", "h", "v"]:
                         arg = args[i]
                         if "!" not in arg or "@" not in arg:
                             if arg in self.chanlist[channel].keys():
@@ -1140,7 +1129,6 @@ class Bot(irc.IRCClient):
         self.runHook("userJoined", {"user": user, "channel": channel})
         # Ohai, welcome to mah channel!
         self.prnt("|+ %s joined %s" % (user, channel))
-        self.who(channel)
         # Flush the logfile
         self.flush()
 
@@ -1270,107 +1258,38 @@ class Bot(irc.IRCClient):
             self.n_protect += 1
         reactor.callLater(2.5, self.noticeLoop, ())
 
-    def who(self, channel):
-        """List the users in 'channel', usage: client.who('#testroom')"""
-        self.send_raw('WHO %s' % channel)
-
-    def irc_RPL_WHOREPLY(self, *nargs):
-        """Receive WHO reply from server"""
-        # ('apocalypse.esper.net', ['McPlusPlus_Testing', '#minecraft', 'die', 'inafire.com', 'apocalypse.esper.net', 'xales|gone', 'G*', '0 xales'])
-
-        our_server = nargs[0]
-        data = nargs[1]
-
-        our_nick = data[0]
-        channel = data[1]
-        ident = data[2] # Starts with a ~ if there's no identd present
-        host = data[3]
-        server = data[4]
-        nick = data[5]
-        status = data[6] # H - not away, G - away, * - IRCop, ~ - owner, & - admin, @ - op, % - halfop, + - voice
-        gecos = data[7] # Hops, realname
-
-        hostmask = nick + "!" + ident + "@" + host
-
-        done = {"ident": ident, "host": host, "server": server, "realname": gecos.split(" ")[1],
-                "status": status, "oper": False, "away": False, "last_time": float(time.time() - 0.25),
-                "hostmask": hostmask}
-
-        if not channel in self.chanlist.keys():
-            self.chanlist[channel] = {}
-
-        self.chanlist[channel][nick] = done
-
-    def irc_RPL_ENDOFWHO(self, *nargs):
-        """Called when WHO output is complete"""
-        # ('eldridge.esper.net', ['McPlusPlus_Testing', '#mc++', 'End of /WHO list.'])
-        server = nargs[0]
-        data = nargs[1]
-        my_nick = data[0]
-        channel = data[1]
-        message = data[2]
-
-        ops = 0
-        voices = 0
-        opers = 0
-        aways = 0
-
-        for element in self.chanlist[channel].values():
-            status = element["status"]
-            if "+" in status:
-                voices += 1
-            if "@" in status:
-                ops += 1
-            if "*" in status:
-                opers += 1
-            if "G" in status:
-                aways += 1
-        print("|= %s users on %s (%s voices, %s ops, %s opers, %s away)" % (
-        len(self.chanlist[channel]), channel, voices, ops, opers, aways))
-
     def irc_unknown(self, prefix, command, params):
         """Handle packets that aren't handled by the library."""
 
-        # Prefix: asimov.freenode.net
-        # Command: RPL_BANLIST
-        # Params: ['MCBans_Testing', '#mcbans-test', 'a!*@*', 'gdude2002!g@unaffiliated/gdude2002', '1330592882']
-
-        self.runHook("unknownMessage", {"prefix": prefix, "command": command, "params": params})
-
         if command == "RPL_BANLIST":
-            me = params[0]
             channel = params[1]
             mask = params[2]
             owner = params[3]
-            time = params[4]
-            server = prefix
+            btime = params[4]
 
             if channel not in self.banlist.keys():
                 done = {"done": False, "total": 1}
-                banmask = {"owner": owner.split("!")[0], "ownerhost": owner, "time": time, "mask": mask,
+                banmask = {"owner": owner.split("!")[0], "ownerhost": owner, "time": btime, "mask": mask,
                            "channel": channel}
                 done[mask] = banmask
                 self.banlist[channel] = done
 
             else:
                 if not self.banlist[channel]["done"]:
-                    banmask = {"owner": owner.split("!")[0], "ownerhost": owner, "time": time, "mask": mask,
+                    banmask = {"owner": owner.split("!")[0], "ownerhost": owner, "time": btime, "mask": mask,
                                "channel": channel}
                     self.banlist[channel][mask] = banmask
                     self.banlist[channel]["total"] += 1
 
                 else:
                     done = {"done": False, "total": 1}
-                    banmask = {"owner": owner.split("!")[0], "ownerhost": owner, "time": time, "mask": mask,
+                    banmask = {"owner": owner.split("!")[0], "ownerhost": owner, "time": btime, "mask": mask,
                                "channel": channel}
                     done[mask] = banmask
                     self.banlist[channel] = done
 
         elif command == "RPL_ENDOFBANLIST":
-            me = params[0]
             channel = params[1]
-            message = params[2]
-            server = prefix
 
             if channel in self.banlist.keys():
                 self.banlist[channel]["done"] = True
@@ -1393,6 +1312,57 @@ class Bot(irc.IRCClient):
                             "MODE %s +b *!*@%s" % (channel, self.banlist[channel][element]["ownerhost"].split("@")[1]))
                     else:
                         self.checkban(channel, element, self.banlist[channel][element]["owner"])
+
+        elif command == "RPL_NAMREPLY":
+            me, status, channel, names = params
+            users = names.split()
+            ranks = "+%@&~"
+
+            if not channel in self.chanlist.keys():
+                self.chanlist[channel] = {}
+
+            for element in users:
+                rank = ""
+
+                for part in ranks:
+                    if part in element:
+                        rank = rank + part
+                    element = element.strip(part)
+
+                done = { 'server': prefix,
+                         'status': rank,
+                         'last_time': float( time.time() - 0.25 ) }
+                self.chanlist[channel][element] = done
+
+            print "|= Names for %s: %s" % (channel, names)
+            if status == "@":
+                print "|= %s is a secret channel." % channel
+            elif status == "*":
+                print "|= %s is a private channel." % channel
+            else:
+                print "|= %s is a public channel." % channel
+
+        elif command == "RPL_ENDOFNAMES":
+            me, channel, message = params
+            ops = 0
+            voices = 0
+            opers = 0
+            aways = 0
+
+            for element in self.chanlist[channel].values():
+                status = element["status"]
+                if "+" in status:
+                    voices += 1
+                if "@" in status:
+                    ops += 1
+                if "*" in status:
+                    opers += 1
+                if "G" in status:
+                    aways += 1
+            print("|= %s users on %s (%s voices, %s ops, %s opers, %s away)" % (
+            len(self.chanlist[channel]), channel, voices, ops, opers, aways))
+
+        self.runHook("unknownMessage", {"prefix": prefix, "command": command, "params": params})
 
 
 
