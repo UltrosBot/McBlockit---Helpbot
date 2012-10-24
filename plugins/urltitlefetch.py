@@ -4,7 +4,7 @@ from system.yaml_loader import *
 
 class plugin(object):
     """
-    Play russian roulette, the safe way!
+    URL parser; used to fetch titles for URLs pasted in IRC.
     """
 
     commands = {
