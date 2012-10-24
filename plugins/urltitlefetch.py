@@ -48,7 +48,7 @@ class plugin(object):
         channel = data['channel']
         message = data['message']
 
-        if not self.channels.keys(channel):
+        if not self.channels.has_key(channel):
             self.channels[channel] = "on"
 
         if self.channels[channel] == "all" or (self.channels[channel] == "on" and (self.irc.is_voice(channel, user) or self.irc.is_op(channel, user))):
@@ -60,7 +60,7 @@ class plugin(object):
 
     def url_options(self, user, channel, arguments):
         if len(arguments) == 1:
-            if not self.channels.keys(channel):
+            if not self.channels.has_key(channel):
                 self.channels[channel] = "on"
             self.irc.sendnotice(user, "URL title fetching for this channel is %s" % (self.channels[channel]))
         elif len(arguments) == 2:
