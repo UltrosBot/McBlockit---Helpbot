@@ -1239,6 +1239,7 @@ class Bot(irc.IRCClient):
         host = data[3]
         server = data[4]
         nick = data[5]
+        status = data[6].strip("G").strip("H").strip("*")
         gecos = data[7] # Hops, realname
 
         hostmask = nick + "!" + ident + "@" + host
@@ -1251,6 +1252,9 @@ class Bot(irc.IRCClient):
         self.chanlist[channel][nick]["hostmask"] = hostmask
         self.chanlist[channel][nick]["realname"] = gecos.split(" ")[1]
         self.chanlist[channel][nick]["server"] = server
+
+        if not "status" in self.chanlist[channel][nick].keys():
+            self.chanlist[channel][nick]["status"] = status
 
     def irc_RPL_ENDOFWHO(self, *nargs):
         """Called when WHO output is complete"""
@@ -1331,10 +1335,12 @@ class Bot(irc.IRCClient):
                         rank = rank + part
                     element = element.strip(part)
 
-                done = { 'server': prefix,
-                         'status': rank,
-                         'last_time': float( time.time() - 0.25 ) }
-                self.chanlist[channel][element] = done
+                if not element in self.chanlist[channel].keys():
+                    self.chanlist[channel][element] = {}
+
+                self.chanlist[channel][element]["server"] = prefix
+                self.chanlist[channel][element]["status"] = rank
+                self.chanlist[channel][element]["last_time"] = float( time.time() - 0.25 )
 
             print "|= Names for %s: %s" % (channel, names)
             if status == "@":
@@ -1393,7 +1399,7 @@ class Bot(irc.IRCClient):
         if user in self.authorized.keys():
             return "authorized"
 
-        elif channel in self.chanlist.keys() and user in self.chanlist[channel].keys():
+        elif channel in self.chanlist.keys() and user in self.chanlist[channel].keys() and "status" in self.chanlist[channel][user].keys():
 
             status = self.chanlist[channel][user]["status"]
 
