@@ -1243,6 +1243,9 @@ class Bot(irc.IRCClient):
 
         hostmask = nick + "!" + ident + "@" + host
 
+        if not nick in self.chanlist[channel].keys():
+            self.chanlist[channel][nick] = {}
+
         self.chanlist[channel][nick]["ident"] = ident
         self.chanlist[channel][nick]["host"] = host
         self.chanlist[channel][nick]["hostmask"] = hostmask
