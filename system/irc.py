@@ -498,9 +498,6 @@ class Bot(irc.IRCClient):
             if channel in self.chanlist.keys():
                 if user in self.chanlist[channel].keys():
                     self.chanlist[channel][user]["last_time"] = float(time.time())
-        if msg.lower().startswith("http://") or msg.lower().startswith("https://"):
-            if self.is_voice(channel, user) or self.is_op(channel, user):
-                thread.start_new_thread(self.pagetitle, (channel, msg.split(" ")[0]))
         elif msg.startswith(self.control_char) or channel == self.nickname:
             command = msg.split(" ")[0].replace(self.control_char, "", 1)
             arguments = msg.split(" ")
@@ -669,24 +666,6 @@ class Bot(irc.IRCClient):
                                 self.sendmsg(channel, error)
                             else:
                                 send(user, error)
-            elif command == "stfu":
-                if authorized:
-                    if not channel in self.stfuchans:
-                        self.stfuchans.append(channel)
-                        send(user, "No longer parsing page titles in %s ." % channel)
-                    else:
-                        send(user, "Already stfu'd in %s ." % channel)
-                else:
-                    send(user, "You do not have access to this command.")
-            elif command == "speak":
-                if authorized:
-                    if channel in self.stfuchans:
-                        self.stfuchans.remove(channel)
-                        send(user, "Parsing page titles in %s again." % channel)
-                    else:
-                        send(user, "Already parsing page titles in %s ." % channel)
-                else:
-                    send(user, "You do not have access to this command.")
             elif command == "ignore":
                 if authorized:
                     if len(arguments) > 1:
@@ -970,27 +949,6 @@ class Bot(irc.IRCClient):
                         self.sendLine("KICK %s %s :%s" % (channel, user, reason))
                         self.sendLine("MODE %s +b %s" % ip)
                 self.lookedup.append(ip)
-
-    def pagetitle(self, target, url):
-        if not target in self.stfuchans:
-            if not url.split(".")[-1] in self.notParse:
-                isHTTPS = 0
-                domain = ""
-                try:
-                    if url.lower().startswith("http://"):
-                        domain = url.split("http://")[1].split("/")[0]
-                        isHTTPS = 0
-                    elif url.lower().startswith("https://"):
-                        domain = url.split("https://")[1].split("/")[0]
-                        isHTTPS = 1
-                    br = mechanize.Browser()
-                    br.addheaders = [('User-agent',
-                                      'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9-1.fc9 Firefox/3.0.1')]
-                    br.set_handle_robots(False)
-                    br.open(url)
-                    self.sendmsg(target, "\"%s\" at %s" % (br.title(), domain))
-                except Exception as e:
-                    self.sendmsg(target, "Error: %s" % e)
 
     def squit(self, reason=""):
         if not reason == "":
