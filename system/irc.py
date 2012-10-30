@@ -498,7 +498,7 @@ class Bot(irc.IRCClient):
             if channel in self.chanlist.keys():
                 if user in self.chanlist[channel].keys():
                     self.chanlist[channel][user]["last_time"] = float(time.time())
-        elif msg.startswith(self.control_char) or channel == self.nickname:
+        if msg.startswith(self.control_char) or channel == self.nickname:
             command = msg.split(" ")[0].replace(self.control_char, "", 1)
             arguments = msg.split(" ")
             if command == "help":
