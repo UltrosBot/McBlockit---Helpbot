@@ -79,7 +79,7 @@ class plugin(object):
         if len(arguments) == 2:
             title, domain = self.pagetitle(arguments[1])
             if title is None:
-                self.irc.sendnotice(user, "Error while fetching title")
+                self.irc.sendnotice(user, "No title or not a URL")
             else:
                 if self.channels[channel] == "all" or (self.channels[channel] == "on" and (self.irc.is_voice(channel, user) or self.irc.is_op(channel, user))):
                     self.irc.sendmsg(channel, "\"%s\" at %s" % (title, domain))
