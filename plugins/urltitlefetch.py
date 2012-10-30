@@ -53,9 +53,7 @@ class plugin(object):
 
         if self.channels[channel] == "all" or (self.channels[channel] == "on" and (self.irc.is_voice(channel, user) or self.irc.is_op(channel, user))):
             title, domain = self.pagetitle(message)
-            if title is None:
-                self.irc.sendmsg(channel, "Error while fetching title")
-            else:
+            if not title is None:
                 self.irc.sendmsg(channel, "\"%s\" at %s" % (title, domain))
 
     def url_options(self, user, channel, arguments):
@@ -99,6 +97,8 @@ class plugin(object):
                     domain = url.split("http://")[1].split("/")[0]
                 elif url.lower().startswith("https://"):
                     domain = url.split("https://")[1].split("/")[0]
+                else:
+                    return None, None
                 br = mechanize.Browser()
                 br.addheaders = [('User-agent',
                               'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9-1.fc9 Firefox/3.0.1')]
@@ -106,6 +106,6 @@ class plugin(object):
                 br.open(url)
                 return br.title(), domain
             except Exception as e:
-                return None, None
+                return str(e), domain
 
     name = "URL Title Fetcher"
