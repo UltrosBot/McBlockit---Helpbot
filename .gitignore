@@ -4,6 +4,7 @@
 plugins/data/items/*.yml
 plugins/data/rroulette/stats.yml
 plugins/data/tell/*.yml
+plugins/data/urltitlefetcher/*.yml
 topics.css
 topics.html
 topics.txt
