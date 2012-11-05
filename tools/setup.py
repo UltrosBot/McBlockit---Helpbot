@@ -40,7 +40,7 @@ else:
 try:
     import twisted
 except ImportError:
-    downloads["twisted"] = ["http://twistedmatrix.com/Releases/Twisted/11.1/Twisted-11.1.0.tar.bz2", "2.7MB"]
+    downloads["twisted"] = ["http://pypi.python.org/packages/source/T/Twisted/Twisted-12.2.0.tar.bz2", "2.7MB"]
 else:
     del twisted
     print "Module twisted already installed, not downloading"
