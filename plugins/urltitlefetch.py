@@ -59,7 +59,7 @@ class plugin(object):
             self.channels[channel] = {"status": self.channels[channel], "last": None}
 
         if self.channels[channel]["status"] == "all" or (self.channels[channel]["status"] == "on" and (self.irc.is_voice(channel, user) or self.irc.is_op(channel, user))):
-            title, domain = self.pagetitle(message, channel)
+            title, domain = self.pagetitle(message.split()[0], channel)
             if not title is None:
                 self.irc.sendmsg(channel, "\"%s\" at %s" % (title, domain))
 

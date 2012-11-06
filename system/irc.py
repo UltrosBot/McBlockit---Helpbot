@@ -1369,12 +1369,11 @@ class Bot(irc.IRCClient):
                     aways += 1
             print("|= %s users on %s (%s voices, %s ops, %s opers, %s away)" % (
             len(self.chanlist[channel]), channel, voices, ops, opers, aways))
-
         elif str(command) == "972":
             print "|! Unable to kick user: " + params[2]
         elif str(command) in ["265", "266"]:
             print "| " + params[1]
-        else:
+        elif not command == "PONG":
             print "[%s] (%s) %s" % (prefix, command, params)
 
         self.runHook("unknownMessage", {"prefix": prefix, "command": command, "params": params})
