@@ -118,6 +118,7 @@ class Bot(irc.IRCClient):
             bot = self.settings["bot"]
             channels = self.settings["channels"]
             other = self.settings["other"]
+            connection = self.settings["connection"]
 
             oldchans = self.joinchans
             perform = open("perform.txt", "r").readlines()
@@ -142,6 +143,8 @@ class Bot(irc.IRCClient):
             self.use_antispam = other["antispam"]
             self.autokick = other["autokick"]
             self.use_dnsbl = other["use_dnsbl"]
+            if connection["use_password"]:
+                self.password = connection["password"]
         except Exception:
             return [False, traceback.format_exc()]
         else:
@@ -1490,10 +1493,6 @@ class Bot(irc.IRCClient):
         self.describe(user, message)
         # Flush the logfile
         self.flush()
-
-    def identify(self):
-        self.sendmsg("NickServ", "IDENTIFY %s" % self.password)
-
 
 class BotFactory(protocol.ClientFactory):
     protocol = Bot
