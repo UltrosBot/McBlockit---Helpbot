@@ -95,18 +95,29 @@ class GithubResource(Resource):
         return "Grats, you found the API resource! Nothing here yet, though.."
 
     def render_POST(self, request):
-        prdata = "%s %s: %s" % (request.getClientIP(), request.method, request.uri)
-        print "[WEB] " + prdata
-        for element in request.args["payload"]:
-            for line in pprint.pformat(json.loads(element), 2).split("\n"):
-                print "[WEB] " + ("=" * len(prdata)) + " " + line
-#        payload = json.loads(request.args["payload"][0])
-#        repo = payload["repository"]
-#        head = payload["head_commit"]
+        print "%s %s: %s" % (request.getClientIP(), request.method, request.uri)
+#        for element in request.args["payload"]:
+#            for line in pprint.pformat(json.loads(element), 2).split("\n"):
+#                print "[WEB] " + ("=" * len(prdata)) + " " + line
+#        try:
+#            payload = json.loads(request.args["payload"][0])
+#            repo = payload["repository"]
+#            head = payload["head_commit"]
 #
-#        self.irc.sendmsg("#archives", "%s pushed a commit to %s (%sm/%sd)- \"%s\" " % (head["author"]["name"],
-#                                                                                       repo["name"], len(head["modified"]),
-#                                                                                       len(head["removed"]), head["message"]))
+#            author = head["author"]["name"]
+#            repo_name = repo["name"]
+#            added = len(head["added"])
+#            modified = len(head["modified"])
+#            removed = len(head["removed"])
+#            message = head["message"]
+#
+#            self.irc.sendmsg("#archives", "%s pushed a commit to %s (%sa/%sm/%sd) - \"%s\" " % (author, repo_name,
+#                                                                                                added, modified,
+#                                                                                                removed, message))
+#        except Exception as e:
+#            return json.dumps({"result": "error", "error": str(e)})
+#        else:
+#            return json.dumps({"result": "success"})
 
 class TestResource(Resource):
 
