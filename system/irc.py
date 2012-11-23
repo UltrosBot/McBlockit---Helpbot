@@ -643,7 +643,7 @@ class Bot(irc.IRCClient):
                                     donestr = ""
                                     for character in element:
                                         if ord(character) in range(128) and not ord(character) == 0:
-                                            donestr = donestr + character.encode("ascii", "ignore")
+                                            donestr = donestr + character.encode("LATIN-1", "replace")
                                     finished.append(donestr.strip("\x00"))
 
                                 if authorized:
@@ -1431,12 +1431,12 @@ class Bot(irc.IRCClient):
     def cmsg(self, message):
         # Send a message to all joined channels
         for element in self.joinchans:
-            self.sendmsg("#" + element[0], message.encode('ascii', 'ignore'))
+            self.sendmsg("#" + element[0], message.encode('LATIN-1', 'replace'))
 
     def cnotice(self, message):
         # Notice all channels
         for element in self.joinchans:
-            self.sendnotice("#" + element[0], message.encode('ascii', 'ignore'))
+            self.sendnotice("#" + element[0], message.encode('LATIN-1', 'replace'))
 
     # Don't use this directy, use sendmsg
     def sendmessage(self, user, message):

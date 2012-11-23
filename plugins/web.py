@@ -99,25 +99,25 @@ class GithubResource(Resource):
 #        for element in request.args["payload"]:
 #            for line in pprint.pformat(json.loads(element), 2).split("\n"):
 #                print "[WEB] " + ("=" * len(prdata)) + " " + line
-#        try:
-#            payload = json.loads(request.args["payload"][0])
-#            repo = payload["repository"]
-#            head = payload["head_commit"]
-#
-#            author = head["author"]["name"]
-#            repo_name = repo["name"]
-#            added = len(head["added"])
-#            modified = len(head["modified"])
-#            removed = len(head["removed"])
-#            message = head["message"]
-#
-#            self.irc.sendmsg("#archives", "%s pushed a commit to %s (%sa/%sm/%sd) - \"%s\" " % (author, repo_name,
-#                                                                                                added, modified,
-#                                                                                                removed, message))
-#        except Exception as e:
-#            return json.dumps({"result": "error", "error": str(e)})
-#        else:
-#            return json.dumps({"result": "success"})
+        try:
+            payload = json.loads(request.args["payload"][0])
+            repo = payload["repository"]
+            head = payload["head_commit"]
+
+            author = head["author"]["name"]
+            repo_name = repo["name"]
+            added = len(head["added"])
+            modified = len(head["modified"])
+            removed = len(head["removed"])
+            message = head["message"]
+
+            self.irc.sendmsg("#archives", "%s pushed a commit to %s (%sa/%sm/%sd) - \"%s\" " % (author, repo_name,
+                                                                                                added, modified,
+                                                                                                removed, message))
+        except Exception as e:
+            return json.dumps({"result": "error", "error": str(e)})
+        else:
+            return json.dumps({"result": "success"})
 
 class TestResource(Resource):
 
@@ -127,6 +127,7 @@ class TestResource(Resource):
         self.irc = irc
 
     def render_GET(self, request):
+        print "[WEB] %s %s: %s" % (request.getClientIP(), request.method, request.uri)
         print "[WEB] %s %s: %s" % (request.getClientIP(), request.method, request.uri)
         return "Request: %s<br/><br/>"\
                "Path: %s<br/><br/>"\

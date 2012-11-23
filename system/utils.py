@@ -5,6 +5,6 @@ def rht(data):
     # Utility, removes HTML from the input
     p = re.compile(r'<.*?>')
     try:
-        return p.sub('', data.encode('ascii', 'ignore'))
+        return p.sub('', data.encode('LATIN-1', 'replace'))
     except:
         return "Unable to decode in regex."

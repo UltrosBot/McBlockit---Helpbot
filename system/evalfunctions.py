@@ -35,7 +35,7 @@ class evalFunctions(object):
 
         del self
         try:
-            value = str(eval(command))
+            value = str(unicode(eval(command)).encode("LATIN-1", "replace"))
         except Exception as e:
             value = str(e)
         except SystemExit:
@@ -186,6 +186,6 @@ class evalFunctions(object):
     # Utility, removes HTML from the input
         p = re.compile(r'<.*?>')
         try:
-            return p.sub('', data.encode('ascii', 'ignore'))
+            return p.sub('', data.encode('LATIN-1', 'replace'))
         except:
             return "Unable to parse HTML."
