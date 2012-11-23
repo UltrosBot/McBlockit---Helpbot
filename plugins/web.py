@@ -120,6 +120,9 @@ class GithubResource(Resource):
                     for channel in self.repos[repo_name]:
                         self.irc.sendmsg(channel, "%s pushed a commit to %s (%sa/%sm/%sd) - \"%s\" [Total: %s commits]" %
                                                   (author, repo_name, added, modified, removed, message, commits))
+                else:
+                    print "[WEB] Alert - Recieved data for a repo we don't follow: \"%s\"" % repo_name
+                    return json.dumps({"result": "error", "error": "Not following that repo!"})
         except Exception as e:
             print "[WEB] Error: %s" % e
             return json.dumps({"result": "error", "error": str(e)})
