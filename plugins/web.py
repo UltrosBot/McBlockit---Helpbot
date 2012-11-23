@@ -89,32 +89,39 @@ class GithubResource(Resource):
     def __init__(self, irc):
         Resource.__init__(self)
         self.irc = irc
+        settings_handler = yaml_loader(True, "web")
+        settings = settings_handler.load("github")
+        self.repos = settings["projects"]
 
     def render_GET(self, request):
         print "[WEB] %s %s: %s" % (request.getClientIP(), request.method, request.uri)
         return "Grats, you found the API resource! Nothing here yet, though.."
 
     def render_POST(self, request):
-        print "%s %s: %s" % (request.getClientIP(), request.method, request.uri)
+        print "[WEB] %s %s: %s" % (request.getClientIP(), request.method, request.uri)
 #        for element in request.args["payload"]:
 #            for line in pprint.pformat(json.loads(element), 2).split("\n"):
 #                print "[WEB] " + ("=" * len(prdata)) + " " + line
         try:
-            payload = json.loads(request.args["payload"][0])
-            repo = payload["repository"]
-            head = payload["head_commit"]
+            for payload in request.args["payload"]:
+                payload = json.loads(payload)
+                repo = payload["repository"]
+                head = payload["head_commit"]
 
-            author = head["author"]["name"]
-            repo_name = repo["name"]
-            added = len(head["added"])
-            modified = len(head["modified"])
-            removed = len(head["removed"])
-            message = head["message"]
+                author = head["author"]["name"]
+                repo_name = repo["name"]
+                added = len(head["added"])
+                modified = len(head["modified"])
+                removed = len(head["removed"])
+                message = head["message"]
+                commits = len(payload["commits"])
 
-            self.irc.sendmsg("#archives", "%s pushed a commit to %s (%sa/%sm/%sd) - \"%s\" " % (author, repo_name,
-                                                                                                added, modified,
-                                                                                                removed, message))
+                if repo_name in self.repos:
+                    for channel in self.repos[repo_name]:
+                        self.irc.sendmsg(channel, "%s pushed a commit to %s (%sa/%sm/%sd) - \"%s\" [Total: %s commits]" %
+                                                  (author, repo_name, added, modified, removed, message, commits))
         except Exception as e:
+            print "[WEB] Error: %s" % e
             return json.dumps({"result": "error", "error": str(e)})
         else:
             return json.dumps({"result": "success"})
