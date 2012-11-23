@@ -99,9 +99,9 @@ class GithubResource(Resource):
 
     def render_POST(self, request):
         print "[WEB] %s %s: %s" % (request.getClientIP(), request.method, request.uri)
-#        for element in request.args["payload"]:
-#            for line in pprint.pformat(json.loads(element), 2).split("\n"):
-#                print "[WEB] " + ("=" * len(prdata)) + " " + line
+        settings_handler = yaml_loader(True, "web")
+        settings = settings_handler.load("github")
+        self.repos = settings["projects"]
         try:
             for payload in request.args["payload"]:
                 payload = json.loads(payload)
