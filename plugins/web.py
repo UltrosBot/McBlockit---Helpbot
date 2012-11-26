@@ -9,6 +9,18 @@ from twisted.internet import reactor
 from twisted.web.server import Site
 from twisted.web.resource import Resource, NoResource
 
+def print_request(request):
+    headers = request.requestHeaders
+
+    if "x-forwarded-for" in headers:
+        ips = headers["x-forwarded-for"]
+    elif "x-real-ip" in headers:
+        ips = headers["x-real-ip"]
+    else:
+        ips = [request.getClientIP()]
+    for ip in ips:
+        print "[WEB] %s %s: %s" % (ip, request.method, request.uri)
+
 class plugin(object):
 
     """
@@ -53,10 +65,11 @@ class BaseResource(Resource):
         self.children = {"api": ApiResource(irc), "test": TestResource(irc), "": self}
 
     def render_GET(self, request):
-        print "[WEB] %s %s: %s" % (request.getClientIP(), request.method, request.uri)
+        print_request(request)
         return "This is the base resource. Check out <a href=\"test\">/test</a> and <a href=\"api\">/api</a> for more."
 
     def getChild(self, path, request):
+        print "[WEB] Error: Resource not found"
         if path not in self.children.keys():
             return NoResource()
 
@@ -73,7 +86,7 @@ class ApiResource(Resource):
         self.children = {"github": GithubResource(irc), "": self}
 
     def render_GET(self, request):
-        print "[WEB] %s %s: %s" % (request.getClientIP(), request.method, request.uri)
+        print_request(request)
 #        if "messages" in request.args.keys():
 #            for msg in request.args["messages"]:
 #                self.irc.sendmsg("#mcblockit-test", msg)
@@ -81,6 +94,7 @@ class ApiResource(Resource):
 
     def getChild(self, path, request):
         if path not in self.children.keys():
+            print "[WEB] Error: Resource not found"
             return NoResource()
 
 class GithubResource(Resource):
@@ -94,11 +108,11 @@ class GithubResource(Resource):
         self.repos = settings["projects"]
 
     def render_GET(self, request):
-        print "[WEB] %s %s: %s" % (request.getClientIP(), request.method, request.uri)
+        print_request(request)
         return "Grats, you found the API resource! Nothing here yet, though.."
 
     def render_POST(self, request):
-        print "[WEB] %s %s: %s" % (request.getClientIP(), request.method, request.uri)
+        print_request(request)
         settings_handler = yaml_loader(True, "web")
         settings = settings_handler.load("github")
         self.repos = settings["projects"]
@@ -137,8 +151,7 @@ class TestResource(Resource):
         self.irc = irc
 
     def render_GET(self, request):
-        print "[WEB] %s %s: %s" % (request.getClientIP(), request.method, request.uri)
-        print "[WEB] %s %s: %s" % (request.getClientIP(), request.method, request.uri)
+        print_request(request)
         return "Request: %s<br/><br/>"\
                "Path: %s<br/><br/>"\
                "Args: %s<br/><br/>"\
