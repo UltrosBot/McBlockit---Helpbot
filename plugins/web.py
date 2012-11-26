@@ -12,10 +12,10 @@ from twisted.web.resource import Resource, NoResource
 def print_request(request):
     headers = request.requestHeaders
 
-    if "x-forwarded-for" in headers:
-        ips = headers["x-forwarded-for"]
-    elif "x-real-ip" in headers:
-        ips = headers["x-real-ip"]
+    if headers.getRawHeaders("x-forwarded-for", False):
+        ips = headers.getRawHeaders("x-forwarded-for")
+    elif headers.getRawHeaders("x-real-ip", False):
+        ips = headers.getRawHeaders("x-real-ip")
     else:
         ips = [request.getClientIP()]
     for ip in ips:
@@ -69,7 +69,6 @@ class BaseResource(Resource):
         return "This is the base resource. Check out <a href=\"test\">/test</a> and <a href=\"api\">/api</a> for more."
 
     def getChild(self, path, request):
-        print "[WEB] Error: Resource not found"
         if path not in self.children.keys():
             return NoResource()
 
@@ -94,7 +93,6 @@ class ApiResource(Resource):
 
     def getChild(self, path, request):
         if path not in self.children.keys():
-            print "[WEB] Error: Resource not found"
             return NoResource()
 
 class GithubResource(Resource):
