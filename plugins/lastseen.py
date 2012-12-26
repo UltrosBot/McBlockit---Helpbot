@@ -2,9 +2,7 @@
 class plugin(object):
 
     """
-    This is a test plugin to show exactly how
-    the plugin system works. Feel free to use
-    this as a base for your other plugins.
+    Lastseen plugin: To check when a user was lastseen on IRC, and what they last did.
     """
 
     hooks = {}

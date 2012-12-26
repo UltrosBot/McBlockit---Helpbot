@@ -28,15 +28,7 @@ except ImportError:
 else:
     del resolver
     print "Module dnspython already installed, not downloading."
-
-try:
-    import feedparser
-except ImportError:
-    downloads["feedparser"] = ["http://feedparser.googlecode.com/files/feedparser-5.1.2.zip", "1.2MB"]
-else:
-    del feedparser
-    print "Module feedparser already installed, not downloading."
-
+    
 try:
     import mechanize
 except ImportError:
@@ -94,7 +86,7 @@ print "This also allows you to install the packages for a different version of p
 print ""
 
 if len(downloads) < 1:
-    print "You already have all the required modules installed. Exiting."
+    print "You already have all the required modules installed."
     exit()
 
 print "The following packages will be installed:"
