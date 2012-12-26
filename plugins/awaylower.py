@@ -115,7 +115,7 @@ class plugin(object):
         if dstr in self.statuses:
             self.statuses[dstr] = ""
 
-    def load(self):
+    def load(self, data=None):
         self.statuses = {}
         self.data = self.settings_handler.load("data")
         if not self.data:
@@ -125,5 +125,5 @@ class plugin(object):
         if not self.data["nicks"]:
             self.data["nicks"] = []
 
-    def save(self):
+    def save(self, data=None):
         self.settings_handler.save_data("data", self.data)
