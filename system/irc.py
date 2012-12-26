@@ -65,12 +65,13 @@ class Bot(irc.IRCClient):
     kicked = []
 
     # Special IRC chars
-    col = "" # Colour code
-    bold = "" # Bold code
-    under = "" # Underline code
-    ital = "" # Italics code
-    reverse = "" # Reverse code
-    ctcp = "\1" # CTCP code, as if we'll ever need this
+    col = "\3" # Colour code
+    bold = "\2" # Bold code
+    under = "\31" # Underline code
+    ital = "\29" # Italics code
+    reverse = "\22" # Reverse code
+    normal = "\15"# Normalizing code
+    ctcp = "\1" # CTCP code
 
     def prnt(self, msg):
         msg = string.replace(msg, self.bold, "")
@@ -1151,7 +1152,6 @@ class Bot(irc.IRCClient):
         # Someone changed their nick.
         oldnick = prefix.split("!", 1)[0]
         newnick = params[0]
-        self.runHook("userNicked", {"oldnick": oldnick, "nick": newnick})
         self.prnt("|= %s is now known as %s" % (oldnick, newnick))
         if oldnick in self.authorized.keys():
             self.sendnotice(newnick,
@@ -1162,6 +1162,7 @@ class Bot(irc.IRCClient):
                 self.chanlist[element][newnick] = self.chanlist[element][oldnick]
                 del self.chanlist[element][oldnick]
                 # Flush the logfile
+        self.runHook("userNicked", {"oldnick": oldnick, "nick": newnick})
         self.flush()
 
     def messageLoop(self, wut=None):
@@ -1391,6 +1392,23 @@ class Bot(irc.IRCClient):
     #       UTILITY   #   FUNCTIONS     #
     #                                   #
     #-#################################-#
+
+    def getChanStatus(self, channel, user):
+        """
+        Returns the status string for a user on a specific channel.
+        Returns the empty string if no status was found.
+        """
+
+        if channel in self.chanlist:
+            print "Channel exists"
+            print self.chanlist[channel]
+            if user in self.chanlist[channel]:
+                print "User exists"
+                if "status" in self.chanlist[channel][user]:
+                    print "STATUSES: " + str(self.chanlist[channel][user])
+                    return self.chanlist[channel][user]["status"]
+        else:
+            return ""
 
     def getRank(self, channel, user):
         """
