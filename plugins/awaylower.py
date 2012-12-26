@@ -1,6 +1,4 @@
 # coding=utf-8
-import feedparser
-
 from system.yaml_loader import *
 from system.decorators import *
 
