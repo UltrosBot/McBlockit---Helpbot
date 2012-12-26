@@ -1399,14 +1399,8 @@ class Bot(irc.IRCClient):
         Returns the empty string if no status was found.
         """
 
-        if channel in self.chanlist:
-            print "Channel exists"
-            print self.chanlist[channel]
-            if user in self.chanlist[channel]:
-                print "User exists"
-                if "status" in self.chanlist[channel][user]:
-                    print "STATUSES: " + str(self.chanlist[channel][user])
-                    return self.chanlist[channel][user]["status"]
+        if channel in self.chanlist and user in self.chanlist[channel] and "status" in self.chanlist[channel][user]:
+            return self.chanlist[channel][user]["status"]
         else:
             return ""
 

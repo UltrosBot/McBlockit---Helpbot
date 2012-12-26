@@ -88,20 +88,21 @@ class plugin(object):
                     if odstr in self.statuses:
                         status = self.statuses[odstr]
                         del self.statuses[odstr]
-                        modes = []
-                        if "~" in status:
-                            modes.append("q")
-                        if "&" in status:
-                            modes.append("a")
-                        if "@" in status:
-                            modes.append("o")
-                        if "%" in status:
-                            modes.append("h")
-                        if len(modes) > 0:
-                            nicks = []
-                            for x in modes:
-                                nicks.append(nick)
-                            self.irc.send_raw("MODE %s %s %s" % (channel, "".join(modes), " ".join(nicks)))
+                        if status and len(status) > 0:
+                            modes = []
+                            if "~" in status:
+                                modes.append("q")
+                            if "&" in status:
+                                modes.append("a")
+                            if "@" in status:
+                                modes.append("o")
+                            if "%" in status:
+                                modes.append("h")
+                            if len(modes) > 0:
+                                nicks = []
+                                for x in modes:
+                                    nicks.append(nick)
+                                self.irc.send_raw("MODE %s +%s %s" % (channel, "".join(modes), " ".join(nicks)))
 
     def userQuit(self, data):
         for channel in self.irc.channels:
