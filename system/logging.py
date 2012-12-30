@@ -125,6 +125,14 @@ class Logger(object):
         line = "* %s %s" % (user, message)
         self._write(filename, line)
 
+    def ircModesSet(self, target, user, modes, args, set):
+        """Internal, log some modes that were set"""
+        f_string = "%s set mode %s %s%s %s" % (user, target, "+" if set else "-", modes, args)
+        self.info(f_string, False)
+        filename = "channel/%s.log" % target
+        line = "%s set mode %s%s %s" % (user, "+" if set else "-", modes, args)
+        self._write(filename, line)
+
     def ircSendMessage(self, target, message):
         """Internal, log a message we sent"""
         message = self._strip(message)
@@ -135,6 +143,30 @@ class Logger(object):
         else:
             filename = "private/%s.log" % target
         line = "-> %s" % (message)
+        self._write(filename, line)
+
+    def ircSendNotice(self, target, message):
+        """Internal, log a notice we sent"""
+        message = self._strip(message)
+        f_string = "%s -> -%s-" % (target, message)
+        self.info(f_string, False)
+        if target.startswith("#"):
+            filename = "channels/%s.log" % target
+        else:
+            filename = "private/%s.log" % target
+        line = "-> -%s-" % (message)
+        self._write(filename, line)
+
+    def ircSendAction(self, target, message):
+        """Internal, log an action we sent"""
+        message = self._strip(message)
+        f_string = "%s -> * %s" % (target, message)
+        self.info(f_string, False)
+        if target.startswith("#"):
+            filename = "channels/%s.log" % target
+        else:
+            filename = "private/%s.log" % target
+        line = "-> * %s" % (message)
         self._write(filename, line)
 
 ##     Logging to the admin channel

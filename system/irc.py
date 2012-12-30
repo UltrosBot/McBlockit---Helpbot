@@ -966,17 +966,14 @@ class Bot(irc.IRCClient):
                     self.sendmsg(me, message)
         elif messages[0][0].lower() == "version":
             self.ctcpMakeReply(name, [(messages[0][0], "A Python bot written for #mcblockit. See .help about")])
-            # TODO: Logging
-            self.prnt("|< %s [CTCP VERSION]" % user)
-            self.prnt("|> %s [CTCP VERSION REPLY] A Python bot written for #mcblockit. See .help about" % user)
+            self.logs.info("<- %s [CTCP VERSION]" % user)
+            self.logs.info("-> %s [CTCP VERSION REPLY] A Python bot written for #mcblockit. See .help about" % user)
         elif messages[0][0].lower() == "finger":
             self.ctcpMakeReply(name, [(messages[0][0], "No. Just, no.")])
-            # TODO: Logging
-            self.prnt("|< %s [CTCP FINGER]" % user)
-            self.prnt("|> %s [CTCP FINGER REPLY] No. Just, no." % user)
+            self.logs.info("<- %s [CTCP FINGER]" % user)
+            self.logs.info("-> %s [CTCP FINGER REPLY] No. Just, no." % user)
         else:
-            # TODO: Logging
-            self.prnt("|< %s [CTCP %s] %s" % (user, messages[0][0].upper(), " ".join(messages[0])))
+            self.logs.info("<- %s [CTCP %s] %s" % (user, messages[0][0].upper(), " ".join(messages[0])))
 
         self.runHook("ctcpQuery", {"user": name, "host": user.split("!", 1)[1], "target": me, "type": messages[0][0],
                                    "message": messages[0][1]})
@@ -999,8 +996,7 @@ class Bot(irc.IRCClient):
                                      "args": args})
         try:
             if set:
-                # TODO: Logging
-                self.logs.info("%s sets mode %s +%s %s" % (user, channel, modes, " ".join(args)))
+                self.logs.ircModesSet(channel, user, modes, " ".join(args), set)
                 i = 0
                 for element in modes:
                     if element in ["q", "a", "o", "h", "v"]:
@@ -1033,8 +1029,7 @@ class Bot(irc.IRCClient):
                     #        self.dnslookup(channel, element)
                     i += 1
             else:
-                # TODO: Logging
-                self.logs.info("%s sets mode %s -%s %s" % (user, channel, modes, " ".join(args)))
+                self.logs.ircModesSet(channel, user, modes, " ".join(args), set)
                 i = 0
                 for element in modes:
                     if element in "qaohv":
@@ -1062,14 +1057,12 @@ class Bot(irc.IRCClient):
     def kickedFrom(self, channel, kicker, message):
         self.runHook("kickedBot", {"channel": channel, "kicker": kicker, "message": message})
         # Onoes, we got kicked!
-        # TODO: Logging
         self.logs.info("Kicked from %s by %s: %s" % (channel, kicker, message))
         # Flush the logfile
 
     def nickChanged(self, nick):
         self.runHook("nickedBot", {"oldnick": self.nickname, "newnick": nick})
         # Some evil muu changed MY nick!
-        # TODO: Logging
         self.logs.info("Nick changed to %s" % nick)
         self.factory.nickname = nick
         # Flush the logfile
@@ -1079,14 +1072,12 @@ class Bot(irc.IRCClient):
         self.who(channel)
         self.dnslookup(channel, user)
         # Ohai, welcome to mah channel!
-        # TODO: Logging
         self.logs.info("%s joined %s" % (user, channel))
         # Flush the logfile
 
     def userLeft(self, user, channel):
         self.runHook("userParted", {"user": user, "channel": channel})
         # Onoes, bai!
-        # TODO: Logging
         self.logs.info("%s left %s" % ((user.split("!")[0]), channel))
         # Flush the logfile
 
@@ -1099,7 +1090,6 @@ class Bot(irc.IRCClient):
             del self.chanlist[channel][kickee]
 
         self.runHook("userKicked", {"kickee": kickee, "kicker": kicker, "channel": channel, "message": message})
-        # TODO: Logging
         self.logs.info("%s was kicked from %s by %s [%s]" % (kickee, channel, kicker, message))
         # Flush the logfile
 
@@ -1112,7 +1102,6 @@ class Bot(irc.IRCClient):
             if user in self.chanlist[element].keys():
                 del self.chanlist[element][user]
         self.runHook("userQuit", {"user": user, "host": userhost, "message": quitMessage})
-        # TODO: Logging
         self.logs.info("%s has left irc: %s" % (user, quitMessage))
         # Flush the logfile
 
@@ -1121,7 +1110,6 @@ class Bot(irc.IRCClient):
         userhost = user
         user = user.split("!")[0]
         self.runHook("topicChanged", {"user": user, "host": userhost, "topic": newTopic, "channel": channel})
-        # TODO: Logging
         self.logs.info("%s set topic %s to \"%s%s15\"" % (user, channel, newTopic, self.col))
         # Flush the logfile
 
@@ -1129,7 +1117,6 @@ class Bot(irc.IRCClient):
         # Someone changed their nick.
         oldnick = prefix.split("!", 1)[0]
         newnick = params[0]
-        # TODO: Logging
         self.logs.info("%s is now known as %s" % (oldnick, newnick))
         if oldnick in self.authorized.keys():
             self.sendnotice(newnick,
@@ -1460,8 +1447,7 @@ class Bot(irc.IRCClient):
         # Don't use this directy, use sendnotice
 
     def sendntc(self, user, message):
-        # TODO: Logging
-        self.logs.ircSendMessage(user, message)
+        self.logs.ircSendNotice(user, message)
         self.notice(user, message)
         # Flush the logfile
 
@@ -1472,9 +1458,7 @@ class Bot(irc.IRCClient):
         self.noticequeue.append(str(user) + ":" + str(message))
 
     def senddescribe(self, user, message):
-        # TODO: Logging
-        self.logs.ircSendMessage(user, "*" + message)
-        self.prnt("|> * %s: %s" % (user, message))
+        self.logs.ircSendAction(user, message)
         self.describe(user, message)
         # Flush the logfile
 
