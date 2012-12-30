@@ -15,6 +15,7 @@ from utils import *
 from system.constants import *
 from system.decorators import run_async
 from system.yaml_loader import *
+from system.logging import Logger
 from system import faq
 
 from depends.maskchecker import *
@@ -73,38 +74,29 @@ class Bot(irc.IRCClient):
     normal = "\15"# Normalizing code
     ctcp = "\1" # CTCP code
 
-    def prnt(self, msg):
-        msg = string.replace(msg, self.bold, "")
-        msg = string.replace(msg, self.under, "")
-        msg = string.replace(msg, self.ital, "")
-        msg = string.replace(msg, self.reverse, "")
-        colprint(msg)
-        self.logfile.write("%s\n" % (colstrip(msg)))
-        self.flush()
-
     def receivedMOTD(self, motd):
         for line in motd:
-            print "| " + line
+            self.logs.info("MOTD | " + line)
 
     def parseObjects(self):
         try:
-            self.prnt("|= Reading in objects from objects.txt...")
+            self.logs.info("Reading in objects from objects.txt...")
             file = open("objects.txt", "r")
             data = file.read()
             self.emoteobjects = data.split("\n")
-            self.prnt("|= Read %s objects." % len(self.quotes))
-        except:
+            self.logs.info("Read %s objects." % len(self.quotes))
+        except Exception:
             return False
         else:
             return True
 
     def parseQuotes(self):
         try:
-            self.prnt("|= Reading in quit quotes from quotes.txt...")
+            self.logs.info("Reading in quit quotes from quotes.txt...")
             file = open("quotes.txt", "r")
             data = file.read()
             self.quotes = data.split("\n")
-            self.prnt("|= Read %s quotes." % len(self.quotes))
+            self.logs.info("Read %s quotes." % len(self.quotes))
         except:
             return False
         else:
@@ -112,7 +104,7 @@ class Bot(irc.IRCClient):
 
     def parseSettings(self):
         try:
-            self.prnt("|= Reading in settings from settings.yml...")
+            self.logs.info(" Reading in settings from settings.yml...")
 
             self.settings.load("config/settings.yml")
 
@@ -140,7 +132,6 @@ class Bot(irc.IRCClient):
             self.control_char = bot["control_character"]
             self.data_dir = bot["data_folder"]
             self.r_emotes = other["emotes"]
-            print self.r_emotes
             self.use_antispam = other["antispam"]
             self.autokick = other["autokick"]
             self.use_dnsbl = other["use_dnsbl"]
@@ -149,7 +140,7 @@ class Bot(irc.IRCClient):
         except Exception:
             return [False, traceback.format_exc()]
         else:
-            self.prnt("|= Done!")
+            self.logs.info("Done!")
             return [True, ""]
 
     @run_async
@@ -182,7 +173,7 @@ class Bot(irc.IRCClient):
                 continue
             elif ext == "py": # Check if it ends in .py
                 files.append(file)
-        self.prnt("|= Loading %s plugins.. " % len(files))
+        self.logs.info("Loading %s plugins.. " % len(files))
         i = 0
         while i < len(files):
             element = files[i]
@@ -191,8 +182,8 @@ class Bot(irc.IRCClient):
                 try:
                     __import__("plugins.%s" % element) # If not, import it
                 except Exception: # Got an error!
-                    self.prnt("|! Unable to load plugin from %s.py!" % element)
-                    self.prnt("|! Error: %s" % traceback.format_exc())
+                    self.logs.error("Unable to load plugin from %s.py!" % element)
+                    self.logs.error("%s" % traceback.format_exc())
                     i += 1
                     continue
                 else:
@@ -203,8 +194,8 @@ class Bot(irc.IRCClient):
                         if hasattr(mod, "gotIRC"):
                             mod.gotIRC()
                     except Exception:
-                        self.prnt("|! Unable to load server plugin from %s" % (element + ".py"))
-                        self.prnt("|! Error: %s" % traceback.format_exc())
+                        self.logs.error("Unable to load plugin from %s.py!" % element)
+                        self.logs.error("Error: %s" % traceback.format_exc())
                         i += 1
                         continue
             else: # We already imported it
@@ -214,8 +205,8 @@ class Bot(irc.IRCClient):
                 try:
                     __import__("plugins.%s" % element) # import it again
                 except Exception: # Got an error!
-                    self.prnt("|! Unable to load plugin from %s.py!" % element)
-                    self.prnt("|! Error: %s" % traceback.format_exc())
+                    self.logs.error("Unable to load plugin from %s.py!" % element)
+                    self.logs.error("Error: %s" % traceback.format_exc())
                     i += 1
                     continue
                 else:
@@ -223,8 +214,8 @@ class Bot(irc.IRCClient):
                         mod = sys.modules["plugins.%s" % element].plugin(self)
                         name = mod.name # get the name
                     except Exception:
-                        self.prnt("|! Unable to load plugin from %s" % (element + ".py"))
-                        self.prnt("|! Error: %s" % traceback.format_exc())
+                        self.logs.error("Unable to load plugin from %s.py!" % element)
+                        self.logs.error("Error: %s" % traceback.format_exc())
                         i += 1
                         del sys.modules["plugins.%s" % filename]
                         continue
@@ -232,9 +223,9 @@ class Bot(irc.IRCClient):
             mod.filename = element
             self.plugins[name] = mod # Put it in the plugins list
             if not reloaded:
-                self.prnt("|= Loaded plugin: %s" % name)
+                self.logs.info("Loaded plugin: %s" % name)
             else:
-                self.prnt("|= Reloaded plugin: %s" % name)
+                self.logs.info("Reloaded plugin: %s" % name)
             i += 1
         for plugin in self.plugins.values(): # For every plugin,
             if hasattr(plugin, "hooks"):
@@ -245,11 +236,11 @@ class Bot(irc.IRCClient):
             if hasattr(plugin, "commands"):
                 for element, data in plugin.commands.items():
                     if element in self.commands.keys():
-                        self.prnt("|! Command %s is already registered. Overriding." % element)
+                        self.logs.warn("Command %s is already registered. Overriding." % element)
                     if hasattr(plugin, data):
                         self.commands[element] = getattr(plugin, data)
                     else:
-                        print "|! Plugins '%s' has no function for command '%s'" % (plugin.name, data)
+                        self.logs.warn("Plugins '%s' has no function for command '%s'" % (plugin.name, data))
             if hasattr(plugin, "finishedLoading"):
                 plugin.finishedLoading()
 
@@ -263,8 +254,8 @@ class Bot(irc.IRCClient):
         try:
             __import__("plugins.%s" % filename)
         except Exception: # Got an error!
-            self.prnt("|! Unable to load plugin from %s.py!" % filename)
-            self.prnt("|! Error: %s" % traceback.format_exc())
+            self.logs.error("Unable to load plugin from %s.py!" % filename)
+            self.logs.error("Error: %s" % traceback.format_exc())
             return False
         else:
             try:
@@ -274,13 +265,13 @@ class Bot(irc.IRCClient):
                 if hasattr(mod, "gotIRC"):
                     mod.gotIRC()
             except Exception:
-                self.prnt("|! Unable to load server plugin from %s" % (filename + ".py"))
-                self.prnt("|! Error: %s" % traceback.format_exc())
+                self.logs.error("Unable to load server plugin from %s.py!" % filename)
+                self.logs.error("Error: %s" % traceback.format_exc())
                 del sys.modules["plugins.%s" % filename]
                 return False
             mod.filename = filename
             self.plugins[name] = mod # Put it in the plugins list
-            self.prnt("|= Loaded plugin: %s" % name)
+            self.logs.info("Loaded plugin: %s" % name)
 
             if hasattr(mod, "hooks"):
                 for element, fname in mod.hooks.items(): # For every hook in the plugin,
@@ -290,7 +281,7 @@ class Bot(irc.IRCClient):
             if hasattr(mod, "commands"):
                 for element, data in mod.commands.items():
                     if element in self.commands.keys():
-                        self.prnt("|! Command %s is already registered. Overriding." % element)
+                        self.logs.warn("Command %s is already registered. Overriding." % element)
                     self.commands[element] = getattr(mod, data)
 
             return True
@@ -327,46 +318,41 @@ class Bot(irc.IRCClient):
                 if hasattr(plugin, "commands"):
                     for element, data in plugin.commands.items():
                         if element in self.commands.keys():
-                            self.prnt("|! Command %s is already registered. Overriding." % element)
+                            self.logs.warn("Command %s is already registered. Overriding." % element)
                         self.commands[element] = getattr(plugin, data)
 
-            self.prnt("|= Unloaded plugin: %s" % name)
+            self.logs.info("Unloaded plugin: %s" % name)
 
             return True
         return False
 
 
     def __init__(self):
-        # What's the name of our logfile?
-        self.logfile = open("output.log", "a")
+        self.logs = Logger()
 
         stuff = self.parseSettings()
 
         if not(stuff[0]):
-            self.prnt("|! Unable to parse settings. Does settings.ini and perform.txt exist?")
-            self.prnt("|! Error: %s" % stuff[1])
+            self.logs.error("Unable to parse settings. Does settings.ini and perform.txt exist?")
+            self.logs.error(" Error: %s" % stuff[1])
             reactor.stop()
             exit()
         if not(self.parseQuotes()):
-            self.prnt("|! Unable to parse quotes.txt. Does it exist? Bot will now quit.")
+            self.logs.error("Unable to parse quotes.txt. Does it exist? Bot will now quit.")
             reactor.stop()
             exit()
         if not(self.parseObjects()):
-            self.prnt("|! Unable to parse objects.txt. Does it exist? Bot will now quit.")
+            self.logs.error("Unable to parse objects.txt. Does it exist? Bot will now quit.")
             reactor.stop()
             exit()
         self.loadPlugins()
         self.faq = faq.FAQ(self.data_dir, self)
         self.faq.listentries()
 
-    def flush(self):
-        self.logfile.flush()
-
     def connectionLost(self, reason):
         # We lost connection. GTFO tiem.
         self.runHook("connectionLost", {"reason": reason})
-        self.prnt("|= Shutting down!")
-        self.flush()
+        self.logs.info("Shutting down!")
 
     @property
     def nickname(self):
@@ -375,7 +361,7 @@ class Bot(irc.IRCClient):
     def signedOn(self):
         # OK, we logged on successfully.
         # Log that we signed on.
-        self.prnt("|= Signed on as %s." % self.nickname)
+        self.logs.info("Signed on as %s." % self.nickname)
         # Log in with NickServ.
         self.sendmsg("NickServ", "IDENTIFY %s" % self.settings["bot"]["nickserv_password"])
         #Start the three loops for sending messages and notices and raw lines
@@ -384,12 +370,11 @@ class Bot(irc.IRCClient):
         self.rawLoop()
         for element in self.joinchans:
             reactor.callLater(5.0, self.join, ("%s" % element))
-        self.flush() # Flush the log
         self.runHook("signedOn")
 
     def joined(self, channel):
         # We joined a channel
-        self.prnt("|+ Joined %s" % channel)
+        self.logs.info("Joined %s" % channel)
         if not channel in self.chanlist.keys():
             self.chanlist[channel] = {}
         self.channels.append(channel)
@@ -399,7 +384,6 @@ class Bot(irc.IRCClient):
         self.who(channel)
         if self.r_emotes:
             reactor.callLater(5, thread.start_new_thread, self.randmsg, (channel,))
-        self.flush()
         self.runHook("channelJoined", {"channel": channel})
 
     def randmsg(self, channel):
@@ -441,12 +425,7 @@ class Bot(irc.IRCClient):
 
         for badperson in self.ignores:
             if checkbanmask(badperson, userhost):
-                if channel.startswith("#"):
-                    self.prnt("| IGNORED | <%s:%s> %s" % (user, channel, msg))
-                else:
-                    self.prnt("| IGNORED |< %s %s" % (channel, msg))
                 return
-
 
         self.runHook("privmsg", {"user": user, "host": userhost, "channel": channel, "message": msg})
 
@@ -475,7 +454,7 @@ class Bot(irc.IRCClient):
                     if self.is_op(channel, self.nickname):
                         if not user in self.kicked:
                             self.sendLine("KICK %s %s :%s is a dirty spammer!" % (channel, user, user))
-                            self.prnt("|! Kicked %s from %s for spamming." % (user, channel))
+                            self.logs.warn("Kicked %s from %s for spamming." % (user, channel))
                             self.kicked.append(user)
                             return
 
@@ -484,7 +463,7 @@ class Bot(irc.IRCClient):
                                 "MODE %s +bbb *!%s@* %s!*@* *!*@%s" % (
                                     channel, userhost.split("@")[0].split("!")[1], user, userhost.split("@")[1]))
                             self.sendLine("KICK %s %s :%s is a dirty spammer!" % (channel, user, user))
-                            self.prnt("|! Banned %s from %s for spamming." % (user, channel))
+                            self.logs.warn(" Banned %s from %s for spamming." % (user, channel))
                             return
 
                 if difference > 5.00:
@@ -493,8 +472,7 @@ class Bot(irc.IRCClient):
                             # Random channel
                             self.sendLine(
                                 "KICK %s %s :Don't do that! ( Did you mean: \"/join %s\"? )" % (channel, user, msg))
-                            self.prnt(
-                                "|! Kicked %s from %s for randomly typing a channel on its own." % (user, channel))
+                            self.logs.warn("Kicked %s from %s for randomly typing a channel on its own." % (user, channel))
                             self.kicked.append(user)
                             return
 
@@ -517,7 +495,7 @@ class Bot(irc.IRCClient):
                             for element in self.plugins[element].help.keys():
                                 done.append(element)
                         except:
-                            self.prnt("|! Plugin %s has no help object!" % element)
+                            self.logs.warn("Plugin %s has no help object!" % element)
 
                     send(user, ", ".join(sorted(done)))
                 else:
@@ -570,7 +548,7 @@ class Bot(irc.IRCClient):
                                     sent = 1
                                     break
                             except:
-                                self.prnt("|! Plugin %s has no help object!" % element)
+                                self.logs.warn("Plugin %s has no help object!" % element)
                         if not sent:
                             send(user, "Unknown help topic: %s" % arguments[1])
             elif command == "login":
@@ -582,11 +560,10 @@ class Bot(irc.IRCClient):
                     if passw == self.loginpass:
                         self.authorized[user] = userhost.split("!", 1)[1]
                         send(user, "You have been logged in successfully.")
-                        self.prnt("%s logged in successfully." % user)
+                        self.logs.info("%s logged in successfully." % user)
                     else:
                         send(user, "Incorrect password! Check for case and spacing!")
-                        self.prnt("%s tried to log in with an invalid password!" % user)
-                    self.flush()
+                        self.logs.info("%s tried to log in with an invalid password!" % user)
                     return
             elif command == "logout":
                 if user in self.authorized.keys():
@@ -724,7 +701,7 @@ class Bot(irc.IRCClient):
                     traceback.print_exc(e)
                     send(user, "Error: %s" % e)
             else:
-                print "|! DEBUG: No such command"
+                self.logs.info("DEBUG: No such command")
         elif msg.startswith("??") or msg.startswith("?!"):
             cinfo = {"user": user, "hostmask": userhost.split("!", 1)[1], "origin": channel, "message": msg,
                      "target": channel}
@@ -877,12 +854,11 @@ class Bot(irc.IRCClient):
                     else:
                         send(user, "You do not have access to this command.")
                         # Flush the logfile
-        self.flush()
         # Log the message
         if channel.startswith("#"):
-            self.prnt("| <%s:%s> %s" % (user, channel, msg))
+            self.logs.ircPublic(user, channel, msg)
         else:
-            self.prnt("|< %s %s" % (channel, msg))
+            self.logs.ircPrivate(user, msg)
 
     ranknums = {"none": 0, "voice": 15, "halfop": 30, "op": 45, "admin": 60, "owner": 85, "oper": 100,
                 "authorized": 200}
@@ -910,12 +886,12 @@ class Bot(irc.IRCClient):
                             else:
                                 command_func(user, channel, arguments)
                         else:
-                            print "|! Rank %s is not a valid rank!" % needed_rank
+                            self.logs.warn("Rank %s is not a valid rank!" % needed_rank)
                             command_func(user, channel, arguments)
             else:
                 command_func(user, channel, arguments)
         else:
-            print "|! Command %s does not exist" % command
+            self.logs.warn("Command %s does not exist" % command)
             self.sendnotice(user, "Command %s does not exist!" % command)
 
     @run_async
@@ -935,16 +911,16 @@ class Bot(irc.IRCClient):
                 blacklists = ["dnsbl.ahbl.org", "ircbl.ahbl.org", "rbl.efnet.org", "dnsbl.dronebl.org",
                               "dnsbl.mcblacklist.com"]
                 for bl in blacklists:
-                    self.prnt("|= Checking user %s on blacklist %s..." % (user, bl))
+                    self.logs.info("Checking user %s on blacklist %s..." % (user, bl))
                     try:
                         resolver.query(r_ip + "." + bl, "A")
                     except resolver.NXDOMAIN:
-                        self.prnt("|= User %s is clean." % user)
+                        self.logs.info("User %s is clean." % user)
                         pass
                     except Exception as e:
-                        self.prnt("|! Error looking up user %s: %s" % (user, e))
+                        self.logs.error("Error looking up user %s: %s" % (user, e))
                     else:
-                        self.prnt("|! User %s is blacklisted!" % user)
+                        self.logs.warn("User %s is blacklisted!" % user)
                         try:
                             answer = resolver.query(r_ip + "." + bl, "TXT")
                             reason = answer[0]
@@ -961,13 +937,12 @@ class Bot(irc.IRCClient):
             random.seed()
             quitmsg = self.quotes[random.randint(0, len(self.quotes) - 1)].strip("\r")
             self.sendLine("QUIT :%s" % quitmsg)
-        self.prnt("|= QUITTING!")
+        self.logs.warn("QUITTING!")
 
     def left(self, channel):
         # We left a channel.
-        self.prnt("|= Left %s" % channel)
+        self.logs.info("Left %s" % channel)
         # Flush the logfile
-        self.flush()
         self.runHook("channelLeft", channel)
 
     @run_async
@@ -991,16 +966,17 @@ class Bot(irc.IRCClient):
                     self.sendmsg(me, message)
         elif messages[0][0].lower() == "version":
             self.ctcpMakeReply(name, [(messages[0][0], "A Python bot written for #mcblockit. See .help about")])
+            # TODO: Logging
             self.prnt("|< %s [CTCP VERSION]" % user)
             self.prnt("|> %s [CTCP VERSION REPLY] A Python bot written for #mcblockit. See .help about" % user)
         elif messages[0][0].lower() == "finger":
             self.ctcpMakeReply(name, [(messages[0][0], "No. Just, no.")])
+            # TODO: Logging
             self.prnt("|< %s [CTCP FINGER]" % user)
             self.prnt("|> %s [CTCP FINGER REPLY] No. Just, no." % user)
         else:
+            # TODO: Logging
             self.prnt("|< %s [CTCP %s] %s" % (user, messages[0][0].upper(), " ".join(messages[0])))
-            # Flush the logfile
-        self.flush()
 
         self.runHook("ctcpQuery", {"user": name, "host": user.split("!", 1)[1], "target": me, "type": messages[0][0],
                                    "message": messages[0][1]})
@@ -1023,7 +999,8 @@ class Bot(irc.IRCClient):
                                      "args": args})
         try:
             if set:
-                self.prnt("|= %s sets mode %s +%s %s" % (user, channel, modes, " ".join(args)))
+                # TODO: Logging
+                self.logs.info("%s sets mode %s +%s %s" % (user, channel, modes, " ".join(args)))
                 i = 0
                 for element in modes:
                     if element in ["q", "a", "o", "h", "v"]:
@@ -1056,7 +1033,8 @@ class Bot(irc.IRCClient):
                     #        self.dnslookup(channel, element)
                     i += 1
             else:
-                self.prnt("|= %s sets mode %s -%s %s" % (user, channel, modes, " ".join(args)))
+                # TODO: Logging
+                self.logs.info("%s sets mode %s -%s %s" % (user, channel, modes, " ".join(args)))
                 i = 0
                 for element in modes:
                     if element in "qaohv":
@@ -1080,38 +1058,37 @@ class Bot(irc.IRCClient):
         except:
             pass
             # Flush the logfile
-        self.flush()
 
     def kickedFrom(self, channel, kicker, message):
         self.runHook("kickedBot", {"channel": channel, "kicker": kicker, "message": message})
         # Onoes, we got kicked!
-        self.prnt("|= Kicked from %s by %s: %s" % (channel, kicker, message))
+        # TODO: Logging
+        self.logs.info("Kicked from %s by %s: %s" % (channel, kicker, message))
         # Flush the logfile
-        self.flush()
 
     def nickChanged(self, nick):
         self.runHook("nickedBot", {"oldnick": self.nickname, "newnick": nick})
         # Some evil muu changed MY nick!
-        self.prnt("|= Nick changed to %s" % nick)
+        # TODO: Logging
+        self.logs.info("Nick changed to %s" % nick)
         self.factory.nickname = nick
         # Flush the logfile
-        self.flush()
 
     def userJoined(self, user, channel):
         self.runHook("userJoined", {"user": user, "channel": channel})
         self.who(channel)
         self.dnslookup(channel, user)
         # Ohai, welcome to mah channel!
-        self.prnt("|+ %s joined %s" % (user, channel))
+        # TODO: Logging
+        self.logs.info("%s joined %s" % (user, channel))
         # Flush the logfile
-        self.flush()
 
     def userLeft(self, user, channel):
         self.runHook("userParted", {"user": user, "channel": channel})
         # Onoes, bai!
-        self.prnt("|- %s left %s" % ((user.split("!")[0]), channel))
+        # TODO: Logging
+        self.logs.info("%s left %s" % ((user.split("!")[0]), channel))
         # Flush the logfile
-        self.flush()
 
     def userKicked(self, kickee, channel, kicker, message):
         # Mwahahaha, someone got kicked!
@@ -1122,9 +1099,9 @@ class Bot(irc.IRCClient):
             del self.chanlist[channel][kickee]
 
         self.runHook("userKicked", {"kickee": kickee, "kicker": kicker, "channel": channel, "message": message})
-        self.prnt("|- %s was kicked from %s by %s [%s]" % (kickee, channel, kicker, message))
+        # TODO: Logging
+        self.logs.info("%s was kicked from %s by %s [%s]" % (kickee, channel, kicker, message))
         # Flush the logfile
-        self.flush()
 
     def irc_QUIT(self, user, params):
         # Someone quit.
@@ -1135,24 +1112,25 @@ class Bot(irc.IRCClient):
             if user in self.chanlist[element].keys():
                 del self.chanlist[element][user]
         self.runHook("userQuit", {"user": user, "host": userhost, "message": quitMessage})
-        self.prnt("|- %s has left irc: %s" % (user, quitMessage))
+        # TODO: Logging
+        self.logs.info("%s has left irc: %s" % (user, quitMessage))
         # Flush the logfile
-        self.flush()
 
     def topicUpdated(self, user, channel, newTopic):
         # Topic was changed. Also called on a channel join.
         userhost = user
         user = user.split("!")[0]
         self.runHook("topicChanged", {"user": user, "host": userhost, "topic": newTopic, "channel": channel})
-        self.prnt("|= %s set topic %s to \"%s%s15\"" % (user, channel, newTopic, self.col))
+        # TODO: Logging
+        self.logs.info("%s set topic %s to \"%s%s15\"" % (user, channel, newTopic, self.col))
         # Flush the logfile
-        self.flush()
 
     def irc_NICK(self, prefix, params):
         # Someone changed their nick.
         oldnick = prefix.split("!", 1)[0]
         newnick = params[0]
-        self.prnt("|= %s is now known as %s" % (oldnick, newnick))
+        # TODO: Logging
+        self.logs.info("%s is now known as %s" % (oldnick, newnick))
         if oldnick in self.authorized.keys():
             self.sendnotice(newnick,
                 "You have been logged out for security reasons. This happens automatically when you change your nick.")
@@ -1163,7 +1141,6 @@ class Bot(irc.IRCClient):
                 del self.chanlist[element][oldnick]
                 # Flush the logfile
         self.runHook("userNicked", {"oldnick": oldnick, "nick": newnick})
-        self.flush()
 
     def messageLoop(self, wut=None):
         self.m_protect = 0
@@ -1182,8 +1159,8 @@ class Bot(irc.IRCClient):
                 break
             except Exception:
                 try:
-                    print("|! Failed to send message! Error: %s" % traceback.format_exc())
-                    print("|! " + user + " -> " + message)
+                    self.logs.error("Failed to send message! Error: %s" % traceback.format_exc())
+                    self.logs.error(user + " -> " + message)
                 except:
                     pass
             self.m_protect += 1
@@ -1196,13 +1173,13 @@ class Bot(irc.IRCClient):
             try:
                 item = self.rawqueue.pop(0)
                 self.sendLine(item)
-                print("|> server: %s" % item)
+                self.logs.ircSendMessage("[SERVER]", item)
             except IndexError:
                 break
             except Exception:
                 try:
-                    print("|! Failed to send raw data to server! Error: %s" % traceback.format_exc())
-                    print("|! " + item)
+                    self.logs.error("Failed to send raw data to server! Error: %s" % traceback.format_exc())
+                    self.logs.error(item)
                 except:
                     pass
             self.r_protect += 1
@@ -1225,8 +1202,8 @@ class Bot(irc.IRCClient):
                 break
             except Exception:
                 try:
-                    print("|! Failed to send notice! Error: %s" % traceback.format_exc())
-                    print("|! " + user + " -> " + message)
+                    self.logs.error("Failed to send notice! Error: %s" % traceback.format_exc())
+                    self.logs.error(user + " -> " + message)
                 except:
                     pass
             self.n_protect += 1
@@ -1321,7 +1298,7 @@ class Bot(irc.IRCClient):
                     else:
                         self.checkban(channel, element, self.banlist[channel][element]["owner"])
 
-            self.prnt("|= Got %s bans for %s." % (self.banlist[channel]["total"], channel))
+            self.logs.info("Got %s bans for %s." % (self.banlist[channel]["total"], channel))
 
         elif command == "RPL_NAMREPLY":
             me, status, channel, names = params
@@ -1346,13 +1323,13 @@ class Bot(irc.IRCClient):
                 self.chanlist[channel][element]["status"] = rank
                 self.chanlist[channel][element]["last_time"] = float( time.time() - 0.25 )
 
-            print "|= Names for %s: %s" % (channel, names)
+            self.logs.info("Names for %s: %s" % (channel, names))
             if status == "@":
-                print "|= %s is a secret channel." % channel
+                self.logs.info("%s is a secret channel." % channel)
             elif status == "*":
-                print "|= %s is a private channel." % channel
+                self.logs.info("%s is a private channel." % channel)
             else:
-                print "|= %s is a public channel." % channel
+                self.logs.info("%s is a public channel." % channel)
 
         elif command == "RPL_ENDOFNAMES":
             me, channel, message = params
@@ -1371,21 +1348,16 @@ class Bot(irc.IRCClient):
                     opers += 1
                 if "G" in status:
                     aways += 1
-            print("|= %s users on %s (%s voices, %s ops, %s opers, %s away)" % (
+            self.logs.info("%s users on %s (%s voices, %s ops, %s opers, %s away)" % (
             len(self.chanlist[channel]), channel, voices, ops, opers, aways))
         elif str(command) == "972":
-            print "|! Unable to kick user: " + params[2]
+            self.logs.error("Unable to kick user: " + params[2])
         elif str(command) in ["265", "266"]:
-            print "| " + params[1]
+            self.logs.info("INFO | " + params[1])
         elif not command == "PONG":
-            print "[%s] (%s) %s" % (prefix, command, params)
+            self.logs.info("[%s] (%s) %s" % (prefix, command, params))
 
         self.runHook("unknownMessage", {"prefix": prefix, "command": command, "params": params})
-
-
-
-
-
 
     #-#################################-#
     #                                   #
@@ -1453,12 +1425,11 @@ class Bot(irc.IRCClient):
     # Don't use this directy, use sendmsg
     def sendmessage(self, user, message):
         if user == "NickServ":
-            self.prnt("|> <%s> %s" % (user, ("*" * len(message))))
+            self.logs.ircSendMessage(user, ("*" * len(message)))
         else:
-            self.prnt("|> <%s> %s" % (user, message))
+            self.logs.ircSendMessage(user, message)
         self.msg(user, message)
         # Flush the logfile
-        self.flush()
 
     def send_raw(self, data):
         self.rawqueue.append(str(data))
@@ -1489,10 +1460,10 @@ class Bot(irc.IRCClient):
         # Don't use this directy, use sendnotice
 
     def sendntc(self, user, message):
-        self.prnt("|> -%s- %s" % (user, message))
+        # TODO: Logging
+        self.logs.ircSendMessage(user, message)
         self.notice(user, message)
         # Flush the logfile
-        self.flush()
 
     def sendmsg(self, user, message):
         self.messagequeue.append(str(user) + ":" + str(message))
@@ -1501,32 +1472,27 @@ class Bot(irc.IRCClient):
         self.noticequeue.append(str(user) + ":" + str(message))
 
     def senddescribe(self, user, message):
+        # TODO: Logging
+        self.logs.ircSendMessage(user, "*" + message)
         self.prnt("|> * %s: %s" % (user, message))
         self.describe(user, message)
         # Flush the logfile
-        self.flush()
 
 class BotFactory(protocol.ClientFactory):
     protocol = Bot
 
     def __init__(self):
         # Initialize!
+        self.logs = Logger()
         settings = yaml_loader()
         settings = settings.load("config/settings.yml")
         self.nickname = settings["bot"]["nickname"]
         del settings
 
-    def prnt(self, msg):
-        colprint(msg)
-        self.logfile = open("output.log", "a")
-        self.logfile.write("%s\n" % (colstrip(msg)))
-        self.logfile.flush()
-        self.logfile.close()
-
     def clientConnectionLost(self, connector, reason):
         # We died. Onoes!
-        self.prnt("Lost connection: %s" % reason)
+        self.logs.warn("Lost connection: %s" % reason)
 
     def clientConnectionFailed(self, connector, reason):
         # Couldn't connect. Daww!
-        self.prnt("Could not connect: %s" % reason)
+        self.logs.error("Could not connect: %s" % reason)
