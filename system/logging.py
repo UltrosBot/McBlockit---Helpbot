@@ -1,3 +1,4 @@
+import os
 import time
 import sys
 
@@ -18,7 +19,13 @@ class Logger(object):
         self.cols.append(reverse)
         self.cols.append(normal)
         self.cols.append(ctcp)
-#        print "\n".join(self.cols)
+
+        if not os.path.exists("logs"):
+            os.mkdir("logs")
+        if not os.path.exists("logs/channels"):
+            os.mkdir("logs/channels")
+        if not os.path.exists("logs/private"):
+            os.mkdir("logs/private")
 
     # Internal functions
 
