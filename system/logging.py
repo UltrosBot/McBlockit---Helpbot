@@ -129,7 +129,10 @@ class Logger(object):
         """Internal, log some modes that were set"""
         f_string = "%s set mode %s %s%s %s" % (user, target, "+" if set else "-", modes, args)
         self.info(f_string, False)
-        filename = "channel/%s.log" % target
+        if target.startswith("#"):
+            filename = "channels/%s.log" % target
+        else:
+            filename = "private/%s.log" % target
         line = "%s set mode %s%s %s" % (user, "+" if set else "-", modes, args)
         self._write(filename, line)
 

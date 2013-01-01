@@ -992,11 +992,14 @@ class Bot(irc.IRCClient):
         # Mode change.
         userhost = user
         user = user.split("!", 1)[0]
+        if isinstance(args, list):
+            self.logs.ircModesSet(channel, user, modes, " ".join(args), set)
+        else:
+            self.logs.ircModesSet(channel, user, modes, args, set)
         self.runHook("modechanged", {"user": user, "host": userhost, "channel": channel, "set": set, "modes": modes,
                                      "args": args})
         try:
             if set:
-                self.logs.ircModesSet(channel, user, modes, " ".join(args), set)
                 i = 0
                 for element in modes:
                     if element in ["q", "a", "o", "h", "v"]:
@@ -1016,6 +1019,7 @@ class Bot(irc.IRCClient):
                                     mchar = "+"
                                 if not mchar in self.chanlist[channel][arg]["status"]:
                                     self.chanlist[channel][arg]["status"] += mchar
+                                print self.chanlist[channel][arg]
                     elif element == "b":
                         if self.is_op(channel, self.nickname):
                             if args[i] == "*!*@*":
@@ -1029,7 +1033,6 @@ class Bot(irc.IRCClient):
                     #        self.dnslookup(channel, element)
                     i += 1
             else:
-                self.logs.ircModesSet(channel, user, modes, " ".join(args), set)
                 i = 0
                 for element in modes:
                     if element in "qaohv":
@@ -1049,6 +1052,7 @@ class Bot(irc.IRCClient):
                                     mchar = "+"
                                 if mchar in self.chanlist[channel][arg]["status"]:
                                     self.chanlist[channel][arg]["status"] = self.chanlist[channel][arg]["status"].replace(mchar, "")
+                                print self.chanlist[channel][arg]
                     i += 1
         except:
             pass
@@ -1377,18 +1381,25 @@ class Bot(irc.IRCClient):
             status = self.chanlist[channel][user]["status"]
 
             if "*" in status:
+                print "%s is oper" % user
                 return "oper"
             elif "~" in status:
+                print "%s is owner" % user
                 return "owner"
             elif "&" in status:
+                print "%s is admin" % user
                 return "admin"
             elif "@" in status:
+                print "%s is op" % user
                 return "op"
             elif "%" in status:
+                print "%s is halfop" % user
                 return "halfop"
             elif "+" in status:
+                print "%s is voice" % user
                 return "voice"
             else:
+                print "%s is nothing" % user
                 return "none"
         else:
             return "none"
