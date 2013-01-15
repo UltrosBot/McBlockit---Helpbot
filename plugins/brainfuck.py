@@ -64,8 +64,6 @@ class plugin(object):
                 l += 1
                 loops[l] = j
             elif code[j] == ']':
-                if len(loops) < 1:
-                    self.irc.sendnotice(user, "Brainfuck Error: Closing unopened loop.")
                 if buf[i] == 0:
                     j += 1
                     loops[l] = 0
