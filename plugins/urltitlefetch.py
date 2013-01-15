@@ -1,5 +1,6 @@
 # coding=utf-8
 import mechanize
+import urllib
 from system.yaml_loader import *
 
 class plugin(object):
@@ -60,8 +61,9 @@ class plugin(object):
 
         if self.channels[channel]["status"] == "all" or (self.channels[channel]["status"] == "on" and (self.irc.is_voice(channel, user) or self.irc.is_op(channel, user))):
             title, domain = self.pagetitle(message.split()[0], channel)
+            tiny = urllib.urlopen("http://tinyurl.com/api-create.php?url=" + urllib.quote_plus(message.split()[0])).read()
             if not title is None:
-                self.irc.sendmsg(channel, "\"%s\" at %s" % (title, domain))
+                self.irc.sendmsg(channel, "\"%s\" at %s [%s]" % (title, domain, tiny))
 
     def url_options(self, user, channel, arguments):
         if len(arguments) == 1:
@@ -91,22 +93,24 @@ class plugin(object):
             self.channels[channel] = {"status": self.channels[channel], "last": None}
         if len(arguments) == 2:
             title, domain = self.pagetitle(arguments[1], channel)
+            tiny = urllib.urlopen("http://tinyurl.com/api-create.php?url=" + urllib.quote_plus(arguments[1])).read()
             if title is None:
                 self.irc.sendnotice(user, "No title or not a URL")
             else:
                 if self.channels[channel]["status"] == "all" or (self.channels[channel]["status"] == "on" and (self.irc.is_voice(channel, user) or self.irc.is_op(channel, user))):
-                    self.irc.sendmsg(channel, "\"%s\" at %s" % (title, domain))
+                    self.irc.sendmsg(channel, "\"%s\" at %s [%s]" % (title, domain, tiny))
                 else:
-                    self.irc.sendnotice(user, "\"%s\" at %s" % (title, domain))
+                    self.irc.sendnotice(user, "\"%s\" at %s [%s]" % (title, domain, tiny))
         elif not self.channels[channel]["last"] == None:
             title, domain = self.pagetitle(self.channels[channel]["last"], channel)
+            tiny = urllib.urlopen("http://tinyurl.com/api-create.php?url=" + urllib.quote_plus(self.channels[channel]["last"])).read()
             if title is None:
                 self.irc.sendnotice(user, "No title or not a URL")
             else:
                 if self.channels[channel]["status"] == "all" or (self.channels[channel]["status"] == "on" and (self.irc.is_voice(channel, user) or self.irc.is_op(channel, user))):
-                    self.irc.sendmsg(channel, "\"%s\" at %s (%s)" % (title, domain, self.channels[channel]["last"]))
+                    self.irc.sendmsg(channel, "\"%s\" at %s [%s]" % (title, self.channels[channel]["last"], tiny))
                 else:
-                    self.irc.sendnotice(user, "\"%s\" at %s (%s)" % (title, domain, self.channels[channel]["last"]))
+                    self.irc.sendnotice(user, "\"%s\" at %s [$s]" % (title, self.channels[channel]["last"], tiny))
 
     def pagetitle(self, url, channel):
         if not url.split(".")[-1] in self.notParse:

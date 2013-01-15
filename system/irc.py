@@ -1381,25 +1381,18 @@ class Bot(irc.IRCClient):
             status = self.chanlist[channel][user]["status"]
 
             if "*" in status:
-                print "%s is oper" % user
                 return "oper"
             elif "~" in status:
-                print "%s is owner" % user
                 return "owner"
             elif "&" in status:
-                print "%s is admin" % user
                 return "admin"
             elif "@" in status:
-                print "%s is op" % user
                 return "op"
             elif "%" in status:
-                print "%s is halfop" % user
                 return "halfop"
             elif "+" in status:
-                print "%s is voice" % user
                 return "voice"
             else:
-                print "%s is nothing" % user
                 return "none"
         else:
             return "none"

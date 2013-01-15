@@ -12,17 +12,24 @@ class yaml_loader(object):
         self.pluginName = pluginName
         self.data = {}
 
-    def load(self, filename):
+    def load(self, filename, default=None):
+        if not default: default = {}
         if self.plugin:
             if not os.path.exists("plugins/data/%s" % self.pluginName):
                 os.mkdir("plugins/data/%s" % self.pluginName)
             if not os.path.exists("plugins/data/%s/%s.yml" % (self.pluginName, filename)):
                 open("plugins/data/%s/%s.yml" % (self.pluginName, filename), "w").close()
-            self.data = yaml.load(file("plugins/data/%s/%s.yml" % (self.pluginName, filename), "r"))
+                self.data = default
+                self.save(filename)
+            else:
+                self.data = yaml.load(file("plugins/data/%s/%s.yml" % (self.pluginName, filename), "r"))
         else:
             if not os.path.exists(filename):
                 open(filename, "w").close()
-            self.data = yaml.load(file(filename, "r"))
+                self.data = default
+                self.save(filename)
+            else:
+                self.data = yaml.load(file(filename, "r"))
         return self.data
 
     def save(self, filename):

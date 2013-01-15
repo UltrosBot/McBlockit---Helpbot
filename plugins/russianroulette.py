@@ -61,9 +61,9 @@ class plugin(object):
 
     def __init__(self, irc):
         self.irc = irc
-        self.guns_handler = yaml_loader(True, "rroulette")
+#        self.guns_handler = yaml_loader(True, "rroulette")
         self.stats_handler = yaml_loader(True, "rroulette")
-        self.guns = self.guns_handler.load("guns")["guns"]
+#        self.guns = self.guns_handler.load("guns", {"guns": []})["guns"]
         self.stats = self.stats_handler.load("stats")
 
         self.channels = {}
@@ -97,7 +97,7 @@ class plugin(object):
             self.channels[element] = data
 
     def load(self):
-        self.guns = self.guns_handler.load("guns")["guns"]
+#        self.guns = self.guns_handler.load("guns")["guns"]
         self.stats = self.stats_handler.load("stats")
 
         if self.stats:
