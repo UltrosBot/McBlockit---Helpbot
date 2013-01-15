@@ -64,7 +64,6 @@ class plugin(object):
         channel = data['channel']
         memos = self.memos
         sendto = [key for key in memos]
-        print channel
         if user in sendto:
             memomsg = memos[user]
             message = ', '.join(memomsg)
