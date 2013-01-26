@@ -24,4 +24,8 @@ class plugin(object):
     def test(self, user, channel, arguments):
         self.irc.sendnotice(user, "Test.")
 
+    def intercom(self, origin, data):
+        print "[INTERCOM TEST] %s %s" % (origin, data)
+        return "[INTERCOM TEST] IT WORKS!"
+
 

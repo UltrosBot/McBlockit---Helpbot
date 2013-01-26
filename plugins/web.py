@@ -32,6 +32,16 @@ class plugin(object):
     commands = {
     }
 
+    # You don't need to do this, most likely. I did because of the initializer stuff, though.
+
+    def intercom_send(self, target, data):
+        pass
+
+    def _intercom_send(self, target, data):
+        print self.intercom_send(self, target, data)
+
+    # OK, that's all the crazy stuff done!
+
     def __init__(self, irc):
         self.irc = irc
         self.help = {
@@ -40,10 +50,12 @@ class plugin(object):
         self.settings_handler = yaml_loader(True, "web")
         self.settings = self.settings_handler.load("settings", {"api_keys": [], "port": 8080})
 
-        resource = BaseResource(irc, self.settings)
+        resource = BaseResource(irc, self.settings, self._intercom_send)
         factory = Site(resource)
         reactor.listenTCP(self.settings["port"], factory)
-#        reactor.run()
+
+    def intercom(self, origin, data):
+        pass
 
 
 class BaseResource(Resource):
@@ -51,11 +63,11 @@ class BaseResource(Resource):
     isLeaf = False
     children = {}
 
-    def __init__(self, irc, settings):
+    def __init__(self, irc, settings, send):
         Resource.__init__(self)
         self.api_keys = settings["api_keys"]
         self.irc = irc
-        self.children = {"api": ApiResource(irc, self.api_keys), "test": TestResource(irc, self.api_keys), "": self}
+        self.children = {"api": ApiResource(irc, self.api_keys), "test": TestResource(irc, self.api_keys, send), "": self}
 
     def render_GET(self, request):
         print "[WEB] %s %s: %s" % (request.getClientIP(), request.method, request.uri)
@@ -151,13 +163,15 @@ class GithubResource(Resource):
 class TestResource(Resource):
 
     isLeaf = True
-    def __init__(self, irc, api_keys):
+    def __init__(self, irc, api_keys, send):
+        self.send = send
         self.api_keys = api_keys
         Resource.__init__(self)
         self.irc = irc
 
     def render_GET(self, request):
         print "[WEB] %s %s: %s" % (request.getClientIP(), request.method, request.uri)
+        self.send("Test", "TESTING!")
         return "Request: %s<br/><br/>"\
                "Path: %s<br/><br/>"\
                "Args: %s<br/><br/>"\

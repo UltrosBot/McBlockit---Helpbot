@@ -16,6 +16,7 @@ from system.constants import *
 from system.decorators import run_async
 from system.yaml_loader import *
 from system.logging import Logger
+from system.intercom import *
 from system import faq
 
 from depends.maskchecker import *
@@ -193,6 +194,7 @@ class Bot(irc.IRCClient):
                         mod.irc = self
                         if hasattr(mod, "gotIRC"):
                             mod.gotIRC()
+                        add_plugin(name, mod)
                     except Exception:
                         self.logs.error("Unable to load plugin from %s.py!" % element)
                         self.logs.error("Error: %s" % traceback.format_exc())
@@ -213,6 +215,8 @@ class Bot(irc.IRCClient):
                     try:
                         mod = sys.modules["plugins.%s" % element].plugin(self)
                         name = mod.name # get the name
+                        remove_plugin(name)
+                        add_plugin(name, mod)
                     except Exception:
                         self.logs.error("Unable to load plugin from %s.py!" % element)
                         self.logs.error("Error: %s" % traceback.format_exc())
