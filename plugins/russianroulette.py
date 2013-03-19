@@ -56,7 +56,14 @@ class plugin(object):
         ["headshots {$USER}", "Thanks for standin' still, wanker!"],
         ["shoots {$USER}", "Dying is easy.. Here, let me show you."],
         ["smacks {$USER} with a frying pan", "Demopan?"],
-        ["terminates {$USER}", "Get to de choppa!"]
+        ["terminates {$USER}", "Get to de choppa!"],
+        ["applies DRM to {$USER}", "Error 37"],
+        ["spleefs {$USER}", "AHAHHAHAHAH LAAAVAAA HAAHAHAHAA HAHAAHAHAA.. Haa.. *cough*"],
+        ["starts talking in third person", "{$NICK} kicked {$USER} from {$CHANNEL} (Kickception!)"],
+        ["makes {$USER} uncool", "{$CHANNEL} is too cool for you!"],
+        ["roj4kwegrajeskrguaiyrgueargaueyirgairgayhr!", "AY, MACARENA!"],
+        ["steals {$USER}'s face", "Your face will make a fine skirt. ~_~"],
+        ["clubs {$USER} over the head with a rubber mallet", "BOOOOOOOOOING!"]
     ]
 
     def __init__(self, irc):
@@ -234,8 +241,8 @@ class plugin(object):
                 self.irc.send_raw("PRIVMSG " + target_channel + " :" + self.irc.ctcp + "ACTION shouts \"BANG!\" then plays dead" + self.irc.ctcp)
                 return
             curgun = random.choice(self.shoot_guns)
-            mstring = "" + curgun[0].replace("{$USER}", target).replace("{$NICK}", self.irc.nickname)
-            kstring = curgun[1].replace("{$USER}", target).replace("{$NICK}", self.irc.nickname)
+            mstring = "" + curgun[0].replace("{$USER}", target).replace("{$NICK}", self.irc.nickname).replace("{$CHANNEL}", channel)
+            kstring = curgun[1].replace("{$USER}", target).replace("{$NICK}", self.irc.nickname).replace("{$CHANNEL}", channel)
             self.irc.send_raw("PRIVMSG " + target_channel + " :" + self.irc.ctcp + "ACTION " + mstring + self.irc.ctcp)
             if (self.irc.is_op(target_channel, user) or user in self.irc.authorized.keys()) and self.irc.is_op(channel, self.irc.nickname):
                 self.irc.send_raw("KICK %s %s :%s" % (target_channel, target_user, kstring))
