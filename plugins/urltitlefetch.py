@@ -218,17 +218,17 @@ class plugin(object):
             if parsed.path.lower() == "/watch":
                 params = urlparse.parse_qs(parsed.query)
                 if "v" in params and len(params["v"]) > 0:
-                #try:
-                    video_data = json.loads(urllib2.urlopen("http://gdata.youtube.com/feeds/api/videos/" + params["v"][0] + "?v=2&alt=json").read())
-                    title = video_data["entry"]["media$group"]["media$title"]["$t"]
-                    uploader = video_data["entry"]["media$group"]["media$credit"][0]["yt$display"]
-                    time = self.seconds_to_time(int(video_data["entry"]["media$group"]["yt$duration"]["seconds"]))
-                    views = video_data["entry"]["yt$statistics"]["viewCount"]
-                    likes = video_data["entry"]["yt$rating"]["numLikes"]
-                    dislikes = video_data["entry"]["yt$rating"]["numDislikes"]
-                    return self.OUTPUT_YOUTUBE_VIDEO % (title, time, uploader, likes, dislikes, views)
-                    #except:
-                    pass
+                    try:
+                        video_data = json.loads(urllib2.urlopen("http://gdata.youtube.com/feeds/api/videos/" + params["v"][0] + "?v=2&alt=json").read())
+                        title = video_data["entry"]["media$group"]["media$title"]["$t"]
+                        uploader = video_data["entry"]["media$group"]["media$credit"][0]["yt$display"]
+                        time = self.seconds_to_time(int(video_data["entry"]["media$group"]["yt$duration"]["seconds"]))
+                        views = video_data["entry"]["yt$statistics"]["viewCount"]
+                        likes = video_data["entry"]["yt$rating"]["numLikes"]
+                        dislikes = video_data["entry"]["yt$rating"]["numDislikes"]
+                        return self.OUTPUT_YOUTUBE_VIDEO % (title, time, uploader, likes, dislikes, views)
+                    except:
+                        pass
             elif parsed.path.lower() == "/playlist":
                 params = urlparse.parse_qs(parsed.query)
                 if "list" in params and len(params["list"]) > 0:
@@ -237,9 +237,7 @@ class plugin(object):
                         title = playlist_data["feed"]["title"]["$t"]
                         author = playlist_data["feed"]["author"][0]["name"]["$t"]
                         description = playlist_data["feed"]["subtitle"]["$t"]
-                        #Limit description length
-                        if len(description) > self.YOUTUBE_DESCRIPTION_LENGTH:
-                            description = description[:self.YOUTUBE_DESCRIPTION_LENGTH - 3] + "..."
+                        description = self.make_description_nice(description, self.YOUTUBE_DESCRIPTION_LENGTH)
                         count = len(playlist_data["feed"]["entry"])
                         seconds = 0
                         for entry in playlist_data["feed"]["entry"]:
@@ -255,9 +253,7 @@ class plugin(object):
                         user_data = json.loads(urllib2.urlopen("http://gdata.youtube.com/feeds/api/users/" + parts[2] + "?v=2&alt=json").read())
                         name = user_data["entry"]["title"]["$t"]
                         description = user_data["entry"]["summary"]["$t"]
-                        #Limit description length
-                        if len(description) > self.YOUTUBE_DESCRIPTION_LENGTH:
-                            description = description[:self.YOUTUBE_DESCRIPTION_LENGTH - 3] + "..."
+                        description = self.make_description_nice(description, self.YOUTUBE_DESCRIPTION_LENGTH)
                         subscribers = user_data["entry"]["yt$statistics"]["subscriberCount"]
                         views = user_data["entry"]["yt$statistics"]["totalUploadViews"]
                         videos = None
@@ -291,3 +287,13 @@ class plugin(object):
             return "%d:%02d:%02d" % (h, m, s)
         else:
             return "%d:%02d" % (m, s)
+
+    def make_description_nice(self, description, max_length = -1):
+        """
+		Replace newlines with spaces and limit length
+		"""
+        description = description.strip()
+        description = description.replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
+        if max_length > 0 and len(description) > max_length:
+            description = description[:max_length - 3] + "..."
+        return description
