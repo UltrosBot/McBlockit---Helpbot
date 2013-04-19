@@ -4,6 +4,7 @@ import mechanize
 import urllib
 import urllib2
 import urlparse
+from system.decorators import *
 from system.yaml_loader import *
 
 class plugin(object):
@@ -79,9 +80,12 @@ class plugin(object):
         channel = data['channel']
         message = data['message']
 
+        self.setup_channel(channel)
+        if self.channels[channel]["status"] == "off":
+            return
+
         pos = message.find("http://")
         if pos > -1:
-            self.setup_channel(channel)
             end = message.find(" ", pos)
             if end > -1:
                 url = message[pos:end]
@@ -106,6 +110,7 @@ class plugin(object):
             msg = "No title or not a URL"
         self.send_to_right_place(msg, channel, user)
 
+    @config("rank", "op")
     def url_options(self, user, channel, arguments):
         self.setup_channel(channel)
         if len(arguments) == 1:
