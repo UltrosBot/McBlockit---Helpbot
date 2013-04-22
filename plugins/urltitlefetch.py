@@ -50,12 +50,15 @@ class plugin(object):
                         "NOTE: If title fetching is off in the current channel, this will notice the user rather than message the channel if they are not voiced or above."
             }
 
-        self.YOUTUBE_LOGO = irc.col + "1,0YOU" + irc.col + "0,4TUBE" + irc.col
+        self.YOUTUBE_LOGO = irc.col + "01,00YOU" + irc.col + "00,04TUBE" + irc.col
         self.OUTPUT_YOUTUBE_VIDEO = "[" + self.YOUTUBE_LOGO + " Video] %s (%s) by %s, %s likes, %s dislikes, %s views"
         self.OUTPUT_YOUTUBE_PLAYLIST = "[" + self.YOUTUBE_LOGO + " Playlist] %s (%s videos, total %s) by %s - \"%s\""
         self.OUTPUT_YOUTUBE_CHANNEL = "[" + self.YOUTUBE_LOGO + " Channel] %s (%s subscribers, %s videos with %s total views) - \"%s\""
 
         self.YOUTUBE_DESCRIPTION_LENGTH = 75
+
+        self.OSU_LOGO = irc.col + "13osu!" + irc.col
+        self.OSU_MAP_FORMAT = "[" + self.OSU_LOGO + " map] %s [%s]"
 
     def load(self):
         self.channels = self.settings.load("channels")
@@ -79,6 +82,9 @@ class plugin(object):
         user = data['user']
         channel = data['channel']
         message = data['message']
+
+        if message.startswith(self.irc.control_char):
+            return
 
         self.setup_channel(channel)
         if self.channels[channel]["status"] == "off":
@@ -272,15 +278,18 @@ class plugin(object):
         elif hostname == "osu.ppy.sh":
             parts = parsed.path.split("/")
             if len(parts) >= 3:
-                if parts[1] == "b":
-                    osu_map = parts[2]
-                    #TODO: Get the map data and return a nice message
-                elif parts[1] == "s":
-                    osu_map = parts[2]
-                    #TODO: Get the score data and return a nice message
-                elif parts[1] == "u":
-                    osu_user = parts[2]
-                    #TODO: Get the user data and return a nice message
+                try:
+                    if parts[1] == "b" or parts[1] == "s":
+                        osu_map = parts[1] + "/" + parts[2]
+                        json_data = urllib.urlopen("http://ash.gserv.me:8000/json/%s" % osu_map).read()
+                        map_data = json.loads(json_data)
+                        return self.OSU_MAP_FORMAT % (map_data["title"], map_data["difficulty"])
+                    elif parts[1] == "u":
+                        osu_user = parts[2]
+                        #TODO: Get the user data and return a nice message
+                except Exception as e:
+                    print (e)
+                    pass
             #Not a special URL or error while processing it - the calling code can get the html title tag instead
         return None
 
