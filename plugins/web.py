@@ -87,7 +87,9 @@ class ApiResource(Resource):
         Resource.__init__(self)
         self.api_keys = api_keys
         self.irc = irc
-        self.children = {"github": GithubResource(irc, self.api_keys), "": self}
+        self.children = {"github": GithubResource(irc, self.api_keys),
+                         "privmsg": PrivmsgResource(irc, self.api_keys),
+                         "": self}
 
     def render_GET(self, request):
         print "[WEB] %s %s: %s" % (request.getClientIP(), request.method, request.uri)
@@ -159,6 +161,33 @@ class GithubResource(Resource):
         else:
             return json.dumps({"result": "success"})
 
+class PrivmsgResource(Resource):
+
+    isLeaf = True
+    def __init__(self, irc, api_keys):
+        Resource.__init__(self)
+        self.api_keys = api_keys
+        self.irc = irc
+
+    def render_POST(self, request):
+        print "[WEB] %s %s: %s" % (request.getClientIP(), request.method, request.uri)
+        if not authorized(self.api_keys, request):
+            print "[WEB] -> 401 Not Authorized"
+            request.setResponseCode(401)
+            request.setHeader("content-type", "text/html; charset=utf-8")
+            return "<html><head><title>401 - Not Authorized</title></head><body><h1>Not Authorized</h1><p>You are not "\
+                   "authorized to access this resource. Perhaps you're missing an API key?</p></body></html>"
+        try:
+            for payload in request.args["payload"]:
+                payload = json.loads(payload)
+                target  = payload["target"]
+                message = payload["message"]
+                self.irc.sendmsg(target, message)
+        except Exception as e:
+            print "[WEB] Error: %s" % e
+            return json.dumps({"result": "error", "error": str(e)})
+        else:
+            return json.dumps({"result": "success"})
 
 class TestResource(Resource):
 
