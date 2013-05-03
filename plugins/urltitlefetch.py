@@ -91,6 +91,8 @@ class plugin(object):
             return
 
         pos = message.find("http://")
+        if pos == -1:
+            pos = message.find("https://")
         if pos > -1:
             end = message.find(" ", pos)
             if end > -1:
