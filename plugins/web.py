@@ -185,6 +185,7 @@ class PrivmsgResource(Resource):
                 if "source" in payload:
                     if payload["source"] == "mybb":
                         message = message.decode("string-escape").replace("\n", "\\n").replace("\t", "\\t").replace("\r", "\\r")
+                message = message.replace("%COL%", self.irc.col)
                 self.irc.sendmsg(target, message)
         except Exception as e:
             print "[WEB] Error: %s" % e
