@@ -42,6 +42,7 @@ class Logger(object):
 
     def _write(self, file, message):
         """Write a message to a file"""
+        file = file.replace("/", "_SLASH_").replace("\\", "_BACKSLASH_").replace("|", "_PIPE_")
         fh = open("logs/" + file, "a")
         fh.write(message + "\n")
         fh.flush()
