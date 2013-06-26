@@ -1,6 +1,9 @@
 # coding=utf-8
 import json
-import mechanize
+try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    from BeautifulSoup import BeautifulSoup
 import urllib
 import urllib2
 import urlparse
@@ -90,11 +93,12 @@ class plugin(object):
         if self.channels[channel]["status"] == "off":
             return
 
-        pos = message.find("http://")
+        messagelower = message.lower()
+        pos = messagelower.find("http://")
         if pos == -1:
-            pos = message.find("https://")
+            pos = messagelower.find("https://")
         if pos > -1:
-            end = message.find(" ", pos)
+            end = messagelower.find(" ", pos)
             if end > -1:
                 url = message[pos:end]
             else:
@@ -187,33 +191,19 @@ class plugin(object):
         """
         Get the page title and domain
         """
-        #TODO: mechanize seems expensive compared to urllib and lxml/beautifulsoup - have a look into that
         if url.split(".")[-1] in self.notParse:
             return None, None
         else:
             domain = ""
             try:
-                if url.lower().startswith("http://"):
-                    domain = url.split("http://")[1].split("/")[0]
-                    secure = False
-                elif url.lower().startswith("https://"):
-                    domain = url.split("https://")[1].split("/")[0]
-                    secure = True
-                else:
-                    return None, None
-                br = mechanize.Browser()
-                br.addheaders = [('User-agent',
-                                  'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9-1.fc9 Firefox/3.0.1')]
-                br.set_handle_robots(False)
-                br.open(url)
-                goturl = br.geturl()
-                rtitle = goturl + "/"
-                if secure:
-                    rtitle = rtitle.split("https://")[1].split("/")[0]
-                else:
-                    rtitle = rtitle.split("http://")[1].split("/")[0]
-
-                return br.title(), rtitle
+                parsed = urlparse.urlparse(url)
+                domain = parsed.hostname
+                request = urllib2.Request(url)
+                request.add_header('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9-1.fc9 Firefox/3.0.1')
+                page = urllib2.urlopen(request).read()
+                soup = BeautifulSoup(page)
+                title = unicode(soup.title.string).encode("UTF-8")
+                return title, domain
             except Exception as e:
                 if not str(e).lower() == "not viewing html":
                     return str(e), domain
@@ -306,8 +296,8 @@ class plugin(object):
 
     def make_description_nice(self, description, max_length = -1):
         """
-		Replace newlines with spaces and limit length
-		"""
+        Replace newlines with spaces and limit length
+        """
         description = description.strip()
         description = description.replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
         if max_length > 0 and len(description) > max_length:
