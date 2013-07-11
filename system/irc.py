@@ -113,6 +113,26 @@ class Bot(irc.IRCClient):
             channels = self.settings["channels"]
             other = self.settings["other"]
             connection = self.settings["connection"]
+            try:
+                rate_limit = self.settings["rate_limit"]
+            except:
+                self.settings["rate_limit"] = {
+                    'message' : {
+                        'enable' : True,
+                        'lines'  : 5,
+                        'time'   : 2.5
+                    },
+                    'notice' : {
+                        'enable' : True,
+                        'lines'  : 5,
+                        'time'   : 2.5
+                    },
+                    'raw' : {
+                        'enable' : True,
+                        'lines'  : 5,
+                        'time'   : 2.5
+                    }
+                }
 
             oldchans = self.joinchans
             perform = open("perform.txt", "r").readlines()
@@ -1139,17 +1159,14 @@ class Bot(irc.IRCClient):
 
     def messageLoop(self, wut=None):
         self.m_protect = 0
-        while self.m_protect < 5:
+        while self.m_protect < self.settings['rate_limit']['message']['lines']:
             user = ""
             message = ""
             try:
                 item = self.messagequeue.pop(0).split(":", 1)
                 user = item[0]
                 message = item[1]
-                if len(message) > 300:
-                    self.sendmessage(user, message[:300] + "...")
-                else:
-                    self.sendmessage(user, message)
+                self.sendmessage(user, message)
             except IndexError:
                 break
             except Exception:
@@ -1159,16 +1176,15 @@ class Bot(irc.IRCClient):
                 except:
                     pass
             self.m_protect += 1
-        reactor.callLater(2.5, self.messageLoop, ())
+        reactor.callLater(self.settings['rate_limit']['message']['time'], self.messageLoop, ())
 
     def rawLoop(self, wut=None):
         self.r_protect = 0
-        while self.r_protect < 5:
+        while self.r_protect < self.settings['rate_limit']['raw']['lines']:
             item = ""
             try:
                 item = self.rawqueue.pop(0)
-                self.sendLine(item)
-                self.logs.ircSendMessage("[SERVER]", item)
+                self.send_raw_direct(item)
             except IndexError:
                 break
             except Exception:
@@ -1178,21 +1194,18 @@ class Bot(irc.IRCClient):
                 except:
                     pass
             self.r_protect += 1
-        reactor.callLater(2.5, self.rawLoop, ())
+        reactor.callLater(self.settings['rate_limit']['raw']['time'], self.rawLoop, ())
 
     def noticeLoop(self, wut=None):
         self.n_protect = 0
-        while self.n_protect < 5:
+        while self.n_protect < self.settings['rate_limit']['notice']['lines']:
             user = ""
             message = ""
             try:
                 item = self.noticequeue.pop(0).split(":", 1)
                 user = item[0]
                 message = item[1]
-                if len(message) > 300:
-                    self.sendntc(user, message[:300] + "...")
-                else:
-                    self.sendntc(user, message)
+                self.sendntc(user, message)
             except IndexError:
                 break
             except Exception:
@@ -1202,7 +1215,7 @@ class Bot(irc.IRCClient):
                 except:
                     pass
             self.n_protect += 1
-        reactor.callLater(2.5, self.noticeLoop, ())
+        reactor.callLater(self.settings['rate_limit']['notice']['time'], self.noticeLoop, ())
 
     def irc_RPL_WHOREPLY(self, *nargs):
         """Receive WHO reply from server"""
@@ -1417,18 +1430,6 @@ class Bot(irc.IRCClient):
         for element in self.joinchans:
             self.sendnotice("#" + element[0], message.encode('LATIN-1', 'replace'))
 
-    # Don't use this directy, use sendmsg
-    def sendmessage(self, user, message):
-        if user == "NickServ":
-            self.logs.ircSendMessage(user, ("*" * len(message)))
-        else:
-            self.logs.ircSendMessage(user, message)
-        self.msg(user, message)
-        # Flush the logfile
-
-    def send_raw(self, data):
-        self.rawqueue.append(str(data))
-
     def unescape_charref(self, ref):
         name = ref[2:-1]
         base = 10
@@ -1452,18 +1453,49 @@ class Bot(irc.IRCClient):
     def unescape(self, data):
         return re.sub(r"&#?[A-Za-z0-9]+?;", self.replace_entities, data)
 
-        # Don't use this directy, use sendnotice
+    # Don't use this directy, use send_raw
+    def send_raw_direct(self, line):
+        self.sendLine(line)
+        self.logs.ircSendMessage("[SERVER]", line)
 
+    # Don't use this directy, use sendmsg
+    def sendmessage(self, user, message):
+        #TODO: Better max-length check
+        if len(message) > 300:
+            message = message[:300] + "..."
+        if user == "NickServ":
+            self.logs.ircSendMessage(user, ("*" * len(message)))
+        else:
+            self.logs.ircSendMessage(user, message)
+        self.msg(user, message)
+        # Flush the logfile
+
+    # Don't use this directy, use sendnotice
     def sendntc(self, user, message):
+        #TODO: Better max-length check
+        if len(message) > 300:
+            message = message[:300] + "..."
         self.logs.ircSendNotice(user, message)
         self.notice(user, message)
         # Flush the logfile
 
+    def send_raw(self, data):
+        if self.settings['rate_limit']['raw']['enable']:
+            self.rawqueue.append(str(data))
+        else:
+            self.send_raw_direct(str(data))
+
     def sendmsg(self, user, message):
-        self.messagequeue.append(str(user) + ":" + str(message))
+        if self.settings['rate_limit']['message']['enable']:
+            self.messagequeue.append(str(user) + ":" + str(message))
+        else:
+            self.sendmessage(user, message)
 
     def sendnotice(self, user, message):
-        self.noticequeue.append(str(user) + ":" + str(message))
+        if self.settings['rate_limit']['notice']['enable']:
+            self.noticequeue.append(str(user) + ":" + str(message))
+        else:
+            self.sendntc(user, message)
 
     def senddescribe(self, user, message):
         self.logs.ircSendAction(user, message)

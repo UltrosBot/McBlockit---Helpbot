@@ -55,3 +55,30 @@ other:
   emotes: false
   # Switch for DNSBL lookups
   use_dnsbl: false
+
+# Rate-limiting settings
+rate_limit:
+  # Message rate-limiting settings
+  message:
+    # Enable message rate-limiting
+    enable: true
+    # Maximum lines to send per time-period
+    lines: 5
+    # Time period in seconds
+    time: 2.5
+  # Notice rate-limiting settings
+  notice:
+    # Enable notice rate-limiting
+    enable: true
+    # Maximum lines to send per time-period
+    lines: 5
+    # Time period in seconds
+    time: 2.5
+  # Raw rate-limiting settings
+  raw:
+    # Enable raw rate-limiting
+    enable: true
+    # Maximum lines to send per time-period
+    lines: 5
+    # Time period in seconds
+    time: 2.5
