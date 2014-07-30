@@ -1,9 +1,7 @@
 McBlockit---Helpbot
 ===================
 
-<p align="center" style="border: 1px solid black; border-radius: 5px;">
-  <img src="http://i.imgur.com/Aa8grxp.png"/>
-</p>
+This repository is old and only contains legacy code. The code isn't very good, either.
 
-Originally the helperbot for MCBlockit IRC (#mcblockit on Freenode), this bot has become sort of widely varied. Some people may know it as Ultros.
-
+Instead, you may wish to check out our new repo, [UltrosBot/Ultros](https://github.com/UltrosBot/Ultros),
+which has been completely rewritten from the ground up, with actual coding standards in mind.
